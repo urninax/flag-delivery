@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: flag-delivery-mono
+  devtools:
+    restart:
+      enabled: false
+  datasource:
+    username:
+    password:
+    driver-class-name: org.postgresql.Driver
+    url:
+  data:
+    jdbc:
+      dialect: postgresql
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
