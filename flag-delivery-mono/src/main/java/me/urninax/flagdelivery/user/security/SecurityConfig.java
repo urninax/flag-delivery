@@ -2,6 +2,7 @@ package me.urninax.flagdelivery.user.security;
 
 import me.urninax.flagdelivery.user.services.UsersService;
 import me.urninax.flagdelivery.user.services.UsersServiceImpl;
+import me.urninax.flagdelivery.user.utils.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +15,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -22,12 +25,14 @@ public class SecurityConfig{
     private final UsersServiceImpl usersService;
     private final PasswordEncoder passwordEncoder;
     private final Environment environment;
+    private final JwtUtils jwtUtils;
 
     @Autowired
-    public SecurityConfig(UsersServiceImpl usersService, PasswordEncoder passwordEncoder, Environment environment){
+    public SecurityConfig(UsersServiceImpl usersService, PasswordEncoder passwordEncoder, Environment environment, JwtUtils jwtUtils){
         this.usersService = usersService;
         this.passwordEncoder = passwordEncoder;
         this.environment = environment;
+        this.jwtUtils = jwtUtils;
     }
 
     @Bean
@@ -40,7 +45,7 @@ public class SecurityConfig{
 
         AuthenticationManager authManager = authenticationManagerBuilder.build();
 
-        AuthenticationFilter authenticationFilter = new AuthenticationFilter(authManager, usersService, environment);
+        AuthenticationFilter authenticationFilter = new AuthenticationFilter(authManager, usersService, jwtUtils);
         authenticationFilter.setFilterProcessesUrl(environment.getProperty("login.url"));
 
         http
@@ -49,8 +54,11 @@ public class SecurityConfig{
                         -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers(HttpMethod.POST, "/signup").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/signin").permitAll())
+                        .requestMatchers(HttpMethod.POST, "/signin").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/error").permitAll()
+                        .anyRequest().authenticated())
                 .addFilter(authenticationFilter)
+                .addFilterBefore(new JwtAuthenticationFilter(jwtUtils), UsernamePasswordAuthenticationFilter.class)
                 .authenticationManager(authManager);
 
         return http.build();
