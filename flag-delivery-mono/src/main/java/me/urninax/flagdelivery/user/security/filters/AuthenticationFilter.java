@@ -46,7 +46,10 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter{
         String email = ((User) authResult.getPrincipal()).getUsername();
         UserEntity userEntity = usersService.findUserByEmail(email);
 
-        List<String> stringAuthorities = userEntity.getInternalRoles().stream().map(Enum::name).toList();
+        List<String> stringAuthorities = userEntity
+                .getInternalRoles()
+                .stream().map(Enum::name)
+                .toList();
 
         String token = jwtUtils.generateToken(userEntity.getId().toString(), email, stringAuthorities);
 
