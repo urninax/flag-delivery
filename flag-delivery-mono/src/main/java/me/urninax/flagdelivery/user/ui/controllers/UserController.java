@@ -2,6 +2,7 @@ package me.urninax.flagdelivery.user.ui.controllers;
 
 import jakarta.validation.Valid;
 import me.urninax.flagdelivery.user.services.UsersService;
+import me.urninax.flagdelivery.user.ui.models.requests.SigninRequest;
 import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
