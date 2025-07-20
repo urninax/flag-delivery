@@ -1,8 +1,6 @@
-package me.urninax.flagdelivery.user.security;
+package me.urninax.flagdelivery.user.security.filters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,7 +9,6 @@ import me.urninax.flagdelivery.user.models.UserEntity;
 import me.urninax.flagdelivery.user.services.UsersServiceImpl;
 import me.urninax.flagdelivery.user.ui.models.requests.SigninRequest;
 import me.urninax.flagdelivery.user.utils.JwtUtils;
-import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -49,7 +46,9 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter{
         String email = ((User) authResult.getPrincipal()).getUsername();
         UserEntity userEntity = usersService.findUserByEmail(email);
 
-        String token = jwtUtils.generateToken(userEntity.getId().toString(), email, Collections.emptyList());
+        List<String> stringAuthorities = userEntity.getInternalRoles().stream().map(Enum::name).toList();
+
+        String token = jwtUtils.generateToken(userEntity.getId().toString(), email, stringAuthorities);
 
         response.addHeader("Authorization", String.format("Bearer %s", token));
     }
