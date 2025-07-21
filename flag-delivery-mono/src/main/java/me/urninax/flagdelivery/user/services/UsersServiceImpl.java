@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -64,8 +65,8 @@ public class UsersServiceImpl implements UsersService{
                 .orElseThrow(() -> new UsernameNotFoundException("User was not found"));
     }
 
-    public void updateUser(UpdatePersonalInfoRequest request, String userEmail){
-        UserEntity userEntity = usersRepository.findByEmail(userEmail)
+    public void updateUser(UpdatePersonalInfoRequest request, UUID userId){
+        UserEntity userEntity = usersRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User was not found"));
 
         if(request.getFirstName() != null && !request.getFirstName().isBlank()){
@@ -86,8 +87,8 @@ public class UsersServiceImpl implements UsersService{
         usersRepository.save(userEntity);
     }
 
-    public void changeUserPassword(ChangePasswordRequest request, String userEmail){
-        UserEntity userEntity = usersRepository.findByEmail(userEmail)
+    public void changeUserPassword(ChangePasswordRequest request, UUID userId){
+        UserEntity userEntity = usersRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User was not found"));
 
         if(!request.getNewPassword().equals(request.getNewPasswordConfirmation())){

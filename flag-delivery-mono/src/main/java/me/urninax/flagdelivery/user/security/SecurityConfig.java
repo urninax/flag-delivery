@@ -55,8 +55,8 @@ public class SecurityConfig{
                 .sessionManagement((session)
                         -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers(HttpMethod.POST, "/signup").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/signin").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/signup").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/signin").permitAll()
                         .requestMatchers(HttpMethod.POST, "/error").permitAll()
                         .anyRequest().authenticated())
                 .addFilter(authenticationFilter)
