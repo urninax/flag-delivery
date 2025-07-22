@@ -2,6 +2,7 @@ package me.urninax.flagdelivery.organisation.models;
 
 import jakarta.persistence.*;
 import lombok.*;
+import me.urninax.flagdelivery.organisation.models.membership.Membership;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import org.hibernate.annotations.UuidGenerator;
 
@@ -34,12 +35,17 @@ public class Organisation{
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    private List<UserEntity> members;
+    private List<Membership> memberships;
 
-    public void addMember(UserEntity userEntity){
-        members.add(userEntity);
-        userEntity.setOrganisation(this);
-    }
+//    public void addMembership(Membership membership){
+//        memberships.add(membership);
+//        membership.setOrganisation(this);
+//    }
+//
+//    public void removeMembership(Membership membership){
+//        memberships.remove(membership);
+//        membership.setOrganisation(null);
+//    }
 
     //projects
     //teams

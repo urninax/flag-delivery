@@ -56,6 +56,10 @@ public class UsersServiceImpl implements UsersService{
 //        return usersRepository.findByEmail(email)
 //                .orElseThrow(() -> new UsernameNotFoundException("User was not found"));
 //    }
+    public UserEntity getUserById(UUID id){
+        return usersRepository.findById(id).orElseThrow(() ->
+                new UsernameNotFoundException("User was not found"));
+    }
 
     public void updateUser(UpdatePersonalInfoRequest request, UUID userId){
         UserEntity userEntity = usersRepository.findById(userId)

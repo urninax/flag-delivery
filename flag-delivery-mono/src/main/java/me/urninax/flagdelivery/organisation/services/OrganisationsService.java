@@ -40,10 +40,8 @@ public class OrganisationsService{
         Organisation organisation = Organisation.builder()
                 .name(request.getName())
                 .owner(userRef)
-                .members(new ArrayList<>())
+                .memberships(new ArrayList<>())
                 .build();
-
-        organisation.addMember(userRef);
 
         Organisation created = organisationsRepository.save(organisation);
 

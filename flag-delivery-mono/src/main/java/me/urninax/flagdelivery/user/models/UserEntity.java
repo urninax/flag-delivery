@@ -2,7 +2,7 @@ package me.urninax.flagdelivery.user.models;
 
 import jakarta.persistence.*;
 import lombok.*;
-import me.urninax.flagdelivery.organisation.models.Organisation;
+import me.urninax.flagdelivery.organisation.models.membership.Membership;
 import me.urninax.flagdelivery.user.security.enums.InternalRole;
 import org.hibernate.annotations.UuidGenerator;
 
@@ -33,12 +33,8 @@ public class UserEntity{
     @Column(name = "password")
     private String password;
 
-    @OneToOne(mappedBy = "owner")
-    private Organisation ownedOrganisation;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organisation_id")
-    private Organisation organisation;
+    @OneToOne(mappedBy = "user")
+    private Membership membership;
 
     @Column(name = "enabled")
     private boolean enabled;

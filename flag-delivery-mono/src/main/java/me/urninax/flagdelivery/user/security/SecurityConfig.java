@@ -47,7 +47,7 @@ public class SecurityConfig{
 
         AuthenticationManager authManager = authenticationManagerBuilder.build();
 
-        AuthenticationFilter authenticationFilter = new AuthenticationFilter(authManager, usersService, jwtUtils);
+        AuthenticationFilter authenticationFilter = new AuthenticationFilter(authManager, jwtUtils);
         authenticationFilter.setFilterProcessesUrl(environment.getProperty("login.url"));
 
         http

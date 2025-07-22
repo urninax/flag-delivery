@@ -1,6 +1,8 @@
 package me.urninax.flagdelivery.organisation.ui.controllers;
 
 import jakarta.validation.Valid;
+import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
+import me.urninax.flagdelivery.organisation.services.MembershipsService;
 import me.urninax.flagdelivery.organisation.services.OrganisationsService;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateOrganisationRequest;
 import me.urninax.flagdelivery.user.security.UserPrincipal;
@@ -20,16 +22,25 @@ import java.util.UUID;
 @RequestMapping("/api/v1/organisations")
 public class OrganisationsController{
     private final OrganisationsService organisationsService;
+    private final MembershipsService membershipsService;
 
     @Autowired
-    public OrganisationsController(OrganisationsService organisationsService){
+    public OrganisationsController(OrganisationsService organisationsService, MembershipsService membershipsService){
         this.organisationsService = organisationsService;
+        this.membershipsService = membershipsService;
     }
 
     @PostMapping()
     public ResponseEntity<?> createOrganisation(@RequestBody @Valid CreateOrganisationRequest request){
         UUID userId = ((UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         UUID newOrgId = organisationsService.createOrganisation(request, userId);
+
+        membershipsService.addMembership(
+                newOrgId,
+                userId,
+                OrgRole.ADMIN,
+                true
+        );
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()

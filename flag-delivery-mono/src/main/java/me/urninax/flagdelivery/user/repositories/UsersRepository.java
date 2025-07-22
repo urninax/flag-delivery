@@ -15,6 +15,12 @@ public interface UsersRepository extends JpaRepository<UserEntity, UUID>{
 
     boolean existsByEmail(String email);
 
-    @Query("SELECT u.id AS id, u.organisation.id as organisationId FROM UserEntity u WHERE u.id = :userId")
+    @Query("""
+        SELECT u.id AS id,
+        m.id.organisationId as organisationId
+        FROM UserEntity u
+        LEFT JOIN u.membership m
+        WHERE u.id = :userId
+    """)
     Optional<UserOrgProjection> findProjectedById(UUID userId);
 }
