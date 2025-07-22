@@ -10,7 +10,8 @@ import java.time.Instant;
 @Getter
 @Setter
 public class ErrorMessage{
-    private String path;
+    private Instant timestamp;
+    private int status;
     private String message;
-    private Instant instant;
+    private String path;
 }

@@ -27,9 +27,10 @@ public class GlobalControllerAdvice{
         }
 
         ErrorMessage errorMessage = ErrorMessage.builder()
-                .path(request.getDescription(false).replace("uri=", ""))
+                .timestamp(Instant.now())
+                .status(HttpStatus.BAD_REQUEST.value())
                 .message(message)
-                .instant(Instant.now())
+                .path(request.getDescription(false).replace("uri=", ""))
                 .build();
 
         return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
@@ -57,9 +58,10 @@ public class GlobalControllerAdvice{
         }
 
         ErrorMessage errorMessage = ErrorMessage.builder()
-                .path(request.getDescription(false).replace("uri=", ""))
+                .timestamp(Instant.now())
+                .status(status.value())
                 .message(message)
-                .instant(Instant.now())
+                .path(request.getDescription(false).replace("uri=", ""))
                 .build();
 
         return new ResponseEntity<>(errorMessage, status);

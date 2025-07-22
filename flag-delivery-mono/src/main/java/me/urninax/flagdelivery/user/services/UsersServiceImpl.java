@@ -3,6 +3,7 @@ package me.urninax.flagdelivery.user.services;
 import lombok.extern.slf4j.Slf4j;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import me.urninax.flagdelivery.user.repositories.UsersRepository;
+import me.urninax.flagdelivery.user.security.UserPrincipal;
 import me.urninax.flagdelivery.user.security.enums.InternalRole;
 import me.urninax.flagdelivery.user.ui.models.requests.ChangePasswordRequest;
 import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
@@ -12,23 +13,20 @@ import me.urninax.flagdelivery.user.utils.exceptions.EmailAlreadyExistsException
 import me.urninax.flagdelivery.user.utils.exceptions.PasswordMismatchException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @Slf4j
 public class UsersServiceImpl implements UsersService{
-    private UsersRepository usersRepository;
-    private UserMapper userMapper;
-    private PasswordEncoder passwordEncoder;
+    private final UsersRepository usersRepository;
+    private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
     public UsersServiceImpl(UsersRepository usersRepository, UserMapper userMapper, PasswordEncoder passwordEncoder){
@@ -51,19 +49,13 @@ public class UsersServiceImpl implements UsersService{
         UserEntity userEntity = usersRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User was not found"));
 
-        List<SimpleGrantedAuthority> authorities = userEntity
-                .getInternalRoles()
-                .stream()
-                .map(role -> new SimpleGrantedAuthority(role.name()))
-                .toList();
-
-        return new User(userEntity.getEmail(), userEntity.getPassword(), authorities);
+        return new UserPrincipal(userEntity);
     }
 
-    public UserEntity findUserByEmail(String email){
-        return usersRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User was not found"));
-    }
+//    public UserEntity findUserByEmail(String email){
+//        return usersRepository.findByEmail(email)
+//                .orElseThrow(() -> new UsernameNotFoundException("User was not found"));
+//    }
 
     public void updateUser(UpdatePersonalInfoRequest request, UUID userId){
         UserEntity userEntity = usersRepository.findById(userId)

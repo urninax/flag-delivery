@@ -2,11 +2,9 @@ package me.urninax.flagdelivery.user.security.filters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import me.urninax.flagdelivery.user.models.UserEntity;
-import me.urninax.flagdelivery.user.services.UsersServiceImpl;
+import me.urninax.flagdelivery.user.security.UserPrincipal;
 import me.urninax.flagdelivery.user.ui.models.requests.SigninRequest;
 import me.urninax.flagdelivery.user.utils.JwtUtils;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,19 +12,17 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
 import java.util.*;
 
 public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter{
-    private final UsersServiceImpl usersService;
     private final JwtUtils jwtUtils;
 
-    public AuthenticationFilter(AuthenticationManager authenticationManager, UsersServiceImpl usersService, JwtUtils jwtUtils){
+    public AuthenticationFilter(AuthenticationManager authenticationManager, JwtUtils jwtUtils){
         super(authenticationManager);
-        this.usersService = usersService;
         this.jwtUtils = jwtUtils;
     }
 
@@ -42,16 +38,17 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter{
     }
 
     @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException{
-        String email = ((User) authResult.getPrincipal()).getUsername();
-        UserEntity userEntity = usersService.findUserByEmail(email);
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult){
+        UserPrincipal userPrincipal = (UserPrincipal) authResult.getPrincipal();
+        String email = userPrincipal.getUsername();
+        UUID userId = userPrincipal.getId();
 
-        List<String> stringAuthorities = userEntity
-                .getInternalRoles()
-                .stream().map(Enum::name)
+        List<String> stringAuthorities = authResult.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
                 .toList();
 
-        String token = jwtUtils.generateToken(userEntity.getId().toString(), email, stringAuthorities);
+        String token = jwtUtils.generateToken(userId.toString(), email, stringAuthorities);
 
         response.addHeader("Authorization", String.format("Bearer %s", token));
     }

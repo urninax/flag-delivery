@@ -38,9 +38,10 @@ public class UserControllerAdvice{
         }
 
         ErrorMessage errorMessage = ErrorMessage.builder()
-                .path(request.getDescription(false).replace("uri=", ""))
+                .timestamp(Instant.now())
+                .status(status.value())
                 .message(message)
-                .instant(Instant.now())
+                .path(request.getDescription(false).replace("uri=", ""))
                 .build();
 
         return new ResponseEntity<>(errorMessage, status);
@@ -51,9 +52,10 @@ public class UserControllerAdvice{
                                                                               WebRequest request){
 
         ErrorMessage errorMessage = ErrorMessage.builder()
-                .path(request.getDescription(false).replace("uri=", ""))
+                .timestamp(Instant.now())
+                .status(HttpStatus.CONFLICT.value())
                 .message(exc.getLocalizedMessage())
-                .instant(Instant.now())
+                .path(request.getDescription(false).replace("uri=", ""))
                 .build();
 
         return new ResponseEntity<>(errorMessage, HttpStatus.CONFLICT);

@@ -44,8 +44,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
                 SecurityContext context = SecurityContextHolder.createEmptyContext();
 
                 UserPrincipal principal = UserPrincipal.builder()
-                        .email(email)
                         .id(UUID.fromString(uuid))
+                        .username(email)
                         .build();
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, null, authorities);
