@@ -37,6 +37,14 @@ public class Organisation{
     )
     private List<Membership> memberships;
 
+    @OneToMany(
+            mappedBy = "organisation",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<AccessToken> tokens;
+
 //    public void addMembership(Membership membership){
 //        memberships.add(membership);
 //        membership.setOrganisation(this);
