@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.urninax.flagdelivery.organisation.models.membership.MembershipId;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 
 @AllArgsConstructor
@@ -12,7 +11,7 @@ import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 @Getter
 @Setter
 public class MembershipDTO{
-    private MembershipId id;
+    private UserDTO userDTO;
 
     private OrganisationDTO organisation;
 

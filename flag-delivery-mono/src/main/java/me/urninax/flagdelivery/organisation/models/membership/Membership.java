@@ -5,6 +5,8 @@ import lombok.*;
 import me.urninax.flagdelivery.organisation.models.Organisation;
 import me.urninax.flagdelivery.user.models.UserEntity;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "organisation_memberships")
 @Getter
@@ -13,15 +15,17 @@ import me.urninax.flagdelivery.user.models.UserEntity;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Membership{
-    @EmbeddedId
-    private MembershipId id;
+    @Id
+    @Column(name = "user_id")
+    private UUID userId;
 
-    @MapsId("userId")
+    @MapsId
     @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
     private UserEntity user;
 
-    @MapsId("organisationId")
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "organisation_id")
     private Organisation organisation;
 
     @Column(name = "is_owner", nullable = false)

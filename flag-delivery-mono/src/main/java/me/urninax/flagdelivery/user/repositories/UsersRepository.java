@@ -17,7 +17,7 @@ public interface UsersRepository extends JpaRepository<UserEntity, UUID>{
 
     @Query("""
         SELECT u.id AS id,
-        m.id.organisationId as organisationId
+        m.organisation.id as organisationId
         FROM UserEntity u
         LEFT JOIN u.membership m
         WHERE u.id = :userId

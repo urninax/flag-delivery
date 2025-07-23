@@ -1,12 +1,10 @@
 package me.urninax.flagdelivery.organisation.ui.controllers;
 
 import jakarta.validation.Valid;
-import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
-import me.urninax.flagdelivery.organisation.services.MembershipsService;
+import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.organisation.services.OrganisationsService;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateOrganisationRequest;
 import me.urninax.flagdelivery.user.security.UserPrincipal;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,28 +17,15 @@ import java.net.URI;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/organisations")
+@RequestMapping("/api/v1/organisation")
+@RequiredArgsConstructor
 public class OrganisationsController{
     private final OrganisationsService organisationsService;
-    private final MembershipsService membershipsService;
-
-    @Autowired
-    public OrganisationsController(OrganisationsService organisationsService, MembershipsService membershipsService){
-        this.organisationsService = organisationsService;
-        this.membershipsService = membershipsService;
-    }
 
     @PostMapping()
     public ResponseEntity<?> createOrganisation(@RequestBody @Valid CreateOrganisationRequest request){
         UUID userId = ((UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         UUID newOrgId = organisationsService.createOrganisation(request, userId);
-
-        membershipsService.addMembership(
-                newOrgId,
-                userId,
-                OrgRole.ADMIN,
-                true
-        );
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
