@@ -6,10 +6,15 @@ import me.urninax.flagdelivery.organisation.models.membership.Membership;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.organisation.repositories.AccessTokenRepository;
 import me.urninax.flagdelivery.organisation.repositories.MembershipsRepository;
+import me.urninax.flagdelivery.organisation.shared.AccessTokenDTO;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateAccessTokenRequest;
+import me.urninax.flagdelivery.user.utils.UserMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -17,6 +22,7 @@ import java.util.UUID;
 public class AccessTokenService{
     private final AccessTokenRepository accessTokenRepository;
     private final MembershipsRepository membershipsRepository;
+    private final UserMapper userMapper;
 
     public String issueToken(UUID userId, CreateAccessTokenRequest request){
         Membership membership = membershipsRepository.findById(userId)
@@ -36,7 +42,34 @@ public class AccessTokenService{
                 .build();
 
         accessTokenRepository.save(accessTokenEntity);
-
         return String.format("api-%s", accessTokenEntity.getToken().toString());
+    }
+
+    public Page<AccessTokenDTO> getTokensForUserInOrg(UUID userId, Pageable pageable, Optional<Boolean> showAllOptional){
+        Membership membership = membershipsRepository.findById(userId)
+                .orElseThrow(() -> new AccessDeniedException("No role in this organisation"));
+
+        OrgRole role = membership.getRole();
+
+        boolean showAll = showAllOptional.orElse(false);
+
+        if(showAll){
+            assertAdmin(role);
+
+            Page<AccessToken> allTokensPage = accessTokenRepository
+                    .findAllByOrganisation_Id(membership.getOrganisation().getId(), pageable);
+            return allTokensPage.map(userMapper::toDTO);
+        }
+
+        Page<AccessToken> allUserTokensPage = accessTokenRepository
+                .findAllByOwner_IdAndOrganisation_Id(membership.getUserId(), membership.getOrganisation().getId(), pageable);
+
+        return allUserTokensPage.map(userMapper::toDTO);
+    }
+
+    private void assertAdmin(OrgRole role){
+        if(role != OrgRole.ADMIN){
+            throw new AccessDeniedException("Role for this request is not sufficient");
+        }
     }
 }

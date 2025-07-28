@@ -1,7 +1,9 @@
 package me.urninax.flagdelivery.user.utils;
 
+import me.urninax.flagdelivery.organisation.models.AccessToken;
 import me.urninax.flagdelivery.organisation.models.Organisation;
 import me.urninax.flagdelivery.organisation.models.membership.Membership;
+import me.urninax.flagdelivery.organisation.shared.AccessTokenDTO;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import me.urninax.flagdelivery.user.shared.MembershipDTO;
 import me.urninax.flagdelivery.user.shared.OrganisationDTO;
@@ -21,4 +23,8 @@ public interface UserMapper{
     UserDTO toDTO(UserEntity userEntity);
     MembershipDTO toDTO(Membership membership);
     OrganisationDTO toDTO(Organisation organisation);
+
+    @Mapping(source = "token", target = "hiddenToken")
+    @Mapping(source = "owner.id", target = "memberId")
+    AccessTokenDTO toDTO(AccessToken accessToken);
 }
