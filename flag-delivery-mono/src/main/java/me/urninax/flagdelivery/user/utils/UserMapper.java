@@ -24,7 +24,6 @@ public interface UserMapper{
     MembershipDTO toDTO(Membership membership);
     OrganisationDTO toDTO(Organisation organisation);
 
-    @Mapping(source = "token", target = "hiddenToken")
     @Mapping(source = "owner.id", target = "memberId")
     AccessTokenDTO toDTO(AccessToken accessToken);
 }

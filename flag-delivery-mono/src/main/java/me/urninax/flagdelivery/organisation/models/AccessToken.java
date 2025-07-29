@@ -20,8 +20,14 @@ import java.util.UUID;
 public class AccessToken{
     @Id
     @UuidGenerator
-    @Column(name = "token")
-    private UUID token;
+    @Column(name = "id")
+    private UUID id;
+
+    @Column(name = "hashed_token")
+    private String hashedToken;
+
+    @Column(name = "token_hint")
+    private String tokenHint;
 
     @Column(name = "name")
     private String name;

@@ -13,8 +13,8 @@ import java.util.UUID;
 @Getter
 @Setter
 public class AccessTokenDTO{
-    @JsonProperty("token")
-    private String hiddenToken;
+    @JsonProperty("token_hint")
+    private String tokenHint;
 
     @JsonProperty("name")
     private String name;

@@ -8,6 +8,7 @@ import me.urninax.flagdelivery.organisation.repositories.AccessTokenRepository;
 import me.urninax.flagdelivery.organisation.repositories.MembershipsRepository;
 import me.urninax.flagdelivery.organisation.shared.AccessTokenDTO;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateAccessTokenRequest;
+import me.urninax.flagdelivery.user.utils.AccessTokenUtils;
 import me.urninax.flagdelivery.user.utils.UserMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,7 +34,13 @@ public class AccessTokenService{
             throw new AccessDeniedException("Insufficient user role for token with requested role");
         }
 
+        String token = UUID.randomUUID().toString();
+        String hashedToken = AccessTokenUtils.hashSha256(token);
+        String tokenHint = AccessTokenUtils.toHint(token);
+
         AccessToken accessTokenEntity = AccessToken.builder()
+                .hashedToken(hashedToken)
+                .tokenHint(tokenHint)
                 .name(request.name())
                 .role(request.role())
                 .isService(request.isService())
@@ -42,7 +49,7 @@ public class AccessTokenService{
                 .build();
 
         accessTokenRepository.save(accessTokenEntity);
-        return String.format("api-%s", accessTokenEntity.getToken().toString());
+        return String.format("api-%s", token);
     }
 
     public Page<AccessTokenDTO> getTokensForUserInOrg(UUID userId, Pageable pageable, Optional<Boolean> showAllOptional){
