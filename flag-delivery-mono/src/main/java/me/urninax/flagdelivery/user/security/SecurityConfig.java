@@ -1,7 +1,10 @@
 package me.urninax.flagdelivery.user.security;
 
 import me.urninax.flagdelivery.user.security.filters.AuthenticationFilter;
+import me.urninax.flagdelivery.user.security.filters.BearerAuthenticationFilter;
 import me.urninax.flagdelivery.user.security.filters.JwtAuthenticationFilter;
+import me.urninax.flagdelivery.user.security.providers.AccessTokenAuthenticationProvider;
+import me.urninax.flagdelivery.user.security.providers.JwtAuthenticationProvider;
 import me.urninax.flagdelivery.user.services.UsersServiceImpl;
 import me.urninax.flagdelivery.user.utils.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +13,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,6 +24,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -38,7 +45,9 @@ public class SecurityConfig{
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   AuthenticationManager manager,
+                                                   BearerTokenAuthenticationConverter converter) throws Exception{
         var authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
 
         authenticationManagerBuilder
@@ -57,12 +66,19 @@ public class SecurityConfig{
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/signup").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/signin").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/error").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/error**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/error**").permitAll()
                         .anyRequest().authenticated())
                 .addFilter(authenticationFilter)
-                .addFilterBefore(new JwtAuthenticationFilter(jwtUtils), UsernamePasswordAuthenticationFilter.class)
+//                .addFilterBefore(new JwtAuthenticationFilter(jwtUtils), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new BearerAuthenticationFilter(manager, converter), UsernamePasswordAuthenticationFilter.class)
                 .authenticationManager(authManager);
 
         return http.build();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationProvider... providers){
+        return new ProviderManager(List.of(providers));
     }
 }
