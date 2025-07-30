@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import me.urninax.flagdelivery.user.security.UserPrincipal;
+import me.urninax.flagdelivery.user.security.principals.UserPrincipal;
 import me.urninax.flagdelivery.user.ui.models.requests.SigninRequest;
 import me.urninax.flagdelivery.user.utils.JwtUtils;
 import org.springframework.security.authentication.AuthenticationManager;

@@ -1,9 +1,8 @@
 package me.urninax.flagdelivery.user.services;
 
-import lombok.extern.slf4j.Slf4j;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import me.urninax.flagdelivery.user.repositories.UsersRepository;
-import me.urninax.flagdelivery.user.security.UserPrincipal;
+import me.urninax.flagdelivery.user.security.principals.UserPrincipal;
 import me.urninax.flagdelivery.user.security.enums.InternalRole;
 import me.urninax.flagdelivery.user.ui.models.requests.ChangePasswordRequest;
 import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
@@ -22,7 +21,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@Slf4j
 public class UsersServiceImpl implements UsersService{
     private final UsersRepository usersRepository;
     private final UserMapper userMapper;
@@ -52,14 +50,6 @@ public class UsersServiceImpl implements UsersService{
         return new UserPrincipal(userEntity);
     }
 
-//    public UserEntity findUserByEmail(String email){
-//        return usersRepository.findByEmail(email)
-//                .orElseThrow(() -> new UsernameNotFoundException("User was not found"));
-//    }
-    public UserEntity getUserById(UUID id){
-        return usersRepository.findById(id).orElseThrow(() ->
-                new UsernameNotFoundException("User was not found"));
-    }
 
     public void updateUser(UpdatePersonalInfoRequest request, UUID userId){
         UserEntity userEntity = usersRepository.findById(userId)
