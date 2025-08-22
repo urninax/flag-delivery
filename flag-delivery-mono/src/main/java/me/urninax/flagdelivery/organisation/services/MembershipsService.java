@@ -1,5 +1,6 @@
 package me.urninax.flagdelivery.organisation.services;
 
+import jakarta.transaction.Transactional;
 import me.urninax.flagdelivery.organisation.models.Organisation;
 import me.urninax.flagdelivery.organisation.models.membership.Membership;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
@@ -25,6 +26,7 @@ public class MembershipsService{
         this.usersRepository = usersRepository;
     }
 
+    @Transactional
     public void addMembership(UUID organisationId, UUID userId, OrgRole role, boolean isOwner){
         Organisation orgRef = organisationsRepository.getReferenceById(organisationId);
         UserEntity userRef = usersRepository.getReferenceById(userId);

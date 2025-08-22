@@ -108,7 +108,7 @@ public class OrganisationsControllerTest {
     @Test
     @DisplayName("POST /api/v1/organisation with HTTP method not POST -> 405")
     void createOrganisation_methodNotAllowed_shouldReturn405() throws Exception{
-        mockMvc.perform(delete("/api/v1/organisation")
+        mockMvc.perform(patch("/api/v1/organisation")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isMethodNotAllowed());

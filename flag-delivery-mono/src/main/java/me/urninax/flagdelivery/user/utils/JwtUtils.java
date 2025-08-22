@@ -64,7 +64,7 @@ public class JwtUtils{
         return principal;
     }
 
-    private Claims parse(String token) throws JwtException{
+    public Claims parse(String token) throws JwtException{
         byte[] secretBytes = Base64.getEncoder().encode(tokenSecret.getBytes());
         SecretKey secretKey = Keys.hmacShaKeyFor(secretBytes);
 

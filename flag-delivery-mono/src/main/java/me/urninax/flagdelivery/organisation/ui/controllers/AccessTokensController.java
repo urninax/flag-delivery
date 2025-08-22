@@ -43,6 +43,7 @@ public class AccessTokensController{
                                                                             sort = {"isService", "lastUsed"},
                                                                             direction = Sort.Direction.DESC) Pageable pageable,
                                                                         @RequestParam(name = "showAll") Optional<Boolean> showAllOptional){
+        //TODO: add token type filter support
         UUID userId = currentUser.getUserId();
         Page<AccessTokenDTO> accessTokenDTOPage = accessTokenService.getTokensForUserInOrg(userId, pageable, showAllOptional);
 
