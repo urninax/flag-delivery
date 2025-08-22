@@ -1,10 +1,8 @@
 package me.urninax.flagdelivery.user.security;
 
+import jakarta.servlet.DispatcherType;
 import me.urninax.flagdelivery.user.security.filters.AuthenticationFilter;
 import me.urninax.flagdelivery.user.security.filters.BearerAuthenticationFilter;
-import me.urninax.flagdelivery.user.security.filters.JwtAuthenticationFilter;
-import me.urninax.flagdelivery.user.security.providers.AccessTokenAuthenticationProvider;
-import me.urninax.flagdelivery.user.security.providers.JwtAuthenticationProvider;
 import me.urninax.flagdelivery.user.services.UsersServiceImpl;
 import me.urninax.flagdelivery.user.utils.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,10 +62,10 @@ public class SecurityConfig{
                 .sessionManagement((session)
                         -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests((authorize) -> authorize
+                        .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.FORWARD).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/signup").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/signin").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/error**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/error**").permitAll()
+                        .requestMatchers("/error**").permitAll()
                         .anyRequest().authenticated())
                 .addFilter(authenticationFilter)
 //                .addFilterBefore(new JwtAuthenticationFilter(jwtUtils), UsernamePasswordAuthenticationFilter.class)

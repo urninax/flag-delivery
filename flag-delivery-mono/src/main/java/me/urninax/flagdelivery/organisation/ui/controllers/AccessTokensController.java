@@ -13,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,7 +27,7 @@ public class AccessTokensController{
     private final AccessTokenService accessTokenService;
     private final CurrentUser currentUser;
 
-    @PostMapping()
+    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createAccessToken(@RequestBody @Valid CreateAccessTokenRequest request){
         UUID userId = currentUser.getUserId();
         String token = accessTokenService.issueToken(userId, request);
@@ -34,10 +35,10 @@ public class AccessTokensController{
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Authorization", token);
 
-        return new ResponseEntity<>(httpHeaders, HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.CREATED).headers(httpHeaders).build();
     }
 
-    @GetMapping()
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PageResponse<AccessTokenDTO>> getAccessTokens(@PageableDefault(size = 25,
                                                                             sort = {"isService", "lastUsed"},
                                                                             direction = Sort.Direction.DESC) Pageable pageable,

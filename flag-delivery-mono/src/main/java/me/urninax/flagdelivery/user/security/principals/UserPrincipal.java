@@ -27,7 +27,7 @@ public class UserPrincipal implements UserDetails{
         this.authorities = user.getInternalRoles()
                 .stream()
                 .map(authority ->
-                        new SimpleGrantedAuthority(authority.name()))
+                        new SimpleGrantedAuthority(String.format("ROLE_%s", authority.name())))
                 .toList();
         this.enabled = user.isEnabled();
     }

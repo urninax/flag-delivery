@@ -3,13 +3,16 @@ package me.urninax.flagdelivery.organisation.services;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.organisation.models.Organisation;
+import me.urninax.flagdelivery.organisation.models.membership.Membership;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
+import me.urninax.flagdelivery.organisation.repositories.MembershipsRepository;
 import me.urninax.flagdelivery.organisation.repositories.OrganisationsRepository;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateOrganisationRequest;
 import me.urninax.flagdelivery.organisation.utils.exceptions.OrganisationAlreadyExistsException;
 import me.urninax.flagdelivery.organisation.utils.projections.UserOrgProjection;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import me.urninax.flagdelivery.user.repositories.UsersRepository;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +24,7 @@ import java.util.UUID;
 public class OrganisationsService{
     private final OrganisationsRepository organisationsRepository;
     private final MembershipsService membershipsService;
+    private final MembershipsRepository membershipsRepository;
     private final UsersRepository usersRepository;
 
     @Transactional
@@ -50,5 +54,17 @@ public class OrganisationsService{
         );
 
         return created.getId();
+    }
+
+    @Transactional
+    public void deleteOrganisation(UUID userId){
+        Membership membership = membershipsRepository.findById(userId)
+                .orElseThrow(() -> new AccessDeniedException("No role in any organisation"));
+
+        if(!membership.isOwner()){
+            throw new AccessDeniedException("User is not an owner of organisation");
+        }
+
+        organisationsRepository.deleteById(membership.getOrganisation().getId());
     }
 }

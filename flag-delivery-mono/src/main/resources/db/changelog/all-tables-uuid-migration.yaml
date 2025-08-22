@@ -1,0 +1,46 @@
+databaseChangeLog:
+  - changeSet:
+      id: fix-all-uuid
+      author: urninax
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: access_token
+            constraintName: access_token_organisation_id_fkey
+
+        - dropForeignKeyConstraint:
+            baseTableName: organisation_memberships
+            constraintName: organisation_memberships_organisation_id_fkey
+
+        - modifyDataType:
+            tableName: organisation
+            columnName: id
+            newDataType: uuid
+
+        - modifyDataType:
+            tableName: access_token
+            columnName: organisation_id
+            newDataType: uuid
+
+        - modifyDataType:
+            tableName: organisation_memberships
+            columnName: organisation_id
+            newDataType: uuid
+
+        - modifyDataType:
+            tableName: access_token
+            columnName: id
+            newDataType: uuid
+
+        - addForeignKeyConstraint:
+            baseTableName: access_token
+            baseColumnNames: organisation_id
+            constraintName: access_token_organisation_id_fkey
+            referencedTableName: organisation
+            referencedColumnNames: id
+
+        - addForeignKeyConstraint:
+            baseTableName: organisation_memberships
+            baseColumnNames: organisation_id
+            constraintName: access_token_organisation_id_fkey
+            referencedTableName: organisation
+            referencedColumnNames: id

@@ -11,7 +11,6 @@ import me.urninax.flagdelivery.user.utils.UserMapper;
 import me.urninax.flagdelivery.user.utils.exceptions.EmailAlreadyExistsException;
 import me.urninax.flagdelivery.user.utils.exceptions.PasswordMismatchException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -34,10 +33,11 @@ public class UsersServiceImpl implements UsersService{
     }
 
     @Override
-    public void createUser(SignupRequest signupRequest) throws DataIntegrityViolationException{
+    public void createUser(SignupRequest signupRequest){
+        //TODO: check email existence
         UserEntity userEntity = userMapper.toEntity(signupRequest);
         userEntity.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
-        userEntity.setInternalRoles(List.of(InternalRole.ROLE_USER));
+        userEntity.setInternalRoles(List.of(InternalRole.USER));
 
         usersRepository.save(userEntity);
     }

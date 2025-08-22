@@ -1,0 +1,267 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1754234398698-1
+      author: urninax
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: access_token_pkey
+                  name: id
+                  type: char(36)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: hashed_token
+                  type: CLOB
+              - column:
+                  constraints:
+                    nullable: false
+                  name: token_hint
+                  type: VARCHAR(20)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name
+                  type: CLOB
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: READER
+                  name: role
+                  type: VARCHAR(50)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: issued_at
+                  type: timestamp
+              - column:
+                  name: last_used
+                  type: timestamp
+              - column:
+                  constraints:
+                    nullable: false
+                  name: is_service
+                  type: BOOLEAN
+              - column:
+                  constraints:
+                    nullable: false
+                  name: owner_id
+                  type: char(36)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: organisation_id
+                  type: char(36)
+            tableName: access_token
+  - changeSet:
+      id: 1754234398698-2
+      author: urninax
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: organisation_pkey
+                  name: id
+                  type: char(36)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name
+                  type: VARCHAR
+              - column:
+                  constraints:
+                    nullable: false
+                  name: owner_id
+                  type: char(36)
+            tableName: organisation
+  - changeSet:
+      id: 1754234398698-3
+      author: urninax
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: organisation_memberships_pkey
+                  name: user_id
+                  type: char(36)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: organisation_id
+                  type: char(36)
+              - column:
+                  defaultValueBoolean: false
+                  name: is_owner
+                  type: BOOLEAN
+              - column:
+                  constraints:
+                    nullable: false
+                  defaultValue: READER
+                  name: role
+                  type: VARCHAR(50)
+            tableName: organisation_memberships
+  - changeSet:
+      id: 1754234398698-4
+      author: urninax
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: user_entity_pkey
+                  name: id
+                  type: char(36)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: first_name
+                  type: VARCHAR(50)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: last_name
+                  type: VARCHAR(70)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: email
+                  type: VARCHAR
+              - column:
+                  constraints:
+                    nullable: false
+                  name: password
+                  type: VARCHAR
+              - column:
+                  defaultValueBoolean: true
+                  name: enabled
+                  type: BOOLEAN
+            tableName: user_entity
+  - changeSet:
+      id: 1754234398698-5
+      author: urninax
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: user_internal_roles_pkey
+                  name: user_id
+                  type: char(36)
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: user_internal_roles_pkey
+                  name: internal_role
+                  type: VARCHAR(50)
+            tableName: user_internal_roles
+  - changeSet:
+      id: 1754234398698-6
+      author: urninax
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addUniqueConstraint:
+            columnNames: owner_id
+            constraintName: organisation_owner_key
+            tableName: organisation
+  - changeSet:
+      id: 1754234398698-7
+      author: urninax
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addUniqueConstraint:
+            columnNames: email
+            constraintName: unique_email
+            tableName: user_entity
+  - changeSet:
+      id: 1754234398698-8
+      author: urninax
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: organisation_id
+            baseTableName: access_token
+            constraintName: access_token_organisation_id_fkey
+            onDelete: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: organisation
+  - changeSet:
+      id: 1754234398698-9
+      author: urninax
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: owner_id
+            baseTableName: access_token
+            constraintName: access_token_owner_id_fkey
+            onDelete: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: user_entity
+  - changeSet:
+      id: 1754234398698-10
+      author: urninax
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: organisation_id
+            baseTableName: organisation_memberships
+            constraintName: organisation_memberships_organisation_id_fkey
+            onDelete: CASCADE
+            referencedColumnNames: id
+            referencedTableName: organisation
+  - changeSet:
+      id: 1754234398698-11
+      author: urninax
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id
+            baseTableName: organisation_memberships
+            constraintName: organisation_memberships_user_id_fkey
+            onDelete: CASCADE
+            referencedColumnNames: id
+            referencedTableName: user_entity
+  - changeSet:
+      id: 1754234398698-12
+      author: urninax
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: owner_id
+            baseTableName: organisation
+            constraintName: organisation_owner_fkey
+            onDelete: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: user_entity
+  - changeSet:
+      id: 1754234398698-13
+      author: urninax
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id
+            baseTableName: user_internal_roles
+            constraintName: user_internal_roles_user_id_fkey
+            onDelete: CASCADE
+            referencedColumnNames: id
+            referencedTableName: user_entity
+

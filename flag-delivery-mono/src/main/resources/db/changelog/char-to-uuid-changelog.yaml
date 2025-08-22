@@ -1,0 +1,75 @@
+databaseChangeLog:
+  - changeSet:
+      id: fix-uuid-columns-1
+      author: urninax
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: access_token
+            constraintName: access_token_owner_id_fkey
+
+        - dropForeignKeyConstraint:
+            baseTableName: organisation
+            constraintName: organisation_owner_fkey
+
+        - dropForeignKeyConstraint:
+            baseTableName: organisation_memberships
+            constraintName: organisation_memberships_user_id_fkey
+
+        - dropForeignKeyConstraint:
+            baseTableName: user_internal_roles
+            constraintName: user_internal_roles_user_id_fkey
+
+        - modifyDataType:
+            tableName: user_entity
+            columnName: id
+            newDataType: uuid
+
+        - modifyDataType:
+            tableName: access_token
+            columnName: owner_id
+            newDataType: uuid
+
+        - modifyDataType:
+            tableName: organisation
+            columnName: owner_id
+            newDataType: uuid
+
+        - modifyDataType:
+            tableName: organisation_memberships
+            columnName: user_id
+            newDataType: uuid
+
+        - modifyDataType:
+            tableName: user_internal_roles
+            columnName: user_id
+            newDataType: uuid
+
+        - addForeignKeyConstraint:
+            baseTableName: access_token
+            baseColumnNames: owner_id
+            constraintName: access_token_owner_id_fkey
+            referencedTableName: user_entity
+            referencedColumnNames: id
+
+        - addForeignKeyConstraint:
+            baseTableName: organisation
+            baseColumnNames: owner_id
+            constraintName: organisation_owner_fkey
+            referencedTableName: user_entity
+            referencedColumnNames: id
+
+        - addForeignKeyConstraint:
+            baseTableName: organisation_memberships
+            baseColumnNames: user_id
+            constraintName: organisation_memberships_user_id_fkey
+            referencedTableName: user_entity
+            referencedColumnNames: id
+            onDelete: CASCADE
+
+        - addForeignKeyConstraint:
+            baseTableName: user_internal_roles
+            baseColumnNames: user_id
+            constraintName: user_internal_roles_user_id_fkey
+            referencedTableName: user_entity
+            referencedColumnNames: id
+            onDelete: CASCADE

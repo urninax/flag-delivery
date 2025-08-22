@@ -34,7 +34,7 @@ public class AccessTokenService{
                 .orElseThrow(() -> new AccessDeniedException("No role in any organisation"));
 
         OrgRole role = membership.getRole();
-        if(!role.atLeast(request.role())){
+        if(!role.atLeast(request.getRole())){
             throw new AccessDeniedException("Insufficient user role for token with requested role");
         }
 
@@ -45,8 +45,8 @@ public class AccessTokenService{
         AccessToken accessTokenEntity = AccessToken.builder()
                 .hashedToken(hashedToken)
                 .tokenHint(tokenHint)
-                .name(request.name())
-                .role(request.role())
+                .name(request.getName())
+                .role(request.getRole())
                 .isService(request.isService())
                 .owner(membership.getUser()) //TODO: check if its better to do with User/Org from membership, or request proxies from respective repositories
                 .organisation(membership.getOrganisation())

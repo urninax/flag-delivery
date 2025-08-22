@@ -5,13 +5,10 @@ import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.organisation.services.OrganisationsService;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateOrganisationRequest;
 import me.urninax.flagdelivery.user.security.CurrentUser;
-import me.urninax.flagdelivery.user.security.principals.UserPrincipal;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -24,7 +21,7 @@ public class OrganisationsController{
     private final OrganisationsService organisationsService;
     private final CurrentUser currentUser;
 
-    @PostMapping()
+    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createOrganisation(@RequestBody @Valid CreateOrganisationRequest request){
         UUID userId = currentUser.getUserId();
         UUID newOrgId = organisationsService.createOrganisation(request, userId);
@@ -36,5 +33,13 @@ public class OrganisationsController{
                 .toUri();
 
         return ResponseEntity.created(location).build();
+    }
+
+    @DeleteMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> deleteOrganisation(){
+        UUID userId = currentUser.getUserId();
+        organisationsService.deleteOrganisation(userId);
+
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
