@@ -1,6 +1,7 @@
 databaseChangeLog:
   - include:
       file: db/changelog/03-01-changelog.yaml
+      context: test
   - include:
       file: char-to-uuid-changelog.yaml
       relativeToChangelogFile: true
@@ -9,3 +10,6 @@ databaseChangeLog:
       file: all-tables-uuid-migration.yaml
       relativeToChangelogFile: true
       context: test
+  - include:
+      file: create-invitation-changelog.yaml
+      relativeToChangelogFile: true

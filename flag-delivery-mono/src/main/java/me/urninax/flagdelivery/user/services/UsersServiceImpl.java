@@ -7,7 +7,7 @@ import me.urninax.flagdelivery.user.security.enums.InternalRole;
 import me.urninax.flagdelivery.user.ui.models.requests.ChangePasswordRequest;
 import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
 import me.urninax.flagdelivery.user.ui.models.requests.UpdatePersonalInfoRequest;
-import me.urninax.flagdelivery.user.utils.UserMapper;
+import me.urninax.flagdelivery.user.utils.EntityMapper;
 import me.urninax.flagdelivery.user.utils.exceptions.EmailAlreadyExistsException;
 import me.urninax.flagdelivery.user.utils.exceptions.PasswordMismatchException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,20 +22,20 @@ import java.util.UUID;
 @Service
 public class UsersServiceImpl implements UsersService{
     private final UsersRepository usersRepository;
-    private final UserMapper userMapper;
+    private final EntityMapper entityMapper;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UsersServiceImpl(UsersRepository usersRepository, UserMapper userMapper, PasswordEncoder passwordEncoder){
+    public UsersServiceImpl(UsersRepository usersRepository, EntityMapper entityMapper, PasswordEncoder passwordEncoder){
         this.usersRepository = usersRepository;
-        this.userMapper = userMapper;
+        this.entityMapper = entityMapper;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public void createUser(SignupRequest signupRequest){
         //TODO: check email existence
-        UserEntity userEntity = userMapper.toEntity(signupRequest);
+        UserEntity userEntity = entityMapper.toEntity(signupRequest);
         userEntity.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
         userEntity.setInternalRoles(List.of(InternalRole.USER));
 

@@ -1,0 +1,111 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-invitation
+      author: urninax
+      changes:
+        - sql:
+            sql: |
+              create extension if not exists citext;
+
+        - createTable:
+            tableName: invitation
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: organisation_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_invitation_org
+                    references: organisation(id)
+                    deleteCascade: true
+
+              - column:
+                  name: email
+                  type: citext
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: role
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: token_hash
+                  type: bytea
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: status
+                  type: text
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: invited_by
+                  type: uuid
+                  constraints:
+                    foreignKeyName: fk_invitation_user
+                    references: user_entity(id)
+                    nullable: false
+
+              - column:
+                  name: message
+                  type: text
+
+              - column:
+                  name: expires_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: accepted_at
+                  type: timestamp
+
+              - column:
+                  name: declined_at
+                  type: timestamp
+
+              - column:
+                  name: revoked_at
+                  type: timestamp
+
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+        - sql:
+            sql: |
+              alter table invitation
+                add constraint chk_invitation_role
+                check (role in ('READER', 'WRITER', 'ADMIN'));
+
+        - sql:
+            sql: |
+              alter table invitation
+                add constraint chk_invitation_status
+                check (status in ('PENDING', 'ACCEPTED', 'DECLINED', 'REVOKED', 'EXPIRED'));
+
+        - sql:
+            sql: |
+              create unique index uq_invite_unique_pending
+                on invitation(organisation_id, email)
+                where status = 'PENDING';

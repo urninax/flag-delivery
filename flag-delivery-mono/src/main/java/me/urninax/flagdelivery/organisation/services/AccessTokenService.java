@@ -10,7 +10,7 @@ import me.urninax.flagdelivery.organisation.shared.AccessTokenDTO;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateAccessTokenRequest;
 import me.urninax.flagdelivery.user.security.principals.AccessTokenPrincipal;
 import me.urninax.flagdelivery.user.utils.AccessTokenUtils;
-import me.urninax.flagdelivery.user.utils.UserMapper;
+import me.urninax.flagdelivery.user.utils.EntityMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
@@ -27,7 +27,7 @@ import java.util.UUID;
 public class AccessTokenService{
     private final AccessTokenRepository accessTokenRepository;
     private final MembershipsRepository membershipsRepository;
-    private final UserMapper userMapper;
+    private final EntityMapper entityMapper;
 
     public String issueToken(UUID userId, CreateAccessTokenRequest request){
         Membership membership = membershipsRepository.findById(userId)
@@ -69,13 +69,13 @@ public class AccessTokenService{
 
             Page<AccessToken> allTokensPage = accessTokenRepository
                     .findAllByOrganisation_Id(membership.getOrganisation().getId(), pageable);
-            return allTokensPage.map(userMapper::toDTO);
+            return allTokensPage.map(entityMapper::toDTO);
         }
 
         Page<AccessToken> allUserTokensPage = accessTokenRepository
                 .findAllByOwner_IdAndOrganisation_Id(membership.getUserId(), membership.getOrganisation().getId(), pageable);
 
-        return allUserTokensPage.map(userMapper::toDTO);
+        return allUserTokensPage.map(entityMapper::toDTO);
     }
 
     public AccessTokenPrincipal validateAndResolve(String token){
