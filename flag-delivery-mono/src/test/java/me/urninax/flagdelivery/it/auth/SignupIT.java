@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:flag-delivery-mono/src/test/java/me/urninax/flagdelivery/it/auth/SignupIT.java
 package me.urninax.flagdelivery.it.auth;
-========
-package me.urninax.flagdelivery.user.ui.controllers.integration;
->>>>>>>> origin/main:flag-delivery-mono/src/test/java/me/urninax/flagdelivery/user/ui/controllers/integration/SignupIntegrationTests.java
 
 import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,11 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DisplayName("POST /api/v1/auth/signup")
-<<<<<<<< HEAD:flag-delivery-mono/src/test/java/me/urninax/flagdelivery/it/auth/SignupIT.java
 public class SignupIT extends AbstractAuthIT{
-========
-public class SignupIntegrationTests extends AbstractAuthIT{
->>>>>>>> origin/main:flag-delivery-mono/src/test/java/me/urninax/flagdelivery/user/ui/controllers/integration/SignupIntegrationTests.java
 
     @Container
     @ServiceConnection
