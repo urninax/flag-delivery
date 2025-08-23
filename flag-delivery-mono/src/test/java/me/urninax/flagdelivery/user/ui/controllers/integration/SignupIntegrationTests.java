@@ -1,18 +1,19 @@
-package me.urninax.flagdelivery.user.ui.controllers;
+package me.urninax.flagdelivery.user.ui.controllers.integration;
 
 import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
-import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,10 +21,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @Testcontainers
-public class AuthControllerIntegrationTest{
-
-    @Autowired
-    private TestRestTemplate testRestTemplate;
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@DisplayName("POST /api/v1/auth/signup")
+public class SignupIntegrationTests extends AbstractAuthIT{
 
     @Container
     @ServiceConnection
@@ -93,17 +93,5 @@ public class AuthControllerIntegrationTest{
 
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode(),
                 () -> "Incorrect status code returned");
-    }
-
-    private HttpHeaders defaultHeaders(){
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-        return headers;
-    }
-
-    private ResponseEntity<?> sendCreateUserRequest(SignupRequest request, HttpHeaders headers){
-        HttpEntity<SignupRequest> entity = new HttpEntity<>(request, headers);
-        return testRestTemplate.postForEntity("/api/v1/auth/signup", entity, Object.class);
     }
 }
