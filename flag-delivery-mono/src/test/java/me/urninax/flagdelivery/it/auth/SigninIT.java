@@ -1,4 +1,4 @@
-package me.urninax.flagdelivery.user.ui.controllers.integration;
+package me.urninax.flagdelivery.it.auth;
 
 import me.urninax.flagdelivery.user.ui.models.requests.SigninRequest;
 import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Testcontainers
 @ActiveProfiles("test")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class SigninIntegrationTests extends AbstractAuthIT{
+public class SigninIT extends AbstractAuthIT{
     @Container
     @ServiceConnection
     protected static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:latest");
@@ -122,10 +122,10 @@ public class SigninIntegrationTests extends AbstractAuthIT{
         }
 
         @Test
-        @DisplayName("With empty Authorization header -> 403")
-        public void jwtAuth_withEmptyAuthHeader_shouldReturn403(){
-            HttpEntity<HttpHeaders> entity = new HttpEntity<>(authHeaders(""));
-            ResponseEntity<?> response = template.exchange("/api/v1/auth/test", HttpMethod.GET, entity, Object.class);
+        @DisplayName("With no authorization header -> 403")
+        public void jwtAuth_withNoAuthHeader_shouldReturn403(){
+            HttpEntity<HttpHeaders> entity = new HttpEntity<>(defaultHeaders());
+            ResponseEntity<?> response = template.exchange("/api/v1/users/test", HttpMethod.GET, entity, Object.class);
 
             assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode(), "Response status code should have been 403");
         }

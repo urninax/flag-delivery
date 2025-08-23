@@ -1,4 +1,4 @@
-package me.urninax.flagdelivery.organisation.ui.controllers.integration;
+package me.urninax.flagdelivery.it.accesstokens;
 
 import me.urninax.flagdelivery.organisation.services.MembershipsService;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateAccessTokenRequest;

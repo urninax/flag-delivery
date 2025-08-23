@@ -1,4 +1,4 @@
-package me.urninax.flagdelivery.user.ui.controllers.integration;
+package me.urninax.flagdelivery.it.auth;
 
 import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DisplayName("POST /api/v1/auth/signup")
-public class SignupIntegrationTests extends AbstractAuthIT{
+public class SignupIT extends AbstractAuthIT{
 
     @Container
     @ServiceConnection

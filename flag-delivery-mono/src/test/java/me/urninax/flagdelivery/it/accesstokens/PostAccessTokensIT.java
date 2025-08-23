@@ -1,4 +1,4 @@
-package me.urninax.flagdelivery.organisation.ui.controllers.integration;
+package me.urninax.flagdelivery.it.accesstokens;
 
 import io.jsonwebtoken.Claims;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;

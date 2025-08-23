@@ -1,4 +1,4 @@
-package me.urninax.flagdelivery.user.ui.controllers.integration;
+package me.urninax.flagdelivery.it.auth;
 
 import me.urninax.flagdelivery.user.ui.models.requests.SigninRequest;
 import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
