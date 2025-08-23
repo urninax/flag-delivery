@@ -68,7 +68,6 @@ public class SecurityConfig{
                         .requestMatchers("/error**").permitAll()
                         .anyRequest().authenticated())
                 .addFilter(authenticationFilter)
-//                .addFilterBefore(new JwtAuthenticationFilter(jwtUtils), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new BearerAuthenticationFilter(manager, converter), UsernamePasswordAuthenticationFilter.class)
                 .authenticationManager(authManager);
 
