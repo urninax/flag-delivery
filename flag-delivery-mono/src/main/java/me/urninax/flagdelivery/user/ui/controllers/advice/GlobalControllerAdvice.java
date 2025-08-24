@@ -45,7 +45,7 @@ public class GlobalControllerAdvice{
                                                                    WebRequest request){
         String message = exc.getFieldErrors()
                 .stream()
-                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .map(DefaultMessageSourceResolvable::getDefaultMessage) //todo: fix message for failed String to LocalDate binding (possible solution: take message from messages.properties)
                 .filter(Objects::nonNull)
                 .distinct()
                 .collect(Collectors.joining("; "));

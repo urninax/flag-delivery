@@ -7,14 +7,20 @@ import me.urninax.flagdelivery.organisation.models.membership.Membership;
 import me.urninax.flagdelivery.organisation.repositories.InvitationsRepository;
 import me.urninax.flagdelivery.organisation.repositories.MembershipsRepository;
 import me.urninax.flagdelivery.organisation.repositories.OrganisationsRepository;
-import me.urninax.flagdelivery.organisation.shared.InvitationDTO;
+import me.urninax.flagdelivery.organisation.shared.InvitationOrganisationDTO;
+import me.urninax.flagdelivery.organisation.shared.InvitationPublicDTO;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateInvitationRequest;
+import me.urninax.flagdelivery.organisation.ui.models.requests.InvitationFilter;
+import me.urninax.flagdelivery.organisation.utils.InvitationSpecifications;
 import me.urninax.flagdelivery.organisation.utils.projections.UserOrgProjection;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import me.urninax.flagdelivery.user.repositories.UsersRepository;
 import me.urninax.flagdelivery.user.utils.EntityMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -26,6 +32,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Optional;
@@ -55,6 +63,7 @@ public class InvitationsService{
         this.invitationExpiryService = invitationExpiryService;
     }
 
+    @Transactional
     public Invitation createInvitation(CreateInvitationRequest request, UUID userId){
         UserOrgProjection userOrgProjection = usersRepository.findProjectedById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User was not found"));
@@ -81,7 +90,7 @@ public class InvitationsService{
     }
 
     @Transactional(readOnly = true)
-    public InvitationDTO getInvitationDTO(UUID uuid, String token){
+    public InvitationPublicDTO getInvitationDTO(UUID uuid, String token){
         Invitation invitation = invitationsRepository.findById(uuid)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invitation not found"));
 
@@ -90,7 +99,24 @@ public class InvitationsService{
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
 
-        return entityMapper.toDTO(invitation);
+        return entityMapper.toPublicDTO(invitation);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<InvitationOrganisationDTO> listOrganisationInvitations(InvitationFilter filter, Pageable pageable){
+        ZoneId zone = ZoneOffset.UTC;
+
+        Specification<Invitation> spec = Specification.allOf(
+                InvitationSpecifications.byStatus(filter.getStatus()),
+                InvitationSpecifications.byStatuses(filter.getStatuses()),
+                InvitationSpecifications.byCreator(filter.getInvitedBy()),
+                InvitationSpecifications.byEmail(filter.getEmail()),
+                InvitationSpecifications.createdBetween(filter.getCreatedFrom(), filter.getCreatedTo(), zone),
+                InvitationSpecifications.expiresBetween(filter.getExpiresFrom(), filter.getExpiresTo(), zone)
+        );
+
+        return invitationsRepository.findAll(spec, pageable)
+                .map(entityMapper::toOrganisationDTO);
     }
 
     @Transactional

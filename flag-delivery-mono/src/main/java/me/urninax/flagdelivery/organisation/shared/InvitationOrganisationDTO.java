@@ -12,9 +12,9 @@ import java.time.Instant;
 @NoArgsConstructor
 @Getter
 @Setter
-public class InvitationDTO{
-    @JsonProperty("organisation_name")
-    private String organisationName;
+public class InvitationOrganisationDTO{
+    @JsonProperty("email")
+    private String email;
 
     @JsonProperty("invited_by")
     private String invitedBy;
@@ -30,4 +30,19 @@ public class InvitationDTO{
 
     @JsonProperty("expires_at")
     private Instant expiresAt;
+
+    @JsonProperty("accepted_at")
+    private Instant acceptedAt;
+
+    @JsonProperty("declined_at")
+    private Instant declinedAt;
+
+    @JsonProperty("revoked_at")
+    private Instant revokedAt;
+
+    @JsonProperty("created_at")
+    private Instant createdAt;
+
+    @JsonProperty("updated_at")
+    private Instant updatedAt;
 }

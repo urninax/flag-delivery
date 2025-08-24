@@ -3,7 +3,8 @@ package me.urninax.flagdelivery.user.utils;
 import me.urninax.flagdelivery.organisation.models.AccessToken;
 import me.urninax.flagdelivery.organisation.models.invitation.Invitation;
 import me.urninax.flagdelivery.organisation.shared.AccessTokenDTO;
-import me.urninax.flagdelivery.organisation.shared.InvitationDTO;
+import me.urninax.flagdelivery.organisation.shared.InvitationOrganisationDTO;
+import me.urninax.flagdelivery.organisation.shared.InvitationPublicDTO;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
 import org.mapstruct.Mapper;
@@ -22,5 +23,8 @@ public interface EntityMapper{
 
     @Mapping(target = "invitedBy", expression = "java(invitation.getInvitedBy().getFirstName() + \" \" + invitation.getInvitedBy().getLastName())")
     @Mapping(source = "organisation.name", target = "organisationName")
-    InvitationDTO toDTO(Invitation invitation);
+    InvitationPublicDTO toPublicDTO(Invitation invitation);
+
+    @Mapping(target = "invitedBy", expression = "java(invitation.getInvitedBy().getFirstName() + \" \" + invitation.getInvitedBy().getLastName())")
+    InvitationOrganisationDTO toOrganisationDTO(Invitation invitation);
 }

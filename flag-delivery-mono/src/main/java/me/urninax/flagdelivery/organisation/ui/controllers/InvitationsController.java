@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Pattern;
 import me.urninax.flagdelivery.organisation.models.invitation.Invitation;
 import me.urninax.flagdelivery.organisation.services.InvitationsService;
 import me.urninax.flagdelivery.organisation.services.MailService;
-import me.urninax.flagdelivery.organisation.shared.InvitationDTO;
+import me.urninax.flagdelivery.organisation.shared.InvitationPublicDTO;
 import me.urninax.flagdelivery.user.security.CurrentUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,7 +31,7 @@ public class InvitationsController{
     @GetMapping("/{uuid}.{token}")
     public ResponseEntity<?> getInvitationInfo(@PathVariable UUID uuid,
                                                @PathVariable @Pattern(regexp = "^[A-Za-z0-9_-]{43}$") String token){
-        InvitationDTO invitationDTO = invitationsService.getInvitationDTO(uuid, token);
+        InvitationPublicDTO invitationDTO = invitationsService.getInvitationDTO(uuid, token);
         return new ResponseEntity<>(invitationDTO, HttpStatus.OK);
     }
 
