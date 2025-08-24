@@ -1,9 +1,6 @@
-spring:
+ spring:
   application:
     name: flag-delivery-mono
-  devtools:
-    restart:
-      enabled: false
   datasource:
     username:
     password:
@@ -15,10 +12,38 @@ spring:
   jackson:
     deserialization:
       fail-on-unknown-properties: true
+  jpa:
+    show-sql:
+  liquibase:
+    enabled: true
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+    contexts: dev
+  mail:
+    host:
+    port:
+    username:
+    password:
+    properties:
+       mail:
+         smtp:
+           auth: true
+           starttls:
+             enable: true
+
+app:
+  mail:
+    default-from:
 
 login:
-  url: "/signin"
+  url: "/api/v1/auth/signin"
 
 token:
   secret:
   expiration-time:
+
+invitation-token:
+  expiration-time-seconds:
+
+logging:
+  level:
+    org.springframework.security: TRACE
