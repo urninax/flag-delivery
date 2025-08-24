@@ -1,6 +1,7 @@
 package me.urninax.flagdelivery.user.ui.controllers.advice;
 
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
+import jakarta.persistence.OptimisticLockException;
 import lombok.extern.slf4j.Slf4j;
 import me.urninax.flagdelivery.user.utils.ErrorMessage;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -42,22 +43,6 @@ public class GlobalControllerAdvice{
     @ExceptionHandler({MethodArgumentNotValidException.class})
     public ResponseEntity<ErrorMessage> handleValidationExceptions(MethodArgumentNotValidException exc,
                                                                    WebRequest request){
-//        String message = "Unknown validation error";
-//        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
-//
-//        StringBuilder stringBuilder = new StringBuilder();
-//
-//        exc.getBindingResult()
-//                .getFieldErrors()
-//                .forEach((field) -> stringBuilder
-//                        .append(field.getDefaultMessage())
-//                        .append("; "));
-//
-//        if(!stringBuilder.isEmpty()){
-//            message = stringBuilder.toString();
-//            status = HttpStatus.BAD_REQUEST;
-//        }
-
         String message = exc.getFieldErrors()
                 .stream()
                 .map(DefaultMessageSourceResolvable::getDefaultMessage)
@@ -72,6 +57,19 @@ public class GlobalControllerAdvice{
                 .timestamp(Instant.now())
                 .status(status.value())
                 .message(message.isBlank() ? "Unknown validation error" : message)
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(errorMessage, status);
+    }
+
+    @ExceptionHandler({OptimisticLockException.class})
+    public ResponseEntity<?> handleOptimisticLockException(WebRequest request){
+        HttpStatus status = HttpStatus.CONFLICT;
+        ErrorMessage errorMessage = ErrorMessage.builder()
+                .timestamp(Instant.now())
+                .status(status.value())
+                .message("Object was modified concurrently. Please retry")
                 .path(request.getDescription(false).replace("uri=", ""))
                 .build();
 
