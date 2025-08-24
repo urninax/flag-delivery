@@ -20,8 +20,7 @@ public interface EntityMapper{
     @Mapping(source = "owner.id", target = "memberId")
     AccessTokenDTO toDTO(AccessToken accessToken);
 
-    @Mapping(target = "invitedBy", expression = "java(invitedBy.getFirstName() + \" \" + invitedBy.getLastName())")
+    @Mapping(target = "invitedBy", expression = "java(invitation.getInvitedBy().getFirstName() + \" \" + invitation.getInvitedBy().getLastName())")
     @Mapping(source = "organisation.name", target = "organisationName")
-
     InvitationDTO toDTO(Invitation invitation);
 }

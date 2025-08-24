@@ -8,10 +8,7 @@ import lombok.*;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 
 @Builder
-@Getter
-@Setter
-@AllArgsConstructor
-@RequiredArgsConstructor
+@Data
 public class CreateAccessTokenRequest{
         @NotBlank(message = "Name cannot be blank")
         @Size(min = 2, max = 256, message = "Name must not exceed 256 characters")

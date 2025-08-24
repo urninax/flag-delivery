@@ -15,7 +15,7 @@ import java.net.URI;
 import java.util.UUID;
 
 @RestController
-@RequestMapping()
+@RequestMapping("/api/v1/organisation")
 @RequiredArgsConstructor
 public class OrganisationsController{
     private final OrganisationsService organisationsService;

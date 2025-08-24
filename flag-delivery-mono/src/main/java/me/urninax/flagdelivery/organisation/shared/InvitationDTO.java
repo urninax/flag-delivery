@@ -1,5 +1,6 @@
 package me.urninax.flagdelivery.organisation.shared;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,10 +13,21 @@ import java.time.Instant;
 @Getter
 @Setter
 public class InvitationDTO{
+    @JsonProperty("organisation_name")
     private String organisationName;
+
+    @JsonProperty("invited_by")
     private String invitedBy;
+
+    @JsonProperty("role")
     private OrgRole role;
+
+    @JsonProperty("status")
     private InvitationStatus status;
+
+    @JsonProperty("message")
     private String message;
+
+    @JsonProperty("expires_at")
     private Instant expiresAt;
 }

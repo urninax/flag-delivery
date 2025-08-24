@@ -32,6 +32,7 @@ public class InvitationsController{
     @PostMapping("/{token}/accept")
     public ResponseEntity<?> acceptInvitation(@PathVariable String token){
         UUID userId = currentUser.getUserId();
+
         return null;
     }
 

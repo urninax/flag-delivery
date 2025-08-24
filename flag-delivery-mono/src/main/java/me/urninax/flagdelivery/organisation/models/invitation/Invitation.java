@@ -6,6 +6,7 @@ import me.urninax.flagdelivery.organisation.models.Organisation;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant;
@@ -19,7 +20,8 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
 public class Invitation{
     @Id
     @UuidGenerator
@@ -37,9 +39,11 @@ public class Invitation{
     @Enumerated(EnumType.STRING)
     private OrgRole role;
 
-    @Lob
-    @Column(name = "token_hash", nullable = false)
+    @Column(name = "token_hash", nullable = false, columnDefinition = "bytea")
     private byte[] tokenHash;
+
+    @Transient
+    private String rawToken;
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
@@ -68,7 +72,7 @@ public class Invitation{
     @Column(name = "created_at")
     private Instant createdAt;
 
-    @CreationTimestamp
+    @UpdateTimestamp
     @Column(name = "updated_at")
     private Instant updatedAt;
 }
