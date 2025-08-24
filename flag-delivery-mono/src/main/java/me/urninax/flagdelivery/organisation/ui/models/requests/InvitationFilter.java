@@ -9,8 +9,7 @@ import java.util.List;
 
 @Data
 public class InvitationFilter{
-    private InvitationStatus status;
-    private List<InvitationStatus> statuses;
+    private List<InvitationStatus> status;
     private String email;
     private String invitedBy;
 

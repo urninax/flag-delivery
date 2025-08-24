@@ -13,12 +13,6 @@ import java.util.List;
 public class InvitationSpecifications{
     private InvitationSpecifications(){}
 
-    public static Specification<Invitation> byStatus(@Nullable InvitationStatus status){
-        return ((root, query, criteriaBuilder) ->
-                status == null ? criteriaBuilder.conjunction() : criteriaBuilder.equal(root.get("status"), status)
-        );
-    }
-
     public static Specification<Invitation> byStatuses(@Nullable List<InvitationStatus> statuses){
         return (root, query, criteriaBuilder) ->
                 (statuses == null || statuses.isEmpty())

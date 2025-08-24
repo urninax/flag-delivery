@@ -107,8 +107,7 @@ public class InvitationsService{
         ZoneId zone = ZoneOffset.UTC;
 
         Specification<Invitation> spec = Specification.allOf(
-                InvitationSpecifications.byStatus(filter.getStatus()),
-                InvitationSpecifications.byStatuses(filter.getStatuses()),
+                InvitationSpecifications.byStatuses(filter.getStatus()),
                 InvitationSpecifications.byCreator(filter.getInvitedBy()),
                 InvitationSpecifications.byEmail(filter.getEmail()),
                 InvitationSpecifications.createdBetween(filter.getCreatedFrom(), filter.getCreatedTo(), zone),
