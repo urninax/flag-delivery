@@ -13,3 +13,6 @@ databaseChangeLog:
   - include:
       file: create-invitation-changelog.yaml
       relativeToChangelogFile: true
+  - include:
+      file: add-version-column.yaml
+      relativeToChangelogFile: true

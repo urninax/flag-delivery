@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-add-version-column
+      author: urninax
+      changes:
+        - addColumn:
+            tableName: invitation
+            columns:
+              - column:
+                  name: version
+                  type: bigint
+                  defaultValueNumeric: "0"
+                  constraints:
+                    nullable: false

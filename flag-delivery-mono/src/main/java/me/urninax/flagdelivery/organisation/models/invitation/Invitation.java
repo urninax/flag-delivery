@@ -28,6 +28,10 @@ public class Invitation{
     @Column(name = "id")
     private UUID id;
 
+    @Version
+    @Column(name = "version")
+    private Long version;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "organisation_id")
     private Organisation organisation;

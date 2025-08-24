@@ -39,18 +39,20 @@ public class InvitationsService{
     private final OrganisationsRepository organisationsRepository;
     private final MembershipsRepository membershipsRepository;
     private final MembershipsService membershipsService;
+    private final InvitationExpiryService invitationExpiryService;
 
     @Value("${invitation-token.expiration-time-seconds}")
     private long invitationTokenExpirationTime;
 
     @Autowired
-    public InvitationsService(InvitationsRepository invitationsRepository, EntityMapper entityMapper, UsersRepository usersRepository, OrganisationsRepository organisationsRepository, MembershipsRepository membershipsRepository, MembershipsService membershipsService){
+    public InvitationsService(InvitationsRepository invitationsRepository, EntityMapper entityMapper, UsersRepository usersRepository, OrganisationsRepository organisationsRepository, MembershipsRepository membershipsRepository, MembershipsService membershipsService, InvitationExpiryService invitationExpiryService){
         this.invitationsRepository = invitationsRepository;
         this.entityMapper = entityMapper;
         this.usersRepository = usersRepository;
         this.organisationsRepository = organisationsRepository;
         this.membershipsRepository = membershipsRepository;
         this.membershipsService = membershipsService;
+        this.invitationExpiryService = invitationExpiryService;
     }
 
     public Invitation createInvitation(CreateInvitationRequest request, UUID userId){
@@ -98,7 +100,7 @@ public class InvitationsService{
 
         byte[] hashedToken = hashToken(token);
 
-        if(!Arrays.equals(inv.getTokenHash(), hashedToken)){ // different tokens hashes -> FORBIDDEN
+        if(!MessageDigest.isEqual(inv.getTokenHash(), hashedToken)){ // different tokens hashes -> FORBIDDEN
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
@@ -107,14 +109,13 @@ public class InvitationsService{
         }
 
         if(inv.getExpiresAt().isBefore(Instant.now())){ // invitation is expired -> GONE
-            inv.setStatus(InvitationStatus.EXPIRED);
-            invitationsRepository.save(inv);
+            invitationExpiryService.markExpiredInNewTx(invitationId);
             throw new ResponseStatusException(HttpStatus.GONE, "Invitation is expired");
         }
 
         UserEntity user = usersRepository.getReferenceById(userId);
 
-        if(!emailsEquals(user.getEmail(), inv.getEmail())){ // different emails of authenticated user and in invitation -> FORBIDDEN
+        if(emailsNotEquals(user.getEmail(), inv.getEmail())){ // different emails of authenticated user and in invitation -> FORBIDDEN
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
@@ -153,6 +154,40 @@ public class InvitationsService{
         return inv;
     }
 
+    @Transactional
+    public void declineInvitation(UUID invitationId, String token, UUID userId){
+        //todo: add catch for OptimisticLockException
+        Invitation inv = invitationsRepository.findById(invitationId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invitation not found."));
+
+        byte[] hashedToken = hashToken(token);
+
+        if(!MessageDigest.isEqual(inv.getTokenHash(), hashedToken)){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
+        UserEntity user = usersRepository.getReferenceById(userId);
+        if(emailsNotEquals(inv.getEmail(), user.getEmail())){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
+        if(inv.getStatus() == InvitationStatus.DECLINED){
+            return;
+        }
+
+        if(inv.getExpiresAt().isBefore(Instant.now())){
+            invitationExpiryService.markExpiredInNewTx(invitationId);
+            throw new ResponseStatusException(HttpStatus.GONE, "Invitation is expired");
+        }
+
+        if(!inv.getStatus().isActive()){
+            throw new ResponseStatusException(HttpStatus.GONE, "Invitation is not active");
+        }
+
+        inv.setDeclinedAt(Instant.now());
+        inv.setStatus(InvitationStatus.DECLINED);
+    }
+
     private String generateToken(){
         byte[] bytes = new byte[32];
         try{
@@ -174,9 +209,9 @@ public class InvitationsService{
         return md.digest(rawToken.getBytes(StandardCharsets.US_ASCII));
     }
 
-    private boolean emailsEquals(String email1, String email2){
-        if(email1 == null || email2 == null) return false;
-        return email1.equalsIgnoreCase(email2);
+    private boolean emailsNotEquals(String email1, String email2){
+        if(email1 == null || email2 == null) return true;
+        return !email1.equalsIgnoreCase(email2);
     }
 
     private void finalizeInvitation(Invitation inv){

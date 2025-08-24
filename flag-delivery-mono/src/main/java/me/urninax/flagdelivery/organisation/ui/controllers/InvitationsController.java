@@ -42,12 +42,14 @@ public class InvitationsController{
         UUID userId = currentUser.getUserId();
         Invitation inv = invitationsService.acceptInvitation(uuid, token, userId, transfer);
         mailService.sendInviteAcceptedGreeting(inv);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PostMapping("/{token}/decline")
-    public ResponseEntity<?> declineInvitation(@PathVariable String token){
+    @PostMapping("/{uuid}.{token}/decline")
+    public ResponseEntity<?> declineInvitation(@PathVariable UUID uuid,
+                                               @PathVariable @Pattern(regexp = "^[A-Za-z0-9_-]{43}$") String token){
         UUID userId = currentUser.getUserId();
-        return null;
+        invitationsService.declineInvitation(uuid, token, userId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
