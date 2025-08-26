@@ -1,8 +1,6 @@
 package me.urninax.flagdelivery.organisation.ui.controllers;
 
-import me.urninax.flagdelivery.organisation.models.invitation.Invitation;
 import me.urninax.flagdelivery.organisation.services.InvitationsService;
-import me.urninax.flagdelivery.organisation.services.MailService;
 import me.urninax.flagdelivery.organisation.shared.InvitationOrganisationDTO;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateInvitationRequest;
 import me.urninax.flagdelivery.organisation.ui.models.requests.InvitationFilter;
@@ -24,13 +22,11 @@ import java.util.UUID;
 public class OrganisationInvitationsController{
     private final CurrentUser currentUser;
     private final InvitationsService invitationsService;
-    private final MailService mailService;
 
     @Autowired
-    public OrganisationInvitationsController(CurrentUser currentUser, InvitationsService invitationsService, MailService mailService){
+    public OrganisationInvitationsController(CurrentUser currentUser, InvitationsService invitationsService){
         this.currentUser = currentUser;
         this.invitationsService = invitationsService;
-        this.mailService = mailService;
     }
 
     @PostMapping

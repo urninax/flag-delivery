@@ -1,5 +1,6 @@
 package me.urninax.flagdelivery.organisation.services;
 
+import me.urninax.flagdelivery.organisation.events.invitation.InvitationAcceptedEvent;
 import me.urninax.flagdelivery.organisation.events.invitation.InvitationCreatedEvent;
 import me.urninax.flagdelivery.organisation.models.invitation.Invitation;
 import me.urninax.flagdelivery.organisation.models.invitation.InvitationStatus;
@@ -125,7 +126,7 @@ public class InvitationsService{
     }
 
     @Transactional
-    public Invitation acceptInvitation(UUID invitationId, String token, UUID userId, boolean isTransferAllowed){
+    public void acceptInvitation(UUID invitationId, String token, UUID userId, boolean isTransferAllowed){
         Invitation inv = invitationsRepository.findById(invitationId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invitation not found"));
 
@@ -155,7 +156,7 @@ public class InvitationsService{
         if(membershipOptional.isEmpty()){ // user has no organisation -> accept invitation
             membershipsService.addMembership(inv.getOrganisation().getId(), userId, inv.getRole(), false);
             finalizeInvitation(inv);
-            return inv;
+            return;
         }
 
         Membership membership = membershipOptional.get();
@@ -173,7 +174,7 @@ public class InvitationsService{
             membershipsRepository.save(membership);
 
             finalizeInvitation(inv);
-            return inv;
+            return;
         }
 
         if(inv.getRole().higherThan(membership.getRole())){ // same organisation, but invitation role is higher than current
@@ -182,7 +183,6 @@ public class InvitationsService{
         }
 
         finalizeInvitation(inv);
-        return inv;
     }
 
     @Transactional
@@ -248,6 +248,9 @@ public class InvitationsService{
         inv.setStatus(InvitationStatus.ACCEPTED);
         inv.setAcceptedAt(Instant.now());
 
-        invitationsRepository.save(inv);
+        Invitation invitation = invitationsRepository.save(inv);
+        InvitationMailDTO invitationMailDTO = entityMapper.toMailDTO(invitation);
+
+        applicationEventPublisher.publishEvent(new InvitationAcceptedEvent(invitationMailDTO));
     }
 }

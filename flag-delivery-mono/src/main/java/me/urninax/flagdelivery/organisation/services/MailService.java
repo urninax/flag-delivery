@@ -1,6 +1,5 @@
 package me.urninax.flagdelivery.organisation.services;
 
-import me.urninax.flagdelivery.organisation.models.invitation.Invitation;
 import me.urninax.flagdelivery.organisation.shared.InvitationMailDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -68,9 +67,8 @@ public class MailService{
         mailSender.send(msg);
     }
 
-    public void sendInviteAcceptedGreeting(Invitation invitation){
-        String organisationName = invitation.getOrganisation().getName();
-        String subject = String.format("✅ You have joined %s", organisationName);
+    public void sendInviteAcceptedGreeting(InvitationMailDTO inv){
+        String subject = String.format("✅ You have joined %s", inv.getOrganisationName());
         String template = """
                 You have successfully accepted the invitation and joined the organisation {{orgName}} on FlagDelivery.
                 
@@ -84,12 +82,12 @@ public class MailService{
                 Best regards,
                 The FlagDelivery Team
                 """;
-        String result = template.replace("{{orgName}}", organisationName)
-                .replace("{{role}}", invitation.getRole().toString());
+        String result = template.replace("{{orgName}}", inv.getOrganisationName())
+                .replace("{{role}}", inv.getRole().toString());
 
         SimpleMailMessage msg = new SimpleMailMessage();
         msg.setFrom(defaultFrom);
-        msg.setTo(invitation.getEmail());
+        msg.setTo(inv.getEmail());
         msg.setSubject(subject);
         msg.setText(result);
 

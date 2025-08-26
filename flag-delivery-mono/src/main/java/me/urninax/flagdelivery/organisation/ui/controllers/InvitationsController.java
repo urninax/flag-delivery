@@ -1,7 +1,6 @@
 package me.urninax.flagdelivery.organisation.ui.controllers;
 
 import jakarta.validation.constraints.Pattern;
-import me.urninax.flagdelivery.organisation.models.invitation.Invitation;
 import me.urninax.flagdelivery.organisation.services.InvitationsService;
 import me.urninax.flagdelivery.organisation.services.MailService;
 import me.urninax.flagdelivery.organisation.shared.InvitationPublicDTO;
@@ -40,8 +39,7 @@ public class InvitationsController{
                                               @PathVariable @Pattern(regexp = "^[A-Za-z0-9_-]{43}$") String token,
                                               @RequestParam(name = "transfer", defaultValue = "false") boolean transfer){
         UUID userId = currentUser.getUserId();
-        Invitation inv = invitationsService.acceptInvitation(uuid, token, userId, transfer);
-        mailService.sendInviteAcceptedGreeting(inv);
+        invitationsService.acceptInvitation(uuid, token, userId, transfer);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

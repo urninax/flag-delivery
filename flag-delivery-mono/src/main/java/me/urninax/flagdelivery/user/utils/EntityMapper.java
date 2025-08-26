@@ -29,8 +29,8 @@ public interface EntityMapper{
     @Mapping(target = "invitedBy", expression = "java(invitation.getInvitedBy().getFirstName() + \" \" + invitation.getInvitedBy().getLastName())")
     InvitationOrganisationDTO toOrganisationDTO(Invitation invitation);
 
-    @Mapping(target = "organisationName", source = "organisation.name")
-    @Mapping(source = "id", target = "invitationId")
+    @Mapping(target = "organisationName", source = "invitation.organisation.name")
+    @Mapping(source = "invitation.id", target = "invitationId")
     @Mapping(target = "token", ignore = true)
     InvitationMailDTO toMailDTO(Invitation invitation);
 }
