@@ -2,7 +2,6 @@ package me.urninax.flagdelivery.organisation.ui.controllers;
 
 import jakarta.validation.constraints.Pattern;
 import me.urninax.flagdelivery.organisation.services.InvitationsService;
-import me.urninax.flagdelivery.organisation.services.MailService;
 import me.urninax.flagdelivery.organisation.shared.InvitationPublicDTO;
 import me.urninax.flagdelivery.user.security.CurrentUser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,13 +17,11 @@ public class InvitationsController{
 
     private final CurrentUser currentUser;
     private final InvitationsService invitationsService;
-    private final MailService mailService;
 
     @Autowired
-    public InvitationsController(CurrentUser currentUser, InvitationsService invitationsService, MailService mailService){
+    public InvitationsController(CurrentUser currentUser, InvitationsService invitationsService){
         this.currentUser = currentUser;
         this.invitationsService = invitationsService;
-        this.mailService = mailService;
     }
 
     @GetMapping("/{uuid}.{token}")

@@ -45,4 +45,12 @@ public class OrganisationInvitationsController{
         Page<InvitationOrganisationDTO> orgInvitations = invitationsService.listOrganisationInvitations(filter, pageable);
         return new ResponseEntity<>(new PageResponse<>(orgInvitations), HttpStatus.OK);
     }
+
+    @PostMapping("/{uuid}/revoke")
+    public ResponseEntity<?> revokeInvitation(@PathVariable(name = "uuid") UUID invitationId){
+        UUID userId = currentUser.getUserId();
+        invitationsService.revokeInvitation(invitationId, userId);
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }

@@ -5,6 +5,7 @@ import me.urninax.flagdelivery.organisation.events.invitation.InvitationCreatedE
 import me.urninax.flagdelivery.organisation.models.invitation.Invitation;
 import me.urninax.flagdelivery.organisation.models.invitation.InvitationStatus;
 import me.urninax.flagdelivery.organisation.models.membership.Membership;
+import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.organisation.repositories.InvitationsRepository;
 import me.urninax.flagdelivery.organisation.repositories.MembershipsRepository;
 import me.urninax.flagdelivery.organisation.shared.InvitationMailDTO;
@@ -216,6 +217,38 @@ public class InvitationsService{
 
         inv.setDeclinedAt(Instant.now());
         inv.setStatus(InvitationStatus.DECLINED);
+    }
+
+    @Transactional
+    public void revokeInvitation(UUID invitationId, UUID userId){
+        Membership membership = membershipsRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "User has no organisation"));
+
+        Invitation invitation = invitationsRepository.findById(invitationId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invitation not found"));
+
+        UUID invitationOrgId = invitation.getOrganisation().getId();
+        UUID membershipOrgId = membership.getOrganisation().getId();
+
+        if(!invitationOrgId.equals(membershipOrgId)){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Invitation not found");
+        }
+
+        if(!membership.getRole().atLeast(OrgRole.ADMIN)){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Action is not allowed");
+        }
+
+        if(invitation.getExpiresAt().isBefore(Instant.now())){
+            invitationExpiryService.markExpiredInNewTx(invitationId);
+            throw new ResponseStatusException(HttpStatus.GONE, "Invitation is not active.");
+        }
+
+        if(!invitation.getStatus().isActive()){
+            throw new ResponseStatusException(HttpStatus.GONE, "Invitation is not active.");
+        }
+
+        invitation.setStatus(InvitationStatus.REVOKED);
+        invitation.setRevokedAt(Instant.now());
     }
 
     private String generateToken(){
