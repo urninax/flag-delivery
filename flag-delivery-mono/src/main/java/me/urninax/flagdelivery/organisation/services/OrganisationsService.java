@@ -9,11 +9,9 @@ import me.urninax.flagdelivery.organisation.repositories.MembershipsRepository;
 import me.urninax.flagdelivery.organisation.repositories.OrganisationsRepository;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateOrganisationRequest;
 import me.urninax.flagdelivery.organisation.utils.exceptions.OrganisationAlreadyExistsException;
-import me.urninax.flagdelivery.organisation.utils.projections.UserOrgProjection;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import me.urninax.flagdelivery.user.repositories.UsersRepository;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -29,14 +27,11 @@ public class OrganisationsService{
 
     @Transactional
     public UUID createOrganisation(CreateOrganisationRequest request, UUID userId){
-        UserOrgProjection userOrgProjection = usersRepository.findProjectedById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("User was not found"));
-
-        if(userOrgProjection.getOrganisationId() != null){
+        if(membershipsRepository.existsById(userId)){
             throw new OrganisationAlreadyExistsException();
         }
 
-        UserEntity userRef = usersRepository.getReferenceById(userOrgProjection.getId());
+        UserEntity userRef = usersRepository.getReferenceById(userId);
 
         Organisation organisation = Organisation.builder()
                 .name(request.getName())

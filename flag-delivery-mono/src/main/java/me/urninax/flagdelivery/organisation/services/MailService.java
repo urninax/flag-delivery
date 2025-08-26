@@ -1,6 +1,7 @@
 package me.urninax.flagdelivery.organisation.services;
 
 import me.urninax.flagdelivery.organisation.models.invitation.Invitation;
+import me.urninax.flagdelivery.organisation.shared.InvitationMailDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -23,8 +24,8 @@ public class MailService{
         this.mailSender = mailSender;
     }
 
-    public void sendInvitation(Invitation invitation){
-        String subject = String.format("You're invited to join %s", invitation.getOrganisation().getName());
+    public void sendInvitation(InvitationMailDTO inv){
+        String subject = String.format("You're invited to join %s", inv.getOrganisationName());
         String template = """
                 You have been invited to join {{orgName}}.
                 
@@ -47,20 +48,20 @@ public class MailService{
         DateTimeFormatter formatter = DateTimeFormatter
                 .ofPattern("MMM dd, yyyy HH:mm 'UTC'", Locale.ENGLISH);
 
-        String formattedExpirationDate = invitation.getExpiresAt()
+        String formattedExpirationDate = inv.getExpiresAt()
                 .atZone(ZoneId.of("UTC")).format(formatter);
 
-        String result = template.replace("{{orgName}}", invitation.getOrganisation().getName())
-                .replace("{{uuid}}", invitation.getId().toString())
-                .replace("{{role}}", invitation.getRole().toString())
-                .replace("{{message}}", invitation.getMessage())
-                .replace("{{token}}", invitation.getRawToken())
+        String result = template.replace("{{orgName}}", inv.getOrganisationName())
+                .replace("{{uuid}}", inv.getInvitationId().toString())
+                .replace("{{role}}", inv.getRole().toString())
+                .replace("{{message}}", inv.getMessage())
+                .replace("{{token}}", inv.getToken())
                 .replace("{{expirationDate}}", formattedExpirationDate);
 
 
         SimpleMailMessage msg = new SimpleMailMessage();
         msg.setFrom(defaultFrom);
-        msg.setTo(invitation.getEmail());
+        msg.setTo(inv.getEmail());
         msg.setSubject(subject);
         msg.setText(result);
 

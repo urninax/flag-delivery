@@ -48,7 +48,7 @@ public class AccessTokenService{
                 .name(request.getName())
                 .role(request.getRole())
                 .isService(request.isService())
-                .owner(membership.getUser()) //TODO: check if its better to do with User/Org from membership, or request proxies from respective repositories
+                .owner(membership.getUser())
                 .organisation(membership.getOrganisation())
                 .build();
 

@@ -37,9 +37,7 @@ public class OrganisationInvitationsController{
     //TODO: has role admin
     public ResponseEntity<?> invite(@RequestBody CreateInvitationRequest request){
         UUID userId = currentUser.getUserId();
-        Invitation invitation = invitationsService.createInvitation(request, userId);
-        mailService.sendInvitation(invitation); //TODO: not good, should be sent to background queue for processing
-
+        invitationsService.createInvitation(request, userId);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 

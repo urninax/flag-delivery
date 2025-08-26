@@ -1,28 +1,27 @@
 package me.urninax.flagdelivery.organisation.services;
 
-import me.urninax.flagdelivery.organisation.models.Organisation;
+import me.urninax.flagdelivery.organisation.events.invitation.InvitationCreatedEvent;
 import me.urninax.flagdelivery.organisation.models.invitation.Invitation;
 import me.urninax.flagdelivery.organisation.models.invitation.InvitationStatus;
 import me.urninax.flagdelivery.organisation.models.membership.Membership;
 import me.urninax.flagdelivery.organisation.repositories.InvitationsRepository;
 import me.urninax.flagdelivery.organisation.repositories.MembershipsRepository;
-import me.urninax.flagdelivery.organisation.repositories.OrganisationsRepository;
+import me.urninax.flagdelivery.organisation.shared.InvitationMailDTO;
 import me.urninax.flagdelivery.organisation.shared.InvitationOrganisationDTO;
 import me.urninax.flagdelivery.organisation.shared.InvitationPublicDTO;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateInvitationRequest;
 import me.urninax.flagdelivery.organisation.ui.models.requests.InvitationFilter;
 import me.urninax.flagdelivery.organisation.utils.InvitationSpecifications;
-import me.urninax.flagdelivery.organisation.utils.projections.UserOrgProjection;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import me.urninax.flagdelivery.user.repositories.UsersRepository;
 import me.urninax.flagdelivery.user.utils.EntityMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -44,49 +43,56 @@ public class InvitationsService{
     private final InvitationsRepository invitationsRepository;
     private final EntityMapper entityMapper;
     private final UsersRepository usersRepository;
-    private final OrganisationsRepository organisationsRepository;
     private final MembershipsRepository membershipsRepository;
     private final MembershipsService membershipsService;
     private final InvitationExpiryService invitationExpiryService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Value("${invitation-token.expiration-time-seconds}")
     private long invitationTokenExpirationTime;
 
     @Autowired
-    public InvitationsService(InvitationsRepository invitationsRepository, EntityMapper entityMapper, UsersRepository usersRepository, OrganisationsRepository organisationsRepository, MembershipsRepository membershipsRepository, MembershipsService membershipsService, InvitationExpiryService invitationExpiryService){
+    public InvitationsService(InvitationsRepository invitationsRepository, EntityMapper entityMapper, UsersRepository usersRepository, MembershipsRepository membershipsRepository, MembershipsService membershipsService, InvitationExpiryService invitationExpiryService, ApplicationEventPublisher applicationEventPublisher){
         this.invitationsRepository = invitationsRepository;
         this.entityMapper = entityMapper;
         this.usersRepository = usersRepository;
-        this.organisationsRepository = organisationsRepository;
         this.membershipsRepository = membershipsRepository;
         this.membershipsService = membershipsService;
         this.invitationExpiryService = invitationExpiryService;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Transactional
-    public Invitation createInvitation(CreateInvitationRequest request, UUID userId){
-        UserOrgProjection userOrgProjection = usersRepository.findProjectedById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("User was not found"));
+    public void createInvitation(CreateInvitationRequest request, UUID userId){
+        Membership membership = membershipsRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "User has no organisation"));
 
-        //TODO: user cannot create invitation with role, higher that user's
+        if(request.getRole().higherThan(membership.getRole())){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed to grant role higher than user's");
+        }
 
-        Organisation organisation = organisationsRepository.getReferenceById(userOrgProjection.getOrganisationId());
-        UserEntity user = usersRepository.getReferenceById(userOrgProjection.getId());
         String token = generateToken();
 
         Invitation invitation = Invitation.builder()
-                .organisation(organisation)
+                .organisation(membership.getOrganisation())
                 .email(request.getEmail())
                 .role(request.getRole())
                 .tokenHash(hashToken(token))
                 .rawToken(token)
                 .status(InvitationStatus.PENDING)
-                .invitedBy(user)
+                .invitedBy(membership.getUser())
                 .message(request.getMessage())
                 .expiresAt(Instant.now().plusSeconds(invitationTokenExpirationTime))
                 .build();
 
-        return invitationsRepository.save(invitation);
+        Invitation invitationEntity = invitationsRepository.save(invitation);
+
+        InvitationMailDTO invitationMailDTO = entityMapper.toMailDTO(invitationEntity);
+        invitationMailDTO.setToken(token);
+
+        InvitationCreatedEvent event = new InvitationCreatedEvent(invitationMailDTO);
+
+        applicationEventPublisher.publishEvent(event);
     }
 
     @Transactional(readOnly = true)
@@ -181,19 +187,18 @@ public class InvitationsService{
 
     @Transactional
     public void declineInvitation(UUID invitationId, String token, UUID userId){
-        //todo: add catch for OptimisticLockException
         Invitation inv = invitationsRepository.findById(invitationId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invitation not found."));
 
         byte[] hashedToken = hashToken(token);
 
         if(!MessageDigest.isEqual(inv.getTokenHash(), hashedToken)){
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Tokens are not the same");
         }
 
         UserEntity user = usersRepository.getReferenceById(userId);
         if(emailsNotEquals(inv.getEmail(), user.getEmail())){
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User's email differs from the one in the invitation");
         }
 
         if(inv.getStatus() == InvitationStatus.DECLINED){

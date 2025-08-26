@@ -13,6 +13,8 @@ import java.util.List;
 public class InvitationSpecifications{
     private InvitationSpecifications(){}
 
+    //todo: create indexes for all these columns
+
     public static Specification<Invitation> byStatuses(@Nullable List<InvitationStatus> statuses){
         return (root, query, criteriaBuilder) ->
                 (statuses == null || statuses.isEmpty())
