@@ -3,7 +3,7 @@ package me.urninax.flagdelivery.user.models;
 import jakarta.persistence.*;
 import lombok.*;
 import me.urninax.flagdelivery.organisation.models.membership.Membership;
-import me.urninax.flagdelivery.user.security.enums.InternalRole;
+import me.urninax.flagdelivery.shared.security.enums.InternalRole;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package me.urninax.flagdelivery.user.security.principals;
+package me.urninax.flagdelivery.shared.security.principals;
 
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;

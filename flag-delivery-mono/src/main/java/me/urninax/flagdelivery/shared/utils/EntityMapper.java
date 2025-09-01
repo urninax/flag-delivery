@@ -1,4 +1,4 @@
-package me.urninax.flagdelivery.user.utils;
+package me.urninax.flagdelivery.shared.utils;
 
 import me.urninax.flagdelivery.organisation.models.AccessToken;
 import me.urninax.flagdelivery.organisation.models.invitation.Invitation;

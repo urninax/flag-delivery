@@ -1,8 +1,8 @@
-package me.urninax.flagdelivery.user.security;
+package me.urninax.flagdelivery.shared.security;
 
 import jakarta.servlet.http.HttpServletRequest;
-import me.urninax.flagdelivery.user.security.tokens.AccessTokenAuthenticationToken;
-import me.urninax.flagdelivery.user.security.tokens.JwtAuthenticationToken;
+import me.urninax.flagdelivery.shared.security.tokens.AccessTokenAuthenticationToken;
+import me.urninax.flagdelivery.shared.security.tokens.JwtAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.stereotype.Component;

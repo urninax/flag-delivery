@@ -1,4 +1,4 @@
-package me.urninax.flagdelivery.organisation.configs;
+package me.urninax.flagdelivery.shared.configs;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

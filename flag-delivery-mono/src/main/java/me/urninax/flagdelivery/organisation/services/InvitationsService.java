@@ -5,7 +5,6 @@ import me.urninax.flagdelivery.organisation.events.invitation.InvitationCreatedE
 import me.urninax.flagdelivery.organisation.models.invitation.Invitation;
 import me.urninax.flagdelivery.organisation.models.invitation.InvitationStatus;
 import me.urninax.flagdelivery.organisation.models.membership.Membership;
-import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.organisation.repositories.InvitationsRepository;
 import me.urninax.flagdelivery.organisation.repositories.MembershipsRepository;
 import me.urninax.flagdelivery.organisation.shared.InvitationMailDTO;
@@ -14,9 +13,9 @@ import me.urninax.flagdelivery.organisation.shared.InvitationPublicDTO;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateInvitationRequest;
 import me.urninax.flagdelivery.organisation.ui.models.requests.InvitationFilter;
 import me.urninax.flagdelivery.organisation.utils.InvitationSpecifications;
+import me.urninax.flagdelivery.shared.utils.EntityMapper;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import me.urninax.flagdelivery.user.repositories.UsersRepository;
-import me.urninax.flagdelivery.user.utils.EntityMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
@@ -68,10 +67,6 @@ public class InvitationsService{
     public void createInvitation(CreateInvitationRequest request, UUID userId){
         Membership membership = membershipsRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "User has no organisation"));
-
-        if(request.getRole().higherThan(membership.getRole())){
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed to grant role higher than user's");
-        }
 
         String token = generateToken();
 
@@ -232,10 +227,6 @@ public class InvitationsService{
 
         if(!invitationOrgId.equals(membershipOrgId)){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Invitation not found");
-        }
-
-        if(!membership.getRole().atLeast(OrgRole.ADMIN)){
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Action is not allowed");
         }
 
         if(invitation.getExpiresAt().isBefore(Instant.now())){

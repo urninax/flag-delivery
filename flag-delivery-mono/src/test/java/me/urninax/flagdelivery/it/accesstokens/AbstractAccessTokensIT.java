@@ -5,7 +5,7 @@ import me.urninax.flagdelivery.organisation.ui.models.requests.CreateAccessToken
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateOrganisationRequest;
 import me.urninax.flagdelivery.user.ui.models.requests.SigninRequest;
 import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
-import me.urninax.flagdelivery.user.utils.JwtUtils;
+import me.urninax.flagdelivery.shared.utils.JwtUtils;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

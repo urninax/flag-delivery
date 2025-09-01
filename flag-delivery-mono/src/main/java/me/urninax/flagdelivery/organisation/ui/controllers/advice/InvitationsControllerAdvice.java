@@ -1,7 +1,7 @@
 package me.urninax.flagdelivery.organisation.ui.controllers.advice;
 
 import me.urninax.flagdelivery.organisation.utils.exceptions.InvitationNotFoundException;
-import me.urninax.flagdelivery.user.utils.ErrorMessage;
+import me.urninax.flagdelivery.shared.utils.ErrorMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

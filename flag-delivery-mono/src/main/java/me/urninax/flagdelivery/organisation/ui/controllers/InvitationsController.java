@@ -3,7 +3,8 @@ package me.urninax.flagdelivery.organisation.ui.controllers;
 import jakarta.validation.constraints.Pattern;
 import me.urninax.flagdelivery.organisation.services.InvitationsService;
 import me.urninax.flagdelivery.organisation.shared.InvitationPublicDTO;
-import me.urninax.flagdelivery.user.security.CurrentUser;
+import me.urninax.flagdelivery.shared.security.CurrentUser;
+import me.urninax.flagdelivery.shared.utils.annotations.JwtOnly;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/invitations")
+@JwtOnly
 public class InvitationsController{
 
     private final CurrentUser currentUser;

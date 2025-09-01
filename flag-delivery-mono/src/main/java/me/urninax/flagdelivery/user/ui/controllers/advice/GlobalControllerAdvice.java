@@ -3,7 +3,7 @@ package me.urninax.flagdelivery.user.ui.controllers.advice;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import jakarta.persistence.OptimisticLockException;
 import lombok.extern.slf4j.Slf4j;
-import me.urninax.flagdelivery.user.utils.ErrorMessage;
+import me.urninax.flagdelivery.shared.utils.ErrorMessage;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

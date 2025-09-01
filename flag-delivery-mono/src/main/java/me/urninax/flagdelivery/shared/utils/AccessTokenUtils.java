@@ -1,4 +1,4 @@
-package me.urninax.flagdelivery.user.utils;
+package me.urninax.flagdelivery.shared.utils;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

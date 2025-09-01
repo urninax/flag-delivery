@@ -2,12 +2,12 @@ package me.urninax.flagdelivery.user.services;
 
 import me.urninax.flagdelivery.user.models.UserEntity;
 import me.urninax.flagdelivery.user.repositories.UsersRepository;
-import me.urninax.flagdelivery.user.security.principals.UserPrincipal;
-import me.urninax.flagdelivery.user.security.enums.InternalRole;
+import me.urninax.flagdelivery.shared.security.principals.UserPrincipal;
+import me.urninax.flagdelivery.shared.security.enums.InternalRole;
 import me.urninax.flagdelivery.user.ui.models.requests.ChangePasswordRequest;
 import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
 import me.urninax.flagdelivery.user.ui.models.requests.UpdatePersonalInfoRequest;
-import me.urninax.flagdelivery.user.utils.EntityMapper;
+import me.urninax.flagdelivery.shared.utils.EntityMapper;
 import me.urninax.flagdelivery.user.utils.exceptions.EmailAlreadyExistsException;
 import me.urninax.flagdelivery.user.utils.exceptions.PasswordMismatchException;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,9 +1,9 @@
-package me.urninax.flagdelivery.user.utils;
+package me.urninax.flagdelivery.shared.utils;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
-import me.urninax.flagdelivery.user.security.principals.UserPrincipal;
+import me.urninax.flagdelivery.shared.security.principals.UserPrincipal;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

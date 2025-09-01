@@ -1,7 +1,7 @@
 package me.urninax.flagdelivery.user.ui.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import me.urninax.flagdelivery.user.security.CurrentUser;
+import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.user.services.UsersServiceImpl;
 import me.urninax.flagdelivery.user.ui.models.requests.ChangePasswordRequest;
 import me.urninax.flagdelivery.user.ui.models.requests.UpdatePersonalInfoRequest;

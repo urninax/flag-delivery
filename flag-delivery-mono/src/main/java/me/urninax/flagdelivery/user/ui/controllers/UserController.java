@@ -2,7 +2,8 @@ package me.urninax.flagdelivery.user.ui.controllers;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import me.urninax.flagdelivery.user.security.CurrentUser;
+import me.urninax.flagdelivery.shared.security.CurrentUser;
+import me.urninax.flagdelivery.shared.utils.annotations.JwtOnly;
 import me.urninax.flagdelivery.user.services.UsersServiceImpl;
 import me.urninax.flagdelivery.user.ui.models.requests.ChangePasswordRequest;
 import me.urninax.flagdelivery.user.ui.models.requests.UpdatePersonalInfoRequest;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
+@JwtOnly
 public class UserController{
     private final UsersServiceImpl usersService;
     private final CurrentUser currentUser;

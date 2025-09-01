@@ -5,7 +5,7 @@ import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.organisation.services.AccessTokenService;
 import me.urninax.flagdelivery.organisation.shared.AccessTokenDTO;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateAccessTokenRequest;
-import me.urninax.flagdelivery.user.security.CurrentUser;
+import me.urninax.flagdelivery.shared.security.CurrentUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

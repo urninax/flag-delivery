@@ -1,12 +1,12 @@
-package me.urninax.flagdelivery.user.security.filters;
+package me.urninax.flagdelivery.shared.security.filters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import me.urninax.flagdelivery.user.security.principals.UserPrincipal;
+import me.urninax.flagdelivery.shared.security.principals.UserPrincipal;
 import me.urninax.flagdelivery.user.ui.models.requests.SigninRequest;
-import me.urninax.flagdelivery.user.utils.JwtUtils;
+import me.urninax.flagdelivery.shared.utils.JwtUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

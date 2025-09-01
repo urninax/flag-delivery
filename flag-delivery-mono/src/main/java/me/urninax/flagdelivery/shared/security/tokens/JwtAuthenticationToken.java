@@ -1,6 +1,6 @@
-package me.urninax.flagdelivery.user.security.tokens;
+package me.urninax.flagdelivery.shared.security.tokens;
 
-import me.urninax.flagdelivery.user.security.principals.UserPrincipal;
+import me.urninax.flagdelivery.shared.security.principals.UserPrincipal;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 

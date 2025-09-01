@@ -1,10 +1,11 @@
-package me.urninax.flagdelivery.user.security;
+package me.urninax.flagdelivery.shared.configs;
 
 import jakarta.servlet.DispatcherType;
-import me.urninax.flagdelivery.user.security.filters.AuthenticationFilter;
-import me.urninax.flagdelivery.user.security.filters.BearerAuthenticationFilter;
+import me.urninax.flagdelivery.shared.security.BearerTokenAuthenticationConverter;
+import me.urninax.flagdelivery.shared.security.filters.AuthenticationFilter;
+import me.urninax.flagdelivery.shared.security.filters.BearerAuthenticationFilter;
 import me.urninax.flagdelivery.user.services.UsersServiceImpl;
-import me.urninax.flagdelivery.user.utils.JwtUtils;
+import me.urninax.flagdelivery.shared.utils.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

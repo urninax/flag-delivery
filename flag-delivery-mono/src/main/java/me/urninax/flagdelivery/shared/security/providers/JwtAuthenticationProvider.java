@@ -1,9 +1,9 @@
-package me.urninax.flagdelivery.user.security.providers;
+package me.urninax.flagdelivery.shared.security.providers;
 
 import lombok.RequiredArgsConstructor;
-import me.urninax.flagdelivery.user.security.principals.UserPrincipal;
-import me.urninax.flagdelivery.user.security.tokens.JwtAuthenticationToken;
-import me.urninax.flagdelivery.user.utils.JwtUtils;
+import me.urninax.flagdelivery.shared.security.principals.UserPrincipal;
+import me.urninax.flagdelivery.shared.security.tokens.JwtAuthenticationToken;
+import me.urninax.flagdelivery.shared.utils.JwtUtils;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;

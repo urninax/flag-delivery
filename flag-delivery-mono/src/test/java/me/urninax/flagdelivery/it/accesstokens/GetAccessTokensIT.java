@@ -44,15 +44,13 @@ public class GetAccessTokensIT extends AbstractAccessTokensIT{
     @ServiceConnection
     protected static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:latest");
 
-    private String jwt;
-    private String secondUserJwt;
+    private String accessToken;
     private String organisationId;
 
     @BeforeAll
     void setup(){
         SignupRequest signupRequest = createUser();
         String jwt = signinUser(signupRequest.getEmail(), signupRequest.getPassword());
-        this.jwt = jwt;
 
         String organisationLocation = createOrganisationForUser(jwt);
 
@@ -60,7 +58,18 @@ public class GetAccessTokensIT extends AbstractAccessTokensIT{
             organisationId = Arrays.stream(organisationLocation.split("/")).toList().getLast();
         }
 
-        secondUserJwt = createSecondUser();
+        String secondUserJwt = createSecondUser();
+
+        CreateAccessTokenRequest createMainAT = CreateAccessTokenRequest.builder()
+                .name("MAIN TOKEN")
+                .role(OrgRole.ADMIN)
+                .isService(false)
+                .build();
+
+        HttpHeaders headers = authHeaders(jwt);
+
+        ResponseEntity<?> mainATResponse = sendCreateTokenRequest(createMainAT, headers);
+        accessToken = mainATResponse.getHeaders().getFirst("Authorization");
 
         createTokensMatrix(jwt, List.of(OrgRole.ADMIN, OrgRole.READER), List.of(true, false));
         createTokensMatrix(secondUserJwt, List.of(OrgRole.READER), List.of(true, false));
@@ -70,7 +79,7 @@ public class GetAccessTokensIT extends AbstractAccessTokensIT{
     @MethodSource("getTokensCases")
     @DisplayName("With valid request -> 200 and Access tokens page")
     void getAccessTokens_withValidRequestWithoutPathParameters_shouldReturn200AndTokensPage(Boolean showAll, int expectedCount){
-        HttpHeaders authHeaders = authHeaders(jwt);
+        HttpHeaders authHeaders = authHeaders(accessToken);
         HttpEntity<HttpHeaders> entity = new HttpEntity<>(authHeaders);
 
         URI uri = (showAll == null)
@@ -95,9 +104,9 @@ public class GetAccessTokensIT extends AbstractAccessTokensIT{
 
     private static Stream<Arguments> getTokensCases(){
         return Stream.of(
-                Arguments.of(false, 4),
-                Arguments.of(true, 6),
-                Arguments.of(null, 4)
+                Arguments.of(false, 5),
+                Arguments.of(true, 7),
+                Arguments.of(null, 5)
         );
     }
 

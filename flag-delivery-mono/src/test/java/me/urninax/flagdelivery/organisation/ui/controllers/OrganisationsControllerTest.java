@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.urninax.flagdelivery.organisation.services.OrganisationsService;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateOrganisationRequest;
 import me.urninax.flagdelivery.organisation.utils.exceptions.OrganisationAlreadyExistsException;
-import me.urninax.flagdelivery.user.security.CurrentUser;
+import me.urninax.flagdelivery.shared.security.CurrentUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

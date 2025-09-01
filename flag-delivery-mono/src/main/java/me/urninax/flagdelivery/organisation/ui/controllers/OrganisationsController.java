@@ -4,7 +4,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.organisation.services.OrganisationsService;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateOrganisationRequest;
-import me.urninax.flagdelivery.user.security.CurrentUser;
+import me.urninax.flagdelivery.shared.security.CurrentUser;
+import me.urninax.flagdelivery.shared.utils.annotations.JwtOnly;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/organisation")
 @RequiredArgsConstructor
+@JwtOnly
 public class OrganisationsController{
     private final OrganisationsService organisationsService;
     private final CurrentUser currentUser;

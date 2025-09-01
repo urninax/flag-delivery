@@ -1,7 +1,7 @@
 package me.urninax.flagdelivery.user.ui.controllers.advice;
 
 import lombok.extern.slf4j.Slf4j;
-import me.urninax.flagdelivery.user.utils.ErrorMessage;
+import me.urninax.flagdelivery.shared.utils.ErrorMessage;
 import me.urninax.flagdelivery.user.utils.exceptions.EmailAlreadyExistsException;
 import me.urninax.flagdelivery.user.utils.exceptions.PasswordMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
