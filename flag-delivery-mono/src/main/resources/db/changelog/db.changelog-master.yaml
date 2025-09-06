@@ -22,3 +22,6 @@ databaseChangeLog:
   - include:
       file: org-role-enum-migration.yaml
       relativeToChangelogFile: true
+  - include:
+      file: version-column-memberships.yaml
+      relativeToChangelogFile: true

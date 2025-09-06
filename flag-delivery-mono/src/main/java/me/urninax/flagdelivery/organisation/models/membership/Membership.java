@@ -21,6 +21,10 @@ public class Membership{
     @Column(name = "user_id")
     private UUID userId;
 
+    @Version
+    @Column(name = "version")
+    private Long version;
+
     @MapsId
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
