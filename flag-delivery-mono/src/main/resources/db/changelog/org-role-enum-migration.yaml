@@ -1,0 +1,86 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2025-09-06-drop-checks
+      author: urninax
+      changes:
+        - sql:
+            sql: |
+              alter table organisation_memberships
+              drop constraint if exists organisation_memberships_role_check;
+              alter table public.access_token
+              drop constraint if exists access_token_role_check;
+
+  - changeSet:
+      id: 2025-09-06-create-enum
+      author: urninax
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              DO $$
+                BEGIN 
+                  if not exists (select 1 from pg_type where typname = 'org_role') then
+                    create type org_role as enum ('NONE', 'READER', 'WRITER', 'ADMIN', 'OWNER');
+                  end if;
+              END 
+              $$ LANGUAGE plpgsql;
+
+  - changeSet:
+      id: 2025-09-06-validate-data
+      author: urninax
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              DO $$
+              declare bad_count int;
+              BEGIN
+                select count(*) into bad_count
+                from (
+                  select role from public.organisation_memberships
+                  union all
+                  select role from public.access_token
+                ) r
+                where role not in ('NONE','READER','WRITER','ADMIN','OWNER')
+                   or role is null;
+                if bad_count > 0 then
+                  raise exception 'Migration aborted: found % invalid role values', bad_count;
+                end if;
+              END 
+              $$ LANGUAGE plpgsql;
+
+  - changeSet:
+      id: 2025-09-06-drop-defaults
+      author: urninax
+      changes:
+        - sql:
+            sql: |
+              alter table public.organisation_memberships
+              alter column role drop default;
+              alter table public.access_token
+              alter column role drop default;
+
+  - changeSet:
+      id: 2025-09-06-alter-columns
+      author: urninax
+      changes:
+        - sql:
+            sql: |
+              ALTER TABLE public.organisation_memberships
+                ALTER COLUMN role TYPE org_role
+                USING role::org_role;
+              ALTER TABLE public.access_token
+                ALTER COLUMN role TYPE org_role
+                USING role::org_role;
+
+  - changeSet:
+      id: 2025-09-06-set-defaults
+      author: urninax
+      changes:
+        - sql:
+            sql: |
+              alter table public.organisation_memberships
+              alter column role set default 'NONE'::org_role;
+              alter table public.access_token
+              alter column role set default 'NONE'::org_role;
+

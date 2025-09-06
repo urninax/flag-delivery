@@ -1,7 +1,7 @@
 package me.urninax.flagdelivery.organisation.models.membership;
 
 public enum OrgRole{
-    ADMIN(3), WRITER(2), READER(1);
+    OWNER(4), ADMIN(3), WRITER(2), READER(1), NONE(0);
 
     private final int level;
 
@@ -11,6 +11,10 @@ public enum OrgRole{
 
     public boolean higherThan(OrgRole other){
         return this.level > other.level;
+    }
+
+    public boolean lowerThan(OrgRole other){
+        return this.level < other.level;
     }
 
     public boolean atLeast(OrgRole other){

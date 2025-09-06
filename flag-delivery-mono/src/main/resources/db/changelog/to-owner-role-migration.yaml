@@ -1,0 +1,57 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2025-09-06-drop-membership-role-check
+      author: urninax
+      changes:
+        - sql:
+            sql: |
+              alter table public.organisation_memberships
+              drop constraint if exists organisation_memberships_role_check;
+
+  - changeSet:
+      id: 2025-09-06-drop-access-token-role-check
+      author: urninax
+      changes:
+        - sql:
+            sql: |
+              alter table public.access_token
+              drop constraint if exists access_token_role_check;
+
+  - changeSet:
+      id: 2025-09-06-create-membership-role-check
+      author: urninax
+      changes:
+        - sql:
+            sql: |
+              alter table public.organisation_memberships
+              add constraint organisation_memberships_role_check
+              check ( role in ('OWNER', 'ADMIN', 'WRITER', 'READER', 'NONE'));
+
+  - changeSet:
+      id: 2025-09-06-create-access-token-role-check
+      author: urninax
+      changes:
+        - sql:
+            sql: |
+              alter table public.access_token
+              add constraint access_token_role_check
+              check ( role in ('OWNER', 'ADMIN', 'WRITER', 'READER', 'NONE'));
+
+  - changeSet:
+      id: 2025-09-06-backfill-membership-roles
+      author: urninax
+      changes:
+        - sql:
+            sql: |
+              update organisation_memberships
+              set role = 'OWNER'
+              where is_owner = true
+              and role is distinct from 'OWNER';
+
+  - changeSet:
+      id: 2025-09-06-drop-is-owner-column
+      author: urninax
+      changes:
+        - dropColumn:
+            tableName: organisation_memberships
+            columnName: is_owner

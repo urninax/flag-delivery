@@ -1,11 +1,13 @@
 package me.urninax.flagdelivery.organisation.repositories;
 
 import me.urninax.flagdelivery.organisation.models.AccessToken;
+import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,4 +16,5 @@ public interface AccessTokenRepository extends JpaRepository<AccessToken, UUID>{
     Page<AccessToken> findAllByOrganisation_Id(UUID orgId, Pageable pageable);
     Page<AccessToken> findAllByOwner_IdAndOrganisation_Id(UUID ownerId, UUID orgId, Pageable pageable);
     Optional<AccessToken> findByHashedToken(String hashedToken);
+    List<AccessToken> findAllByOwner_IdAndIsServiceIsFalseAndRoleIsNot(UUID ownerId, OrgRole role);
 }

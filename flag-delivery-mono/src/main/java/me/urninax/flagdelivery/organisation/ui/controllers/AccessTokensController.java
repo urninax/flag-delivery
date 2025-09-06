@@ -7,7 +7,6 @@ import me.urninax.flagdelivery.organisation.shared.AccessTokenDTO;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateAccessTokenRequest;
 import me.urninax.flagdelivery.organisation.ui.models.responses.PageResponse;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
-import me.urninax.flagdelivery.shared.utils.annotations.AccessTokenOnly;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -40,7 +39,6 @@ public class AccessTokensController{
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    @AccessTokenOnly
     public ResponseEntity<PageResponse<AccessTokenDTO>> getAccessTokens(@PageableDefault(size = 25,
                                                                             sort = {"isService", "lastUsed"},
                                                                             direction = Sort.Direction.DESC) Pageable pageable,

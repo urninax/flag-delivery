@@ -134,7 +134,7 @@ public class GetAccessTokensIT extends AbstractAccessTokensIT{
 
         String secondUserId = claims.getSubject();
 
-        membershipsService.addMembership(UUID.fromString(organisationId), UUID.fromString(secondUserId), OrgRole.WRITER, false);
+        membershipsService.addMembership(UUID.fromString(organisationId), UUID.fromString(secondUserId), OrgRole.WRITER);
 
         return secondUserAuthToken;
     }

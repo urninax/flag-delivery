@@ -28,9 +28,6 @@ public class Membership{
     @JoinColumn(name = "organisation_id")
     private Organisation organisation;
 
-    @Column(name = "is_owner", nullable = false)
-    private boolean owner;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     private OrgRole role;

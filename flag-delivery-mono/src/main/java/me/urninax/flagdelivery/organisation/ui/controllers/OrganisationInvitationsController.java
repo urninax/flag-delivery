@@ -1,11 +1,14 @@
 package me.urninax.flagdelivery.organisation.ui.controllers;
 
+import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.organisation.services.InvitationsService;
 import me.urninax.flagdelivery.organisation.shared.InvitationOrganisationDTO;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateInvitationRequest;
 import me.urninax.flagdelivery.organisation.ui.models.requests.InvitationFilter;
 import me.urninax.flagdelivery.organisation.ui.models.responses.PageResponse;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
+import me.urninax.flagdelivery.shared.security.enums.AuthMethod;
+import me.urninax.flagdelivery.shared.utils.annotations.AuthenticatedWithRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,14 +16,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/organisation/invitations")
-@PreAuthorize("@user.isAuthMethod('ACCESS_TOKEN') and @perm.canAccess('ADMIN')")
+@AuthenticatedWithRole(method = AuthMethod.ACCESS_TOKEN, role = OrgRole.ADMIN)
 public class OrganisationInvitationsController{
     private final CurrentUser currentUser;
     private final InvitationsService invitationsService;

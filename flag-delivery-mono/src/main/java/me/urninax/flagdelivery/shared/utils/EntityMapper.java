@@ -20,6 +20,7 @@ public interface EntityMapper{
     UserEntity toEntity(SignupRequest signupRequest);
 
     @Mapping(source = "owner.id", target = "memberId")
+    @Mapping(source = "id", target = "id")
     AccessTokenDTO toDTO(AccessToken accessToken);
 
     @Mapping(target = "invitedBy", expression = "java(invitation.getInvitedBy().getFirstName() + \" \" + invitation.getInvitedBy().getLastName())")

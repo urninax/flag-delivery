@@ -16,3 +16,9 @@ databaseChangeLog:
   - include:
       file: add-version-column.yaml
       relativeToChangelogFile: true
+  - include:
+      file: to-owner-role-migration.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: org-role-enum-migration.yaml
+      relativeToChangelogFile: true

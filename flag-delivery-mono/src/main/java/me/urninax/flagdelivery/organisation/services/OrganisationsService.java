@@ -44,8 +44,7 @@ public class OrganisationsService{
         membershipsService.addMembership(
                 created.getId(),
                 userId,
-                OrgRole.ADMIN,
-                true
+                OrgRole.OWNER
         );
 
         return created.getId();
@@ -56,7 +55,7 @@ public class OrganisationsService{
         Membership membership = membershipsRepository.findById(userId)
                 .orElseThrow(() -> new AccessDeniedException("No role in any organisation"));
 
-        if(!membership.isOwner()){
+        if(membership.getRole() != OrgRole.OWNER){
             throw new AccessDeniedException("User is not an owner of organisation");
         }
 

@@ -57,6 +57,7 @@ public class AccessTokenService{
     }
 
     public Page<AccessTokenDTO> getTokensForUserInOrg(UUID userId, Pageable pageable, Optional<Boolean> showAllOptional){
+        //todo: review visibility semantics
         Membership membership = membershipsRepository.findById(userId)
                 .orElseThrow(() -> new AccessDeniedException("No role in any organisation"));
 
@@ -90,6 +91,7 @@ public class AccessTokenService{
                 .authorities(List.of(
                         new SimpleGrantedAuthority(String.format("ROLE_ORG_%s", accessToken.getRole()))
                 ))
+                //todo: add isService to the principal
                 .build();
     }
 

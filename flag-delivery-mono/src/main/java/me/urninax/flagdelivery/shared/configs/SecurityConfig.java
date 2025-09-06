@@ -4,8 +4,13 @@ import jakarta.servlet.DispatcherType;
 import me.urninax.flagdelivery.shared.security.BearerTokenAuthenticationConverter;
 import me.urninax.flagdelivery.shared.security.filters.AuthenticationFilter;
 import me.urninax.flagdelivery.shared.security.filters.BearerAuthenticationFilter;
-import me.urninax.flagdelivery.user.services.UsersServiceImpl;
+import me.urninax.flagdelivery.shared.security.managers.AuthenticatedWithRoleAuthorizationManager;
 import me.urninax.flagdelivery.shared.utils.JwtUtils;
+import me.urninax.flagdelivery.shared.utils.annotations.AuthenticatedWithRole;
+import me.urninax.flagdelivery.user.services.UsersServiceImpl;
+import org.springframework.aop.Advisor;
+import org.springframework.aop.Pointcut;
+import org.springframework.aop.support.annotation.AnnotationMatchingPointcut;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +19,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authorization.method.AuthorizationManagerBeforeMethodInterceptor;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -74,6 +80,12 @@ public class SecurityConfig{
                 .authenticationManager(authManager);
 
         return http.build();
+    }
+
+    @Bean
+    public Advisor authenticatedWithRoleAdvisor(AuthenticatedWithRoleAuthorizationManager manager){
+        Pointcut pointcut = new AnnotationMatchingPointcut(AuthenticatedWithRole.class, AuthenticatedWithRole.class, true);
+        return new AuthorizationManagerBeforeMethodInterceptor(pointcut, manager);
     }
 
     @Bean

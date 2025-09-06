@@ -1,5 +1,6 @@
 package me.urninax.flagdelivery.user.ui.controllers.advice;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import jakarta.persistence.OptimisticLockException;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -28,6 +30,21 @@ public class GlobalControllerAdvice{
 
         if(cause instanceof UnrecognizedPropertyException unrecognizedPropertyExc){
             message = String.format("Unknown field: %s", unrecognizedPropertyExc.getPropertyName());
+        }else if(cause instanceof InvalidFormatException invalidFormatExc){
+            Class<?> targetType = invalidFormatExc.getTargetType();
+            Object value = invalidFormatExc.getValue();
+
+            if(targetType.isEnum()){
+                String allowed = Arrays.stream(targetType.getEnumConstants())
+                        .map(Object::toString)
+                        .collect(Collectors.joining(", "));
+
+                message = String.format(
+                        "Invalid value '%s' for field '%s'. Allowed values: [%s]",
+                        value,
+                        invalidFormatExc.getPath().isEmpty() ? "unknown" : invalidFormatExc.getPath().getFirst().getFieldName(),
+                        allowed);
+            }
         }
 
         ErrorMessage errorMessage = ErrorMessage.builder()

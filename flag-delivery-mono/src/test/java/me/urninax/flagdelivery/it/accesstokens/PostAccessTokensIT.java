@@ -85,7 +85,7 @@ public class PostAccessTokensIT extends AbstractAccessTokensIT{
 
         String secondUserId = claims.getSubject();
 
-        membershipsService.addMembership(UUID.fromString(organisationId), UUID.fromString(secondUserId), OrgRole.READER, false);
+        membershipsService.addMembership(UUID.fromString(organisationId), UUID.fromString(secondUserId), OrgRole.READER);
 
         HttpHeaders authHeaders = authHeaders(secondUserJwt);
 

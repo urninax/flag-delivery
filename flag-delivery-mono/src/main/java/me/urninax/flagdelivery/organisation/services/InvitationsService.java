@@ -5,6 +5,7 @@ import me.urninax.flagdelivery.organisation.events.invitation.InvitationCreatedE
 import me.urninax.flagdelivery.organisation.models.invitation.Invitation;
 import me.urninax.flagdelivery.organisation.models.invitation.InvitationStatus;
 import me.urninax.flagdelivery.organisation.models.membership.Membership;
+import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.organisation.repositories.InvitationsRepository;
 import me.urninax.flagdelivery.organisation.repositories.MembershipsRepository;
 import me.urninax.flagdelivery.organisation.shared.InvitationMailDTO;
@@ -69,6 +70,10 @@ public class InvitationsService{
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "User has no organisation"));
 
         String token = generateToken();
+
+        if(!request.getRole().lowerThan(OrgRole.ADMIN)){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Inviter's role should be higher than invitation role");
+        }
 
         Invitation invitation = Invitation.builder()
                 .organisation(membership.getOrganisation())
@@ -150,14 +155,14 @@ public class InvitationsService{
         Optional<Membership> membershipOptional = membershipsRepository.findById(userId);
 
         if(membershipOptional.isEmpty()){ // user has no organisation -> accept invitation
-            membershipsService.addMembership(inv.getOrganisation().getId(), userId, inv.getRole(), false);
+            membershipsService.addMembership(inv.getOrganisation().getId(), userId, inv.getRole());
             finalizeInvitation(inv);
             return;
         }
 
         Membership membership = membershipOptional.get();
         if(!membership.getOrganisation().getId().equals(inv.getOrganisation().getId())){ // invitation for another organisation
-            if(membership.isOwner()){
+            if(membership.getRole() == OrgRole.OWNER){
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "User is owner of the current organisation. Transfer is impossible.");
             }
             if(!isTransferAllowed){
@@ -166,7 +171,6 @@ public class InvitationsService{
 
             membership.setRole(inv.getRole());
             membership.setOrganisation(inv.getOrganisation());
-            membership.setOwner(false);
             membershipsRepository.save(membership);
 
             finalizeInvitation(inv);
