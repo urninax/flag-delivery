@@ -1,0 +1,31 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2025-09-06-create-user-activity-table
+      author: urninax
+      changes:
+        - createTable:
+            tableName: user_activity
+            columns:
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    references: user_entity(id)
+                    foreignKeyName: fk_user_activity_user
+                    deleteCascade: true
+
+              - column:
+                  name: last_seen
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: last_ip
+                  type: inet
+
+              - column:
+                  name: last_ua
+                  type: text

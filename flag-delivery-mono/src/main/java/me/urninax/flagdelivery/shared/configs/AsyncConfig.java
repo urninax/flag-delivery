@@ -20,4 +20,15 @@ public class AsyncConfig{
         ex.initialize();
         return ex;
     }
+
+    @Bean("userActivityExecutor")
+    public Executor userActivityExecutor(){
+        var ex = new ThreadPoolTaskExecutor();
+        ex.setCorePoolSize(4);
+        ex.setMaxPoolSize(16);
+        ex.setQueueCapacity(2000);
+        ex.setThreadNamePrefix("user-activity-");
+        ex.initialize();
+        return ex;
+    }
 }

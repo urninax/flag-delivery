@@ -25,3 +25,6 @@ databaseChangeLog:
   - include:
       file: version-column-memberships.yaml
       relativeToChangelogFile: true
+  - include:
+      file: create-user-activity-table.yaml
+      relativeToChangelogFile: true

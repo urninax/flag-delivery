@@ -2,11 +2,14 @@ package me.urninax.flagdelivery.shared.configs;
 
 import jakarta.servlet.DispatcherType;
 import me.urninax.flagdelivery.shared.security.BearerTokenAuthenticationConverter;
+import me.urninax.flagdelivery.shared.security.CurrentUser;
+import me.urninax.flagdelivery.shared.security.filters.ActivityTrackerFilter;
 import me.urninax.flagdelivery.shared.security.filters.AuthenticationFilter;
 import me.urninax.flagdelivery.shared.security.filters.BearerAuthenticationFilter;
 import me.urninax.flagdelivery.shared.security.managers.AuthenticatedWithRoleAuthorizationManager;
 import me.urninax.flagdelivery.shared.utils.JwtUtils;
 import me.urninax.flagdelivery.shared.utils.annotations.AuthenticatedWithRole;
+import me.urninax.flagdelivery.user.services.UserActivityService;
 import me.urninax.flagdelivery.user.services.UsersServiceImpl;
 import org.springframework.aop.Advisor;
 import org.springframework.aop.Pointcut;
@@ -52,7 +55,7 @@ public class SecurityConfig{
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    AuthenticationManager manager,
-                                                   BearerTokenAuthenticationConverter converter) throws Exception{
+                                                   BearerTokenAuthenticationConverter converter, ActivityTrackerFilter activityTrackerFilter) throws Exception{
         var authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
 
         authenticationManagerBuilder
@@ -77,6 +80,7 @@ public class SecurityConfig{
                         .anyRequest().authenticated())
                 .addFilter(authenticationFilter)
                 .addFilterBefore(new BearerAuthenticationFilter(manager, converter), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(activityTrackerFilter, UsernamePasswordAuthenticationFilter.class)
                 .authenticationManager(authManager);
 
         return http.build();
@@ -91,5 +95,10 @@ public class SecurityConfig{
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationProvider... providers){
         return new ProviderManager(List.of(providers));
+    }
+
+    @Bean
+    public ActivityTrackerFilter activityTrackerFilter(UserActivityService service, CurrentUser currentUser){
+        return new ActivityTrackerFilter(service, currentUser);
     }
 }
