@@ -36,6 +36,9 @@ public class UserEntity{
     @OneToOne(mappedBy = "user")
     private Membership membership;
 
+    @OneToOne(mappedBy = "user")
+    private UserActivity userActivity;
+
     @Column(name = "enabled")
     private boolean enabled;
 

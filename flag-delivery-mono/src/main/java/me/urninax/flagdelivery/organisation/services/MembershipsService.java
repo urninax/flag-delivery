@@ -7,15 +7,22 @@ import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.organisation.repositories.AccessTokenRepository;
 import me.urninax.flagdelivery.organisation.repositories.MembershipsRepository;
 import me.urninax.flagdelivery.organisation.repositories.OrganisationsRepository;
+import me.urninax.flagdelivery.organisation.shared.MemberWithActivityDTO;
 import me.urninax.flagdelivery.organisation.ui.models.requests.ChangeMembersRoleRequest;
+import me.urninax.flagdelivery.organisation.ui.models.requests.MembersFilter;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import me.urninax.flagdelivery.user.repositories.UsersRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.UUID;
 
 @Service
@@ -74,5 +81,27 @@ public class MembershipsService{
         membershipsRepository.save(targetMembership);
 
         accessTokenRepository.downgradeUserTokens(memberId, request.role());
+    }
+
+    public Page<MemberWithActivityDTO> getMembers(MembersFilter filter, Pageable pageable){
+        Membership membership = membershipsRepository.findById(currentUser.getUserId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User has no organisation"));
+
+        LocalDate lastSeenAfter = filter.getLastSeenAfter();
+        Instant threshold = lastSeenAfter != null
+                ? lastSeenAfter.atStartOfDay(ZoneId.of("UTC")).toInstant()
+                : null;
+
+//        boolean rolesEmpty = filter.getRoles() == null || filter.getRoles().isEmpty();
+
+        return membershipsRepository.findMembers(
+                membership.getOrganisation().getId(),
+                threshold,
+                filter.getRoles(),
+                pageable
+        );
+//        return rolesEmpty
+//                ? membershipsRepository.findMembersNoRoles(threshold, membership.getOrganisation().getId(), pageable)
+//                : membershipsRepository.findMembersWithRoles(threshold, filter.getRoles(), membership.getOrganisation().getId(), pageable);
     }
 }

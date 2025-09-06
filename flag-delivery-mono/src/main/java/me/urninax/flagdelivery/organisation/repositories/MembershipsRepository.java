@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface MembershipsRepository extends JpaRepository<Membership, UUID>{
+public interface MembershipsRepository extends JpaRepository<Membership, UUID>, MembershipsRepositoryCustom{
 }
