@@ -92,16 +92,11 @@ public class MembershipsService{
                 ? lastSeenAfter.atStartOfDay(ZoneId.of("UTC")).toInstant()
                 : null;
 
-//        boolean rolesEmpty = filter.getRoles() == null || filter.getRoles().isEmpty();
-
         return membershipsRepository.findMembers(
                 membership.getOrganisation().getId(),
                 threshold,
                 filter.getRoles(),
                 pageable
         );
-//        return rolesEmpty
-//                ? membershipsRepository.findMembersNoRoles(threshold, membership.getOrganisation().getId(), pageable)
-//                : membershipsRepository.findMembersWithRoles(threshold, filter.getRoles(), membership.getOrganisation().getId(), pageable);
     }
 }
