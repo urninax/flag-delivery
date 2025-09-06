@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import me.urninax.flagdelivery.organisation.models.Organisation;
 import me.urninax.flagdelivery.user.models.UserEntity;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.UUID;
 
@@ -30,5 +32,6 @@ public class Membership{
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private OrgRole role;
 }

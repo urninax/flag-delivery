@@ -1,7 +1,6 @@
 package me.urninax.flagdelivery.organisation.services;
 
 import jakarta.transaction.Transactional;
-import me.urninax.flagdelivery.organisation.models.AccessToken;
 import me.urninax.flagdelivery.organisation.models.Organisation;
 import me.urninax.flagdelivery.organisation.models.membership.Membership;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
@@ -17,7 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -75,13 +73,6 @@ public class MembershipsService{
         targetMembership.setRole(request.role());
         membershipsRepository.save(targetMembership);
 
-        List<AccessToken> userTokens = accessTokenRepository
-                .findAllByOwner_IdAndIsServiceIsFalseAndRoleIsNot(memberId, request.role());
-
-        userTokens.stream()
-                .filter(token -> token.getRole().higherThan(request.role()))
-                .forEach(token -> token.setRole(request.role()));
-
-        accessTokenRepository.saveAll(userTokens);
+        accessTokenRepository.downgradeUserTokens(memberId, request.role());
     }
 }

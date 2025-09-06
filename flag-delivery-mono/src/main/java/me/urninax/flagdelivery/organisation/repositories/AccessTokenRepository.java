@@ -5,9 +5,10 @@ import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -16,5 +17,13 @@ public interface AccessTokenRepository extends JpaRepository<AccessToken, UUID>{
     Page<AccessToken> findAllByOrganisation_Id(UUID orgId, Pageable pageable);
     Page<AccessToken> findAllByOwner_IdAndOrganisation_Id(UUID ownerId, UUID orgId, Pageable pageable);
     Optional<AccessToken> findByHashedToken(String hashedToken);
-    List<AccessToken> findAllByOwner_IdAndIsServiceIsFalseAndRoleIsNot(UUID ownerId, OrgRole role);
+    @Modifying
+    @Query("""
+        update AccessToken t
+           set t.role = :newRole
+         where t.owner.id = :userId
+           and t.isService = false
+           and t.role > :newRole
+    """)
+    int downgradeUserTokens(UUID userId, OrgRole newRole);
 }

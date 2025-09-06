@@ -5,7 +5,9 @@ import lombok.*;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -34,6 +36,7 @@ public class AccessToken{
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private OrgRole role;
 
     @CreationTimestamp
