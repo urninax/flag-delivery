@@ -33,6 +33,9 @@ public class Project{
     @Column(name = "name")
     private String name;
 
+    @Column(name = "organisation_id")
+    private UUID organisationId;
+
     @JdbcTypeCode(SqlTypes.ARRAY)
     @Column(name = "tags", columnDefinition = "text[]")
     private List<String> tags;
@@ -46,6 +49,9 @@ public class Project{
 
     @Column(name = "created_at")
     private Instant createdAt;
+
+    @Column(name = "created_by")
+    private UUID createdBy;
 
     @Column(name = "updated_at")
     private Instant updatedAt;

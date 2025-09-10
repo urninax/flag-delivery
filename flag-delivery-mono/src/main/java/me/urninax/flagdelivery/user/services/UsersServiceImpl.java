@@ -1,5 +1,7 @@
 package me.urninax.flagdelivery.user.services;
 
+import me.urninax.flagdelivery.shared.exceptions.ConflictException;
+import me.urninax.flagdelivery.shared.utils.PersistenceExceptionUtils;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import me.urninax.flagdelivery.user.repositories.UsersRepository;
 import me.urninax.flagdelivery.shared.security.principals.UserPrincipal;
@@ -11,6 +13,7 @@ import me.urninax.flagdelivery.shared.utils.EntityMapper;
 import me.urninax.flagdelivery.user.utils.exceptions.EmailAlreadyExistsException;
 import me.urninax.flagdelivery.user.utils.exceptions.PasswordMismatchException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -34,12 +37,18 @@ public class UsersServiceImpl implements UsersService{
 
     @Override
     public void createUser(SignupRequest signupRequest){
-        //TODO: check email existence
         UserEntity userEntity = entityMapper.toEntity(signupRequest);
         userEntity.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
         userEntity.setInternalRoles(List.of(InternalRole.USER));
 
-        usersRepository.save(userEntity);
+        try{
+            usersRepository.saveAndFlush(userEntity);
+        }catch(DataIntegrityViolationException exc){
+            if(PersistenceExceptionUtils.isUniqueException(exc)){
+                throw new ConflictException("Email already exists");
+            }
+            throw exc;
+        }
     }
 
     @Override

@@ -1,11 +1,13 @@
-package me.urninax.flagdelivery.user.ui.controllers.advice;
+package me.urninax.flagdelivery.shared.exceptionhandling;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import jakarta.persistence.OptimisticLockException;
 import lombok.extern.slf4j.Slf4j;
+import me.urninax.flagdelivery.shared.exceptions.ConflictException;
 import me.urninax.flagdelivery.shared.utils.ErrorMessage;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Objects;
@@ -22,6 +25,12 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 @Slf4j
 public class GlobalControllerAdvice{
+    private final Clock clock;
+
+    public GlobalControllerAdvice(Clock clock){
+        this.clock = clock;
+    }
+
     @ExceptionHandler({HttpMessageNotReadableException.class})
     public ResponseEntity<ErrorMessage> handleUnrecognizedProperties(HttpMessageNotReadableException exc, WebRequest request){
         Throwable cause = exc.getCause();
@@ -68,7 +77,7 @@ public class GlobalControllerAdvice{
                 .collect(Collectors.joining("; "));
 
         HttpStatus status = message.isBlank() ? HttpStatus.INTERNAL_SERVER_ERROR
-                                              : HttpStatus.BAD_REQUEST;
+                : HttpStatus.BAD_REQUEST;
 
         ErrorMessage errorMessage = ErrorMessage.builder()
                 .timestamp(Instant.now())
@@ -87,6 +96,37 @@ public class GlobalControllerAdvice{
                 .timestamp(Instant.now())
                 .status(status.value())
                 .message("Object was modified concurrently. Please retry")
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(errorMessage, status);
+    }
+
+    @ExceptionHandler({ConflictException.class})
+    public ResponseEntity<?> handleConflictException(ConflictException exc, WebRequest request){
+        HttpStatus status = HttpStatus.CONFLICT;
+
+        ErrorMessage errorMessage = ErrorMessage.builder()
+                .timestamp(Instant.now(clock))
+                .status(status.value())
+                .message(exc.getMessage())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(errorMessage, status);
+    }
+
+    @ExceptionHandler({DataIntegrityViolationException.class})
+    public ResponseEntity<ErrorMessage> handleDataIntegrityViolationException(DataIntegrityViolationException exc,
+                                                                              WebRequest request){
+        String message = "Unknown persistence error";
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        log.error(exc.getLocalizedMessage());
+
+        ErrorMessage errorMessage = ErrorMessage.builder()
+                .timestamp(Instant.now())
+                .status(status.value())
+                .message(message)
                 .path(request.getDescription(false).replace("uri=", ""))
                 .build();
 

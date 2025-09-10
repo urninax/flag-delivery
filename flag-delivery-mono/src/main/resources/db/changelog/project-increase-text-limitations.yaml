@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2025-09-10-change-varchar-limitations
+      author: urninax
+      changes:
+        - modifyDataType:
+            tableName: project
+            columnName: name
+            newDataType: varchar(256)
+
+        - modifyDataType:
+            tableName: project
+            columnName: key
+            newDataType: varchar
+
+        - modifyDataType:
+            tableName: project
+            columnName: prefix
+            newDataType: varchar(128)

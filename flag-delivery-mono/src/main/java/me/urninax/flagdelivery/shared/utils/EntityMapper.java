@@ -6,6 +6,8 @@ import me.urninax.flagdelivery.organisation.shared.AccessTokenDTO;
 import me.urninax.flagdelivery.organisation.shared.InvitationMailDTO;
 import me.urninax.flagdelivery.organisation.shared.InvitationOrganisationDTO;
 import me.urninax.flagdelivery.organisation.shared.InvitationPublicDTO;
+import me.urninax.flagdelivery.projectsenvs.models.project.Project;
+import me.urninax.flagdelivery.projectsenvs.shared.project.ProjectDTO;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
 import org.mapstruct.Mapper;
@@ -34,4 +36,6 @@ public interface EntityMapper{
     @Mapping(source = "invitation.id", target = "invitationId")
     @Mapping(target = "token", ignore = true)
     InvitationMailDTO toMailDTO(Invitation invitation);
+
+    ProjectDTO toDTO(Project project);
 }
