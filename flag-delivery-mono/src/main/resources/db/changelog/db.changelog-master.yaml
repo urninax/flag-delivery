@@ -28,3 +28,6 @@ databaseChangeLog:
   - include:
       file: create-user-activity-table.yaml
       relativeToChangelogFile: true
+  - include:
+      file: create-project.yaml
+      relativeToChangelogFile: true

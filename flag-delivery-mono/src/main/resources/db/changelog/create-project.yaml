@@ -1,0 +1,92 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2025-09-10-create-project-table
+      author: urninax
+      changes:
+        - createTable:
+            tableName: project
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_project
+                    nullable: false
+              - column:
+                  name: organisation_id
+                  type: uuid
+                  constraints:
+                    foreignKeyName: fk_project_org
+                    references: organisation(id)
+                    deleteCascade: true
+                    nullable: false
+              - column:
+                  name: key
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tags
+                  type: text[]
+              - column:
+                  name: casing_convention
+                  type: varchar(20)
+              - column:
+                  name: prefix
+                  type: varchar(50)
+              - column:
+                  name: created_by
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_project_created_by_user
+                    references: user_entity(id)
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: archived
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: version
+                  type: bigint
+                  defaultValueNumeric: "0"
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            tableName: project
+            columnNames: organisation_id, key
+            constraintName: ux_project_org_key
+
+
+      rollback:
+        - dropUniqueConstraint:
+            tableName: project
+            constraintName: ux_project_org_key
+        - dropForeignKeyConstraint:
+            baseTableName: project
+            constraintName: fk_project_created_by_user
+        - dropForeignKeyConstraint:
+            baseTableName: project
+            constraintName: fk_project_org
+        - dropTable:
+            tableName: project

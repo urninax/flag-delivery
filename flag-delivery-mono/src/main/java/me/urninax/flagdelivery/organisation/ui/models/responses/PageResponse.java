@@ -1,5 +1,6 @@
 package me.urninax.flagdelivery.organisation.ui.models.responses;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,7 +15,11 @@ public class PageResponse<T>{
     private List<T> content;
     private int page;
     private int size;
+
+    @JsonProperty("total_elements")
     private long totalElements;
+
+    @JsonProperty("total_pages")
     private int totalPages;
 
     public PageResponse(Page<T> page){
