@@ -8,7 +8,8 @@ import me.urninax.flagdelivery.organisation.ui.models.requests.InvitationFilter;
 import me.urninax.flagdelivery.organisation.ui.models.responses.PageResponse;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.shared.security.enums.AuthMethod;
-import me.urninax.flagdelivery.shared.utils.annotations.AuthenticatedWithRole;
+import me.urninax.flagdelivery.shared.utils.annotations.RequiresAuthMethod;
+import me.urninax.flagdelivery.shared.utils.annotations.RequiresRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +23,8 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/organisation/invitations")
-@AuthenticatedWithRole(method = AuthMethod.ACCESS_TOKEN, role = OrgRole.ADMIN)
+@RequiresAuthMethod(AuthMethod.ACCESS_TOKEN)
+@RequiresRole(OrgRole.ADMIN)
 public class OrganisationInvitationsController{
     private final CurrentUser currentUser;
     private final InvitationsService invitationsService;

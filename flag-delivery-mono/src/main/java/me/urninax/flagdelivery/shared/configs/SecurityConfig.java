@@ -8,11 +8,13 @@ import me.urninax.flagdelivery.shared.security.filters.AuthenticationFilter;
 import me.urninax.flagdelivery.shared.security.filters.BearerAuthenticationFilter;
 import me.urninax.flagdelivery.shared.security.managers.AuthenticatedWithRoleAuthorizationManager;
 import me.urninax.flagdelivery.shared.utils.JwtUtils;
-import me.urninax.flagdelivery.shared.utils.annotations.AuthenticatedWithRole;
+import me.urninax.flagdelivery.shared.utils.annotations.RequiresAuthMethod;
+import me.urninax.flagdelivery.shared.utils.annotations.RequiresRole;
 import me.urninax.flagdelivery.user.services.UserActivityService;
 import me.urninax.flagdelivery.user.services.UsersServiceImpl;
 import org.springframework.aop.Advisor;
 import org.springframework.aop.Pointcut;
+import org.springframework.aop.support.ComposablePointcut;
 import org.springframework.aop.support.annotation.AnnotationMatchingPointcut;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -88,8 +90,12 @@ public class SecurityConfig{
 
     @Bean
     public Advisor authenticatedWithRoleAdvisor(AuthenticatedWithRoleAuthorizationManager manager){
-        Pointcut pointcut = new AnnotationMatchingPointcut(AuthenticatedWithRole.class, AuthenticatedWithRole.class, true);
-        return new AuthorizationManagerBeforeMethodInterceptor(pointcut, manager);
+        Pointcut authPointcut = new AnnotationMatchingPointcut(RequiresAuthMethod.class, true);
+        Pointcut rolePointcut = new AnnotationMatchingPointcut(RequiresRole.class, true);
+
+        Pointcut combined = new ComposablePointcut(authPointcut).union(rolePointcut);
+
+        return new AuthorizationManagerBeforeMethodInterceptor(combined, manager);
     }
 
     @Bean

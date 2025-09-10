@@ -5,7 +5,8 @@ import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.shared.security.enums.AuthMethod;
 import me.urninax.flagdelivery.shared.utils.PermissionEvaluator;
-import me.urninax.flagdelivery.shared.utils.annotations.AuthenticatedWithRole;
+import me.urninax.flagdelivery.shared.utils.annotations.RequiresAuthMethod;
+import me.urninax.flagdelivery.shared.utils.annotations.RequiresRole;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authorization.AuthorizationDecision;
@@ -14,6 +15,7 @@ import org.springframework.security.authorization.AuthorizationResult;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.function.Supplier;
 
@@ -43,25 +45,25 @@ public class AuthenticatedWithRoleAuthorizationManager implements AuthorizationM
     @Override
     public AuthorizationResult authorize(Supplier<Authentication> authentication, MethodInvocation invocation){
         Method method = invocation.getMethod();
-        log.info("INVOKED");
-        AuthenticatedWithRole ann = findAnnotation(method);
-        if(ann == null){
-            return new AuthorizationDecision(true);
-        }
 
-        boolean authOk = ann.method() == AuthMethod.ANY || user.isAuthMethod(ann.method());
-        boolean roleOk = ann.role() == OrgRole.NONE || perm.canAccess(ann.role());
+        RequiresAuthMethod authAnn = findAnnotation(method, RequiresAuthMethod.class);
+        RequiresRole roleAnn = findAnnotation(method, RequiresRole.class);
+
+        boolean authOk = authAnn == null || authAnn.value() == AuthMethod.ANY || user.isAuthMethod(authAnn.value());
+        boolean roleOk = roleAnn == null || roleAnn.value() == OrgRole.NONE || perm.canAccess(roleAnn.value());
+
+        log.info("Auth check: method={}, authOk={}, roleOk={}", method.getName(), authOk, roleOk);
 
         return new AuthorizationDecision(authOk && roleOk);
     }
 
-    private AuthenticatedWithRole findAnnotation(Method method){
-        if(method.isAnnotationPresent(AuthenticatedWithRole.class)){
-            return method.getAnnotation(AuthenticatedWithRole.class);
+    private <A extends Annotation> A findAnnotation(Method method, Class<A> annClass){
+        if(method.isAnnotationPresent(annClass)){
+            return method.getAnnotation(annClass);
         }
         Class<?> clazz = method.getDeclaringClass();
-        if(clazz.isAnnotationPresent(AuthenticatedWithRole.class)){
-            return clazz.getAnnotation(AuthenticatedWithRole.class);
+        if(clazz.isAnnotationPresent(annClass)){
+            return clazz.getAnnotation(annClass);
         }
 
         return null;

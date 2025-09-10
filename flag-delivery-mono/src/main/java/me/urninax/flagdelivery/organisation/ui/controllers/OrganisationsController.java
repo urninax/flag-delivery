@@ -6,7 +6,7 @@ import me.urninax.flagdelivery.organisation.services.OrganisationsService;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateOrganisationRequest;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.shared.security.enums.AuthMethod;
-import me.urninax.flagdelivery.shared.utils.annotations.AuthenticatedWithRole;
+import me.urninax.flagdelivery.shared.utils.annotations.RequiresAuthMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +19,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/organisation")
 @RequiredArgsConstructor
-@AuthenticatedWithRole(method = AuthMethod.JWT)
+@RequiresAuthMethod(AuthMethod.JWT)
 public class OrganisationsController{
     private final OrganisationsService organisationsService;
     private final CurrentUser currentUser;

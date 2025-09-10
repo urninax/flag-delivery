@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.shared.security.enums.AuthMethod;
-import me.urninax.flagdelivery.shared.utils.annotations.AuthenticatedWithRole;
+import me.urninax.flagdelivery.shared.utils.annotations.RequiresAuthMethod;
 import me.urninax.flagdelivery.user.services.UsersServiceImpl;
 import me.urninax.flagdelivery.user.ui.models.requests.ChangePasswordRequest;
 import me.urninax.flagdelivery.user.ui.models.requests.UpdatePersonalInfoRequest;
@@ -17,7 +17,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
-@AuthenticatedWithRole(method = AuthMethod.JWT)
+@RequiresAuthMethod(AuthMethod.JWT)
 public class UserController{
     private final UsersServiceImpl usersService;
     private final CurrentUser currentUser;

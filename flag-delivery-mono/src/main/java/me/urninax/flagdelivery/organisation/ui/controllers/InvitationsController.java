@@ -5,7 +5,7 @@ import me.urninax.flagdelivery.organisation.services.InvitationsService;
 import me.urninax.flagdelivery.organisation.shared.InvitationPublicDTO;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.shared.security.enums.AuthMethod;
-import me.urninax.flagdelivery.shared.utils.annotations.AuthenticatedWithRole;
+import me.urninax.flagdelivery.shared.utils.annotations.RequiresAuthMethod;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +15,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/invitations")
-@AuthenticatedWithRole(method = AuthMethod.JWT)
+@RequiresAuthMethod(AuthMethod.JWT)
 public class InvitationsController{
 
     private final CurrentUser currentUser;

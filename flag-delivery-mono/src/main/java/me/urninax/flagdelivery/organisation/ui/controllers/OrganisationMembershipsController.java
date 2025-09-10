@@ -8,7 +8,8 @@ import me.urninax.flagdelivery.organisation.ui.models.requests.ChangeMembersRole
 import me.urninax.flagdelivery.organisation.ui.models.requests.MembersFilter;
 import me.urninax.flagdelivery.organisation.ui.models.responses.PageResponse;
 import me.urninax.flagdelivery.shared.security.enums.AuthMethod;
-import me.urninax.flagdelivery.shared.utils.annotations.AuthenticatedWithRole;
+import me.urninax.flagdelivery.shared.utils.annotations.RequiresAuthMethod;
+import me.urninax.flagdelivery.shared.utils.annotations.RequiresRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +23,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/organisation/members")
-@AuthenticatedWithRole(method = AuthMethod.ACCESS_TOKEN, role = OrgRole.ADMIN)
+@RequiresAuthMethod(AuthMethod.ACCESS_TOKEN)
 public class OrganisationMembershipsController{
 
     private final MembershipsService membershipsService;
@@ -33,7 +34,7 @@ public class OrganisationMembershipsController{
     }
 
     @GetMapping
-    @AuthenticatedWithRole(method = AuthMethod.ACCESS_TOKEN)
+    @RequiresRole(OrgRole.READER)
     public ResponseEntity<?> getMembers(@PageableDefault(direction = Sort.Direction.DESC, sort = "role")
                                             Pageable pageable, MembersFilter filter){
         Page<MemberWithActivityDTO> members = membershipsService.getMembers(filter, pageable);
@@ -41,7 +42,7 @@ public class OrganisationMembershipsController{
     }
 
     @PatchMapping("/{uuid}")
-    @AuthenticatedWithRole(method = AuthMethod.ACCESS_TOKEN, role = OrgRole.ADMIN)
+    @RequiresRole(OrgRole.ADMIN)
     public ResponseEntity<?> changeRole(@PathVariable(name = "uuid") UUID memberId,
                                         @RequestBody @Valid ChangeMembersRoleRequest request){
         membershipsService.changeMembersRole(memberId, request);
