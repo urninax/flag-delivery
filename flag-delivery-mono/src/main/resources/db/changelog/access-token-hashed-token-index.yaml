@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2025-09-10-at-hashed-token-index
+      author: urninax
+      changes:
+        - createIndex:
+            tableName: access_token
+            indexName: at_hashed_token_index
+            unique: true
+            columns:
+              - column:
+                  name: hashed_token
+      rollback:
+        - dropIndex:
+            indexName: at_hashed_token_index
+            tableName: access_token

@@ -1,0 +1,85 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2025-09-12-create-project-tags
+      author: urninax
+      changes:
+        - createTable:
+            tableName: project_tags
+            columns:
+              - column:
+                  name: project_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: tag
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+
+        - addPrimaryKey:
+            tableName: project_tags
+            columnNames: project_id, tag
+            constraintName: pk_project_tags
+        - addForeignKeyConstraint:
+            baseTableName: project_tags
+            baseColumnNames: project_id
+            referencedTableName: project
+            referencedColumnNames: id
+            constraintName: fk_project_tags_project
+
+        - createIndex:
+            indexName: idx_project_tags_tag
+            tableName: project_tags
+            columns:
+              - column:
+                  name: tag
+
+      rollback:
+        - dropTable:
+            tableName: project_tags
+
+  - changeSet:
+      id: 2025-09-12-migrate-tags-to-project-tags
+      author: urninax
+      changes:
+        - sql:
+            splitStatements: false
+            stripComments: true
+            sql: |
+              INSERT INTO project_tags (project_id, tag)
+              SELECT p.id, unnest(p.tags)
+              FROM project p
+              WHERE p.tags IS NOT NULL;
+
+      rollback:
+        - sql:
+            splitStatements: false
+            stripComments: true
+            sql: |
+              UPDATE project p
+              SET tags = sub.tags_array
+              FROM (
+                SELECT project_id, array_agg(tag ORDER BY tag) AS tags_array
+                FROM project_tags
+                GROUP BY project_id
+              ) sub
+              WHERE p.id = sub.project_id;
+              DELETE FROM project_tags;
+
+  - changeSet:
+      id: 2025-09-12-delete-tags-column-project
+      author: urninax
+      changes:
+        - dropColumn:
+            tableName: project
+            columnName: tags
+
+      rollback:
+        - addColumn:
+            tableName: project
+            columns:
+              - column:
+                  name: tags
+                  type: text[]

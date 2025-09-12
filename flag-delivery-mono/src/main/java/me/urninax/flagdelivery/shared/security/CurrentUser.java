@@ -37,6 +37,23 @@ public class CurrentUser{
         throw new AccessDeniedException("Unknown principal type");
     }
 
+    public UUID getOrganisationId(){
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if(principal instanceof UserPrincipal userPrincipal){
+            Membership membership = membershipsRepository.findById(userPrincipal.getId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User has no organisation"));
+
+            return membership.getOrganisation().getId();
+        }
+
+        if(principal instanceof  AccessTokenPrincipal accessTokenPrincipal){
+            return accessTokenPrincipal.getOrganisationId();
+        }
+
+        throw new AccessDeniedException("Unknown principal type");
+    }
+
     public OrgRole getOrgRole(){
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 

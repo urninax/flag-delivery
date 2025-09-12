@@ -1,6 +1,7 @@
 databaseChangeLog:
   - include:
-      file: db/changelog/03-01-changelog.yaml
+      file: 03-01-changelog.yaml
+      relativeToChangelogFile: true
       context: test
   - include:
       file: char-to-uuid-changelog.yaml
@@ -33,4 +34,10 @@ databaseChangeLog:
       relativeToChangelogFile: true
   - include:
       file: project-increase-text-limitations.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: access-token-hashed-token-index.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: normalize-project.yaml
       relativeToChangelogFile: true

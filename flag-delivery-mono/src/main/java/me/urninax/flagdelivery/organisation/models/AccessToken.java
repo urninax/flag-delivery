@@ -13,7 +13,8 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "access_token")
+@Table(name = "access_token",
+        indexes = {@Index(name = "at_hashed_token_index", columnList = "hashedToken")})
 @Getter
 @Setter
 @Builder

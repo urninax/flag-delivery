@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @NoArgsConstructor
@@ -14,6 +14,6 @@ public class ProjectDTO{
     private UUID id;
     private String key;
     private String name;
-    private List<String> tags;
+    private Set<String> tags;
 //    private List<EnvironmentDTO> environments;
 }

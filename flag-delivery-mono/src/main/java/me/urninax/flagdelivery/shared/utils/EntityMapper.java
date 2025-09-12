@@ -7,11 +7,16 @@ import me.urninax.flagdelivery.organisation.shared.InvitationMailDTO;
 import me.urninax.flagdelivery.organisation.shared.InvitationOrganisationDTO;
 import me.urninax.flagdelivery.organisation.shared.InvitationPublicDTO;
 import me.urninax.flagdelivery.projectsenvs.models.project.Project;
+import me.urninax.flagdelivery.projectsenvs.models.project.ProjectTag;
 import me.urninax.flagdelivery.projectsenvs.shared.project.ProjectDTO;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface EntityMapper{
@@ -37,5 +42,15 @@ public interface EntityMapper{
     @Mapping(target = "token", ignore = true)
     InvitationMailDTO toMailDTO(Invitation invitation);
 
+    @Mapping(source = "tags", target = "tags")
     ProjectDTO toDTO(Project project);
+
+    default Set<String> mapTags(Set<ProjectTag> tags) {
+        if (tags == null) {
+            return Collections.emptySet();
+        }
+        return tags.stream()
+                .map(pt -> pt.getId().getTag())
+                .collect(Collectors.toSet());
+    }
 }

@@ -2,12 +2,11 @@ package me.urninax.flagdelivery.projectsenvs.models.project;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
-import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -36,9 +35,8 @@ public class Project{
     @Column(name = "organisation_id")
     private UUID organisationId;
 
-    @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(name = "tags", columnDefinition = "text[]")
-    private List<String> tags;
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ProjectTag> tags = new HashSet<>();
 
     @Column(name = "casing_convention")
     @Enumerated(EnumType.STRING)

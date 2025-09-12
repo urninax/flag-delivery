@@ -41,7 +41,6 @@ public class ActivityTrackerFilter extends OncePerRequestFilter{
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException{
         try{
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            log.info("INVOKED");
             if(auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken)){
                 UUID userId = currentUser.getUserId();
                 Instant now = Instant.now();
