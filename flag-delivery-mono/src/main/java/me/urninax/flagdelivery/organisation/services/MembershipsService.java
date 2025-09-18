@@ -1,10 +1,10 @@
 package me.urninax.flagdelivery.organisation.services;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.organisation.models.Organisation;
 import me.urninax.flagdelivery.organisation.models.membership.Membership;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
-import me.urninax.flagdelivery.organisation.repositories.AccessTokenRepository;
 import me.urninax.flagdelivery.organisation.repositories.MembershipsRepository;
 import me.urninax.flagdelivery.organisation.repositories.OrganisationsRepository;
 import me.urninax.flagdelivery.organisation.shared.MemberWithActivityDTO;
@@ -13,7 +13,6 @@ import me.urninax.flagdelivery.organisation.ui.models.requests.MembersFilter;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import me.urninax.flagdelivery.user.repositories.UsersRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,21 +27,13 @@ import java.time.ZoneId;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class MembershipsService{
     private final MembershipsRepository membershipsRepository;
     private final OrganisationsRepository organisationsRepository;
     private final UsersRepository usersRepository;
-    private final AccessTokenRepository accessTokenRepository;
+    private final AccessTokenService accessTokenService;
     private final CurrentUser currentUser;
-
-    @Autowired
-    public MembershipsService(MembershipsRepository membershipsRepository, OrganisationsRepository organisationsRepository, UsersRepository usersRepository, AccessTokenRepository accessTokenRepository, CurrentUser currentUser){
-        this.membershipsRepository = membershipsRepository;
-        this.organisationsRepository = organisationsRepository;
-        this.usersRepository = usersRepository;
-        this.accessTokenRepository = accessTokenRepository;
-        this.currentUser = currentUser;
-    }
 
     @Transactional
     public void addMembership(UUID organisationId, UUID userId, OrgRole role){
@@ -88,7 +79,7 @@ public class MembershipsService{
         targetMembership.setRole(request.role());
         membershipsRepository.save(targetMembership);
 
-        accessTokenRepository.downgradeUserTokens(memberId, request.role());
+        accessTokenService.downgradeMemberTokens(memberId, request.role());
     }
 
     public Page<MemberWithActivityDTO> getMembers(MembersFilter filter, Pageable pageable){

@@ -5,6 +5,7 @@ import me.urninax.flagdelivery.organisation.models.AccessToken;
 import me.urninax.flagdelivery.organisation.models.membership.Membership;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.organisation.repositories.AccessTokenRepository;
+import me.urninax.flagdelivery.organisation.services.caching.MemberTokensCacheService;
 import me.urninax.flagdelivery.organisation.shared.AccessTokenDTO;
 import me.urninax.flagdelivery.organisation.shared.AccessTokenPrincipalDTO;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateAccessTokenRequest;
@@ -25,6 +26,7 @@ import java.util.UUID;
 public class AccessTokenService{
     private final AccessTokenRepository accessTokenRepository;
     private final MembershipsService membershipsService;
+    private final MemberTokensCacheService memberTokensCacheService;
     private final EntityMapper entityMapper;
 
     public String issueToken(UUID userId, CreateAccessTokenRequest request){
@@ -77,8 +79,18 @@ public class AccessTokenService{
 
     @Cacheable(value = "accessTokens", key = "#hashedToken")
     public AccessTokenPrincipalDTO validateAndResolveByHash(String hashedToken){
-        return accessTokenRepository.findByHashedToken(hashedToken)
+        AccessTokenPrincipalDTO accessTokenPrincipalDTO = accessTokenRepository.findByHashedToken(hashedToken)
                 .orElseThrow(() -> new BadCredentialsException("Invalid access token"));
+
+        memberTokensCacheService.addToken(accessTokenPrincipalDTO.ownerId(), hashedToken);
+
+        return accessTokenPrincipalDTO;
+    }
+
+    public void downgradeMemberTokens(UUID memberId, OrgRole role){
+        accessTokenRepository.downgradeUserTokens(memberId, role);
+
+        memberTokensCacheService.evictAllMemberTokens(memberId);
     }
 
     private void assertAdmin(OrgRole role){
