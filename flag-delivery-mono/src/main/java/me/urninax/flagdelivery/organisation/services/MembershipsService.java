@@ -2,6 +2,7 @@ package me.urninax.flagdelivery.organisation.services;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import me.urninax.flagdelivery.organisation.events.invitation.MemberRoleChangedEvent;
 import me.urninax.flagdelivery.organisation.models.Organisation;
 import me.urninax.flagdelivery.organisation.models.membership.Membership;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
@@ -14,6 +15,7 @@ import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import me.urninax.flagdelivery.user.repositories.UsersRepository;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -32,8 +34,8 @@ public class MembershipsService{
     private final MembershipsRepository membershipsRepository;
     private final OrganisationsRepository organisationsRepository;
     private final UsersRepository usersRepository;
-    private final AccessTokenService accessTokenService;
     private final CurrentUser currentUser;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
     public void addMembership(UUID organisationId, UUID userId, OrgRole role){
@@ -79,7 +81,7 @@ public class MembershipsService{
         targetMembership.setRole(request.role());
         membershipsRepository.save(targetMembership);
 
-        accessTokenService.downgradeMemberTokens(memberId, request.role());
+        applicationEventPublisher.publishEvent(new MemberRoleChangedEvent(memberId, request.role()));
     }
 
     public Page<MemberWithActivityDTO> getMembers(MembersFilter filter, Pageable pageable){
