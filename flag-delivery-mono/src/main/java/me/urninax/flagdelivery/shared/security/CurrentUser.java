@@ -47,7 +47,7 @@ public class CurrentUser{
             return membership.getOrganisation().getId();
         }
 
-        if(principal instanceof  AccessTokenPrincipal accessTokenPrincipal){
+        if(principal instanceof AccessTokenPrincipal accessTokenPrincipal){
             return accessTokenPrincipal.getOrganisationId();
         }
 

@@ -44,8 +44,9 @@ public class ProjectsController{
     }
 
     @GetMapping("/{projectKey}")
-    public ResponseEntity<?> getProject(){
-        return null;
+    public ResponseEntity<?> getProject(@PathVariable("projectKey") String projectKey){
+        ProjectDTO projectDTO = projectsService.getProject(projectKey);
+        return new ResponseEntity<>(projectDTO, HttpStatus.OK);
     }
 
     @PatchMapping("/{projectKey}")

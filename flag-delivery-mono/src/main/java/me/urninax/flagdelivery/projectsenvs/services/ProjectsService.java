@@ -98,6 +98,13 @@ public class ProjectsService{
         }
     }
 
+    public ProjectDTO getProject(String projectKey){
+        Project project = projectsRepository.findByOrganisationIdAndKey(currentUser.getOrganisationId(), projectKey)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project was not found"));
+
+        return entityMapper.toDTO(project);
+    }
+
     public Page<ProjectDTO> getPaginatedProjects(ListAllProjectsRequest request, Pageable pageable){
         Specification<Project> projectSpec = ProjectSpecifications.byOrganisation(currentUser.getOrganisationId());
 
