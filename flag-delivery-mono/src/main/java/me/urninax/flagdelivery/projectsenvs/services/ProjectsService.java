@@ -11,6 +11,7 @@ import me.urninax.flagdelivery.projectsenvs.shared.project.ProjectDTO;
 import me.urninax.flagdelivery.projectsenvs.shared.project.ProjectSpecifications;
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.CreateProjectRequest;
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.ListAllProjectsRequest;
+import me.urninax.flagdelivery.projectsenvs.ui.models.requests.PatchProjectRequest;
 import me.urninax.flagdelivery.shared.exceptions.ConflictException;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.shared.utils.EntityMapper;
@@ -138,6 +139,38 @@ public class ProjectsService{
         }
 
         return projectPage.map(entityMapper::toDTO);
+    }
+
+    @Transactional
+    public void patchProject(String projectKey, PatchProjectRequest request){
+        if(request.name() == null && request.tags() == null){
+            return;
+        }
+
+        Project project = projectsRepository.findByOrganisationIdAndKey(currentUser.getOrganisationId(), projectKey)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project was not found"));
+
+        if(request.name() != null && !request.name().isBlank()){
+            project.setName(request.name().trim().replaceAll("\\s+", " "));
+        }
+
+        if(request.tags() != null){
+            Set<ProjectTag> tags = request.tags()
+                    .stream()
+                    .map(tag -> new ProjectTag(
+                            new ProjectTagId(null, tag), project))
+                    .collect(Collectors.toSet());
+
+            project.getTags().clear();
+            project.getTags().addAll(tags);
+        }
+
+        projectsRepository.save(project);
+    }
+
+    @Transactional
+    public void deleteProject(String projectKey){
+        projectsRepository.deleteByOrganisationIdAndKey(currentUser.getOrganisationId(), projectKey);
     }
 
     private Pageable sanitize(Pageable pageable) {

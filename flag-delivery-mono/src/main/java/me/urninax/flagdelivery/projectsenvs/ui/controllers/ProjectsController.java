@@ -7,6 +7,7 @@ import me.urninax.flagdelivery.projectsenvs.services.ProjectsService;
 import me.urninax.flagdelivery.projectsenvs.shared.project.ProjectDTO;
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.CreateProjectRequest;
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.ListAllProjectsRequest;
+import me.urninax.flagdelivery.projectsenvs.ui.models.requests.PatchProjectRequest;
 import me.urninax.flagdelivery.shared.security.enums.AuthMethod;
 import me.urninax.flagdelivery.shared.utils.annotations.RequiresAuthMethod;
 import me.urninax.flagdelivery.shared.utils.annotations.RequiresRole;
@@ -50,7 +51,16 @@ public class ProjectsController{
     }
 
     @PatchMapping("/{projectKey}")
-    public ResponseEntity<?> patchProject(){
-        return null;
+    public ResponseEntity<?> patchProject(@PathVariable("projectKey") String projectKey,
+                                          @RequestBody PatchProjectRequest request){
+        projectsService.patchProject(projectKey, request);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @DeleteMapping("/{projectKey}")
+    @RequiresRole(OrgRole.OWNER)
+    public ResponseEntity<?> deleteProject(@PathVariable("projectKey") String projectKey){
+        projectsService.deleteProject(projectKey);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
