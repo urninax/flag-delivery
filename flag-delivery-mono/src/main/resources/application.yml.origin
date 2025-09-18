@@ -6,9 +6,23 @@
     password:
     driver-class-name: org.postgresql.Driver
     url:
+    hikari:
+      minimum-idle:
+      maximum-pool-size:
+      initialization-fail-timeout:
   data:
     jdbc:
       dialect: postgresql
+        redis:
+          host:
+          port:
+          password:
+          lettuce:
+            pool:
+              max-active:
+              max-idle:
+              min-idle:
+              time-between-eviction-runs:
   jackson:
     deserialization:
       fail-on-unknown-properties: true
@@ -34,6 +48,14 @@ app:
   mail:
     default-from:
 
+reserved:
+  keys:
+    - admin
+    - new
+    - root
+    - default
+    - system
+
 login:
   url: "/api/v1/auth/signin"
 
@@ -47,3 +69,12 @@ invitation-token:
 logging:
   level:
     org.springframework.security: TRACE
+
+management:
+  health:
+    mail:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: '*'

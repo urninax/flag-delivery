@@ -14,9 +14,11 @@ import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import me.urninax.flagdelivery.user.repositories.UsersRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -54,6 +56,12 @@ public class MembershipsService{
                 .build();
 
         membershipsRepository.save(membership);
+    }
+
+    @Cacheable(value = "memberships", key = "#userId")
+    public Membership findMembershipById(UUID userId){
+        return membershipsRepository.findById(userId)
+                .orElseThrow(() -> new AccessDeniedException("User has no organisation"));
     }
 
     @Transactional

@@ -5,20 +5,18 @@ import me.urninax.flagdelivery.organisation.models.AccessToken;
 import me.urninax.flagdelivery.organisation.models.membership.Membership;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.organisation.repositories.AccessTokenRepository;
-import me.urninax.flagdelivery.organisation.repositories.MembershipsRepository;
 import me.urninax.flagdelivery.organisation.shared.AccessTokenDTO;
+import me.urninax.flagdelivery.organisation.shared.AccessTokenPrincipalDTO;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateAccessTokenRequest;
-import me.urninax.flagdelivery.shared.security.principals.AccessTokenPrincipal;
 import me.urninax.flagdelivery.shared.utils.AccessTokenUtils;
 import me.urninax.flagdelivery.shared.utils.EntityMapper;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,12 +24,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AccessTokenService{
     private final AccessTokenRepository accessTokenRepository;
-    private final MembershipsRepository membershipsRepository;
+    private final MembershipsService membershipsService;
     private final EntityMapper entityMapper;
 
     public String issueToken(UUID userId, CreateAccessTokenRequest request){
-        Membership membership = membershipsRepository.findById(userId)
-                .orElseThrow(() -> new AccessDeniedException("No role in any organisation"));
+        Membership membership = membershipsService.findMembershipById(userId);
 
         OrgRole role = membership.getRole();
         if(!role.atLeast(request.getRole())){
@@ -58,8 +55,7 @@ public class AccessTokenService{
 
     public Page<AccessTokenDTO> getTokensForUserInOrg(UUID userId, Pageable pageable, Optional<Boolean> showAllOptional){
         //todo: review visibility semantics
-        Membership membership = membershipsRepository.findById(userId)
-                .orElseThrow(() -> new AccessDeniedException("No role in any organisation"));
+        Membership membership = membershipsService.findMembershipById(userId);
 
         OrgRole role = membership.getRole();
 
@@ -79,20 +75,10 @@ public class AccessTokenService{
         return allUserTokensPage.map(entityMapper::toDTO);
     }
 
-    public AccessTokenPrincipal validateAndResolve(String token){
-        String hashedToken = AccessTokenUtils.hashSha256(token);
-
-        AccessToken accessToken = accessTokenRepository.findByHashedToken(hashedToken)
+    @Cacheable(value = "accessTokens", key = "#hashedToken")
+    public AccessTokenPrincipalDTO validateAndResolveByHash(String hashedToken){
+        return accessTokenRepository.findByHashedToken(hashedToken)
                 .orElseThrow(() -> new BadCredentialsException("Invalid access token"));
-
-        return AccessTokenPrincipal.builder()
-                .ownerId(accessToken.getOwner().getId())
-                .organisationId(accessToken.getOrganisation().getId())
-                .authorities(List.of(
-                        new SimpleGrantedAuthority(String.format("ROLE_ORG_%s", accessToken.getRole()))
-                ))
-                //todo: add isService to the principal
-                .build();
     }
 
     private void assertAdmin(OrgRole role){

@@ -45,7 +45,7 @@ public class GlobalControllerAdvice{
 
             if(targetType.isEnum()){
                 String allowed = Arrays.stream(targetType.getEnumConstants())
-                        .map(Object::toString)
+                        .map(e -> ((Enum<?>) e).name())
                         .collect(Collectors.joining(", "));
 
                 message = String.format(

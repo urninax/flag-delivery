@@ -2,6 +2,7 @@ package me.urninax.flagdelivery.organisation.repositories;
 
 import me.urninax.flagdelivery.organisation.models.AccessToken;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
+import me.urninax.flagdelivery.organisation.shared.AccessTokenPrincipalDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,7 +17,7 @@ import java.util.UUID;
 public interface AccessTokenRepository extends JpaRepository<AccessToken, UUID>{
     Page<AccessToken> findAllByOrganisation_Id(UUID orgId, Pageable pageable);
     Page<AccessToken> findAllByOwner_IdAndOrganisation_Id(UUID ownerId, UUID orgId, Pageable pageable);
-    Optional<AccessToken> findByHashedToken(String hashedToken);
+    Optional<AccessTokenPrincipalDTO> findByHashedToken(String hashedToken);
     @Modifying
     @Query("""
         update AccessToken t
