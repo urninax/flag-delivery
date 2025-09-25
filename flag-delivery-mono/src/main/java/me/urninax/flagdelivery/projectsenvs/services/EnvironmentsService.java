@@ -10,6 +10,7 @@ import me.urninax.flagdelivery.projectsenvs.repositories.ProjectsRepository;
 import me.urninax.flagdelivery.projectsenvs.shared.environment.EnvironmentDTO;
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.environment.CreateEnvironmentRequest;
 import me.urninax.flagdelivery.shared.exceptions.ConflictException;
+import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.shared.utils.EntityMapper;
 import me.urninax.flagdelivery.shared.utils.PersistenceExceptionUtils;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -28,10 +29,12 @@ public class EnvironmentsService{
     private final EnvironmentsRepository environmentsRepository;
     private final ProjectsRepository projectsRepository;
     private final EntityMapper entityMapper;
+    private final CurrentUser currentUser;
 
     @Transactional
     public EnvironmentDTO createEnvironment(String projectKey, CreateEnvironmentRequest request){
-        UUID projectId = projectsRepository.findIdByKey(projectKey)
+        UUID orgId = currentUser.getOrganisationId();
+        UUID projectId = projectsRepository.findIdByKeyAndOrgId(projectKey, orgId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project was not found"));
 
         Environment environment = Environment.builder()
@@ -62,5 +65,13 @@ public class EnvironmentsService{
             }
             throw exc;
         }
+    }
+
+    public EnvironmentDTO getEnvironment(String projectKey, String environmentKey){
+        UUID orgId = currentUser.getOrganisationId();
+        Environment environment = environmentsRepository.findEnvironment(orgId, projectKey, environmentKey)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Environment was not found"));
+
+        return entityMapper.toDTO(environment);
     }
 }

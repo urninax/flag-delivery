@@ -14,8 +14,9 @@ import java.util.UUID;
 public interface ProjectsRepository extends JpaRepository<Project, UUID>, JpaSpecificationExecutor<Project>{
     Optional<Project> findByOrganisationIdAndKey(UUID organisationId, String key);
 
-    @Query("SELECT p.id FROM Project p WHERE p.key = :key")
-    Optional<UUID> findIdByKey(@Param("key") String key);
+    @Query("SELECT p.id FROM Project p WHERE p.key = :key AND p.organisationId = :orgId")
+    Optional<UUID> findIdByKeyAndOrgId(@Param("key") String key,
+                                       @Param("orgId") UUID orgId);
 
     void deleteByOrganisationIdAndKey(UUID organisationId, String key);
 }

@@ -45,12 +45,14 @@ public class ProjectsController{
     }
 
     @GetMapping("/{projectKey}")
+    @RequiresRole(OrgRole.READER)
     public ResponseEntity<?> getProject(@PathVariable("projectKey") String projectKey){
         ProjectDTO projectDTO = projectsService.getProject(projectKey);
         return new ResponseEntity<>(projectDTO, HttpStatus.OK);
     }
 
     @PatchMapping("/{projectKey}")
+    @RequiresRole(OrgRole.ADMIN)
     public ResponseEntity<?> patchProject(@PathVariable("projectKey") String projectKey,
                                           @RequestBody PatchProjectRequest request){
         projectsService.patchProject(projectKey, request);
