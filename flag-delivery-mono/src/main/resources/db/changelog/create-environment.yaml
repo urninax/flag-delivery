@@ -1,0 +1,134 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2025-09-25-create-environment-table
+      author: urninax
+      changes:
+        - createTable:
+            tableName: environment
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: pk_environment
+
+              - column:
+                  name: project_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_env_project
+                    deleteCascade: true
+                    references: project(id)
+
+              - column:
+                  name: key
+                  type: varchar(128)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: name
+                  type: varchar(256)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: confirm_changes
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: require_comments
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: version
+                  type: bigint
+                  defaultValueNumeric: "0"
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            tableName: environment
+            columnNames: project_id, key
+            constraintName: ux_env_project_key
+
+        - createIndex:
+            tableName: environment
+            indexName: idx_environment_project_id
+            columns:
+              - column:
+                  name: project_id
+
+      rollback:
+        - dropUniqueConstraint:
+            constraintName: ux_env_project_key
+            tableName: environment
+        - dropForeignKeyConstraint:
+            constraintName: fk_env_project
+            baseTableName: environment
+        - dropTable:
+            tableName: environment
+
+  - changeSet:
+      id: 2025-09-25-create-env-tags-table
+      author: urninax
+      changes:
+        - createTable:
+            tableName: environment_tags
+            columns:
+              - column:
+                  name: environment_id
+                  type: uuid
+                  constraints:
+                    foreignKeyName: fk_env_tags_environment
+                    references: environment(id)
+                    nullable: false
+
+              - column:
+                  name: tag
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+
+        - addPrimaryKey:
+            tableName: environment_tags
+            columnNames: environment_id, tag
+            constraintName: pk_env_tags
+        - createIndex:
+            indexName: idx_env_tags_tag
+            tableName: environment_tags
+            columns:
+              - column:
+                  name: tag
+
+      rollback:
+        - dropForeignKeyConstraint:
+            constraintName: fk_env_tags_environment
+            baseTableName: environment_tags
+        - dropIndex:
+            indexName: idx_env_tags_tag
+            tableName: environment_tags
+        - dropTable:
+            tableName: environment_tags
+
