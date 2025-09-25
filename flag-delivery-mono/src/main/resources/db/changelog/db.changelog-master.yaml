@@ -41,3 +41,6 @@ databaseChangeLog:
   - include:
       file: normalize-project.yaml
       relativeToChangelogFile: true
+  - include:
+      file: create-environment.yaml
+      relativeToChangelogFile: true
