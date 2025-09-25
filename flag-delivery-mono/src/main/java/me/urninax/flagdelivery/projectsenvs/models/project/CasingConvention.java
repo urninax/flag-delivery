@@ -3,6 +3,7 @@ package me.urninax.flagdelivery.projectsenvs.models.project;
 import java.util.regex.Pattern;
 
 public enum CasingConvention{
+    NONE("", "None"),
     CAMEL("^[a-z]+(?:[A-Z][a-z0-9]*)*$", "camelCase"),
     PASCAL("^[A-Z][a-z0-9]*(?:[A-Z][a-z0-9]*)*$", "PascalCase"),
     SNAKE("^[a-z0-9]+(?:_[a-z0-9]+)*$", "snake_case"),
@@ -17,11 +18,13 @@ public enum CasingConvention{
     }
 
     public boolean matches(String input){
+        if(this == NONE) return true;
         return input != null && pattern.matcher(input).matches();
     }
 
     public String description(){
         return switch(this){
+            case NONE -> "no particular rules";
             case CAMEL -> "starts lowercase, words joined, e.g. featureFlag";
             case PASCAL -> "starts uppercase, e.g. FeatureFlag";
             case SNAKE -> "lowercase, underscore, e.g. feature_flag";

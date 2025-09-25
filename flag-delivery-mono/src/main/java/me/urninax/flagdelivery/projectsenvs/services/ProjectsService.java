@@ -11,6 +11,7 @@ import me.urninax.flagdelivery.projectsenvs.shared.project.ProjectDTO;
 import me.urninax.flagdelivery.projectsenvs.shared.project.ProjectSpecifications;
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.CreateProjectRequest;
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.ListAllProjectsRequest;
+import me.urninax.flagdelivery.projectsenvs.ui.models.requests.NamingConventionRequest;
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.PatchProjectRequest;
 import me.urninax.flagdelivery.shared.exceptions.ConflictException;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
@@ -58,6 +59,7 @@ public class ProjectsService{
                 .name(request.name().trim().replaceAll("\\s+", " "))
                 .key(request.key())
                 .organisationId(organisationId)
+                .casingConvention(CasingConvention.NONE)
                 .createdBy(userId)
                 .createdAt(Instant.now(clock))
                 .updatedAt(Instant.now(clock))
@@ -68,17 +70,15 @@ public class ProjectsService{
             String prefix = request.namingConvention().prefix();
 
             if(convention != null){
-                if(prefix != null && !convention.matches(prefix)){
-                    throw new ResponseStatusException(
-                            HttpStatus.BAD_REQUEST,
-                            String.format("Use %s: %s", convention, convention.description())
-                    );
+                project.setCasingConvention(convention);
+
+                if(prefix != null){
+                    validatePrefixAgainstConvention(convention, prefix);
+                    project.setPrefix(prefix);
                 }
             }
-
-            project.setCasingConvention(request.namingConvention().casingConvention());
-            project.setPrefix(request.namingConvention().prefix());
         }
+
         Set<ProjectTag> tags = request.tags()
                 .stream()
                 .map(tag -> new ProjectTag(
@@ -169,8 +169,36 @@ public class ProjectsService{
     }
 
     @Transactional
+    public void editProjectFlagsSettings(String projectKey, NamingConventionRequest request){
+        if(request.casingConvention() == null && request.prefix() == null){
+            return;
+        }
+
+        Project project = projectsRepository.findByOrganisationIdAndKey(currentUser.getOrganisationId(), projectKey)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project was not found"));
+
+        CasingConvention convention = request.casingConvention() != null ? request.casingConvention() : project.getCasingConvention();
+
+        if(request.prefix() != null){
+            validatePrefixAgainstConvention(convention, request.prefix());
+            project.setPrefix(request.prefix());
+        }
+
+        project.setCasingConvention(convention);
+    }
+
+    @Transactional
     public void deleteProject(String projectKey){
         projectsRepository.deleteByOrganisationIdAndKey(currentUser.getOrganisationId(), projectKey);
+    }
+
+    private void validatePrefixAgainstConvention(CasingConvention convention, String prefix){
+        if(!convention.matches(prefix)){
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    String.format("Use %s: %s", convention, convention.description())
+            );
+        }
     }
 
     private Pageable sanitize(Pageable pageable) {
