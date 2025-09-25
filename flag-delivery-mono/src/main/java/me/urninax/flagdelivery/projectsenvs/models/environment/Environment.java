@@ -43,6 +43,9 @@ public class Environment{
     @OneToMany(mappedBy = "environment", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<EnvironmentTag> tags = new HashSet<>();
 
+    @Column(name = "project_id")
+    private UUID projectId;
+
     @Column(name = "created_at")
     private Instant createdAt;
 

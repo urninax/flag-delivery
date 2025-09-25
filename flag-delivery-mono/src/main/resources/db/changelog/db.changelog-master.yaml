@@ -44,3 +44,6 @@ databaseChangeLog:
   - include:
       file: create-environment.yaml
       relativeToChangelogFile: true
+  - include:
+      file: environment-critical.yaml
+      relativeToChangelogFile: true

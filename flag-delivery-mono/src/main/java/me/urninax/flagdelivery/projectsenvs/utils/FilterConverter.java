@@ -1,6 +1,6 @@
 package me.urninax.flagdelivery.projectsenvs.utils;
 
-import me.urninax.flagdelivery.projectsenvs.ui.models.requests.ListAllProjectsRequest;
+import me.urninax.flagdelivery.projectsenvs.ui.models.requests.project.ListAllProjectsRequest;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 

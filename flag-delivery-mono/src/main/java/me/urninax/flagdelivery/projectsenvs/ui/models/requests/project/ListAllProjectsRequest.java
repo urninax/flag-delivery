@@ -1,4 +1,4 @@
-package me.urninax.flagdelivery.projectsenvs.ui.models.requests;
+package me.urninax.flagdelivery.projectsenvs.ui.models.requests.project;
 
 import java.util.List;
 

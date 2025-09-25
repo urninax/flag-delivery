@@ -1,7 +1,7 @@
 package me.urninax.flagdelivery.projectsenvs.ui.controllers;
 
 import me.urninax.flagdelivery.projectsenvs.services.ProjectsService;
-import me.urninax.flagdelivery.projectsenvs.ui.models.requests.NamingConventionRequest;
+import me.urninax.flagdelivery.projectsenvs.ui.models.requests.project.NamingConventionRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

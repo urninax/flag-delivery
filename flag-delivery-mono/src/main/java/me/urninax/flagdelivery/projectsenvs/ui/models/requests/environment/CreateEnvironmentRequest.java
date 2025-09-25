@@ -1,4 +1,4 @@
-package me.urninax.flagdelivery.projectsenvs.ui.models.requests;
+package me.urninax.flagdelivery.projectsenvs.ui.models.requests.environment;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
@@ -27,11 +27,14 @@ public record CreateEnvironmentRequest(
         @JsonProperty("require_comments")
         boolean requireComments,
 
-        @JsonProperty("critical")
+        @JsonProperty("tags")
         @Valid
+        @Size(max = 20, message = "Environment can have max. 20 tags.")
         List<
-                @Size(max = 50, message = "Tags should be at most 50 chars.")
-                @Pattern(regexp = "^[A-Za-z0-9]+$", message = "Tags should contain only letters, digits, '.', '-', '_'")
+                @Size(max = 64, message = "Tags should be at most 64 chars.")
+                @Pattern(regexp = "^[A-Za-z0-9._-]{1,64}$", message = "Tags should contain only letters, digits, '.', '-', '_'")
                 String> tags,
+
+        @JsonProperty("critical")
         boolean critical
 ){}

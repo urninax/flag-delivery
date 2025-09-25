@@ -6,8 +6,11 @@ import me.urninax.flagdelivery.organisation.shared.AccessTokenDTO;
 import me.urninax.flagdelivery.organisation.shared.InvitationMailDTO;
 import me.urninax.flagdelivery.organisation.shared.InvitationOrganisationDTO;
 import me.urninax.flagdelivery.organisation.shared.InvitationPublicDTO;
+import me.urninax.flagdelivery.projectsenvs.models.environment.Environment;
+import me.urninax.flagdelivery.projectsenvs.models.environment.EnvironmentTag;
 import me.urninax.flagdelivery.projectsenvs.models.project.Project;
 import me.urninax.flagdelivery.projectsenvs.models.project.ProjectTag;
+import me.urninax.flagdelivery.projectsenvs.shared.environment.EnvironmentDTO;
 import me.urninax.flagdelivery.projectsenvs.shared.project.ProjectDTO;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
@@ -45,12 +48,24 @@ public interface EntityMapper{
     @Mapping(source = "tags", target = "tags")
     ProjectDTO toDTO(Project project);
 
-    default Set<String> mapTags(Set<ProjectTag> tags) {
+    @Mapping(source = "tags", target = "tags")
+    EnvironmentDTO toDTO(Environment environment);
+
+    default Set<String> mapProjectTags(Set<ProjectTag> tags) {
         if (tags == null) {
             return Collections.emptySet();
         }
         return tags.stream()
                 .map(pt -> pt.getId().getTag())
+                .collect(Collectors.toSet());
+    }
+
+    default Set<String> mapEnvironmentTags(Set<EnvironmentTag> tags){
+        if (tags == null) {
+            return Collections.emptySet();
+        }
+        return tags.stream()
+                .map(et -> et.getId().getTag())
                 .collect(Collectors.toSet());
     }
 }

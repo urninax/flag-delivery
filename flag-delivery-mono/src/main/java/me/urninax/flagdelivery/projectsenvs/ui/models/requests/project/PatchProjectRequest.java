@@ -1,4 +1,4 @@
-package me.urninax.flagdelivery.projectsenvs.ui.models.requests;
+package me.urninax.flagdelivery.projectsenvs.ui.models.requests.project;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
