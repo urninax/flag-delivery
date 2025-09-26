@@ -1,0 +1,54 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2025-09-26
+      author: urninax
+      changes:
+        - createTable:
+            tableName: flag_variation
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_flag_variation
+                    nullable: false
+
+              - column:
+                  name: flag_id
+                  type: uuid
+                  constraints:
+                    foreignKeyName: fk_variation_flag
+                    deleteCascade: true
+                    nullable: false
+                    references: feature_flag(id)
+
+              - column:
+                  name: value
+                  type: jsonb
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: name
+                  type: varchar(256)
+
+              - column:
+                  name: description
+                  type: text
+
+        - createIndex:
+            tableName: flag_variation
+            indexName: idx_flag_variation_flag_id
+            columns:
+              - column:
+                  name: flag_id
+
+      rollback:
+        - dropIndex:
+            indexName: idx_flag_variation_flag_id
+            tableName: flag_variation
+        - dropTable:
+            tableName: flag_variation
+            cascadeConstraints: true
+

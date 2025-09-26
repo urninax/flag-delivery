@@ -38,6 +38,9 @@ public class FeatureFlag{
     @Column(name = "kind")
     private FlagKind kind;
 
+    @OneToMany(mappedBy = "flag")
+    private Set<FlagVariation> variations;
+
     @Column(name = "description")
     private String description;
 

@@ -56,3 +56,6 @@ databaseChangeLog:
   - include:
       file: init/create-feature-flag-tags.yaml
       relativeToChangelogFile: true
+  - include:
+      file: init/create-variation.yaml
+      relativeToChangelogFile: true
