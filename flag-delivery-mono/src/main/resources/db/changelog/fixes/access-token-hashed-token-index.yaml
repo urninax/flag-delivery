@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 2025-09-10-at-hashed-token-index
       author: urninax
+      logicalFilePath: db/changelog/access-token-hashed-token-index.yaml
       changes:
         - createIndex:
             tableName: access_token

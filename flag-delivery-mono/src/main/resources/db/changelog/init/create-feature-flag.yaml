@@ -1,0 +1,118 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2025-09-26-create-feature-flag
+      author: urninax
+      changes:
+        - createTable:
+            tableName: feature_flag
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: pk_feature_flag
+
+              - column:
+                  name: project_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_flag_project
+                    references: project(id)
+                    deleteCascade: true
+
+              - column:
+                  name: key
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: name
+                  type: varchar(256)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: kind
+                  type: varchar(30)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: description
+                  type: text
+
+              - column:
+                  name: flag_on
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: maintainer_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_flag_maintainer
+                    references: user_entity(id)
+
+              - column:
+                  name: temporary
+                  type: boolean
+                  defaultValueBoolean: false
+
+              - column:
+                  name: archived
+                  type: boolean
+                  defaultValueBoolean: false
+
+              - column:
+                  name: deprecated
+                  type: boolean
+                  defaultValueBoolean: false
+
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: now()
+
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: now()
+
+              - column:
+                  name: version
+                  type: bigint
+                  defaultValueNumeric: "1"
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            constraintName: ux_flag_project_key
+            tableName: feature_flag
+            columnNames: project_id, key
+
+        - createIndex:
+            tableName: feature_flag
+            indexName: idx_flag_maintainer
+            columns:
+              - column:
+                  name: maintainer_id
+
+      rollback:
+        - dropIndex:
+            indexName: idx_flag_maintainer
+            tableName: feature_flag
+
+        - dropUniqueConstraint:
+            tableName: feature_flag
+            constraintName: ux_flag_project_key
+
+        - dropTable:
+            tableName: feature_flag
+            cascadeConstraints: true

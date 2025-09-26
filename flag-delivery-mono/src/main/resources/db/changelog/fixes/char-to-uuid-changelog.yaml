@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: fix-uuid-columns-1
       author: urninax
+      logicalFilePath: db/changelog/char-to-uuid-changelog.yaml
       changes:
         - dropForeignKeyConstraint:
             baseTableName: access_token

@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 001-add-version-column
       author: urninax
+      logicalFilePath: db/changelog/add-version-column.yaml
       changes:
         - addColumn:
             tableName: invitation

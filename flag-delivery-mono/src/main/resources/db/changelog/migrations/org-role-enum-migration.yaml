@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 2025-09-06-drop-checks
       author: urninax
+      logicalFilePath: db/changelog/org-role-enum-migration.yaml
       changes:
         - sql:
             sql: |
@@ -13,6 +14,7 @@ databaseChangeLog:
   - changeSet:
       id: 2025-09-06-create-enum
       author: urninax
+      logicalFilePath: db/changelog/org-role-enum-migration.yaml
       changes:
         - sql:
             splitStatements: false
@@ -28,6 +30,7 @@ databaseChangeLog:
   - changeSet:
       id: 2025-09-06-validate-data
       author: urninax
+      logicalFilePath: db/changelog/org-role-enum-migration.yaml
       changes:
         - sql:
             splitStatements: false
@@ -52,6 +55,7 @@ databaseChangeLog:
   - changeSet:
       id: 2025-09-06-drop-defaults
       author: urninax
+      logicalFilePath: db/changelog/org-role-enum-migration.yaml
       changes:
         - sql:
             sql: |
@@ -63,6 +67,7 @@ databaseChangeLog:
   - changeSet:
       id: 2025-09-06-alter-columns
       author: urninax
+      logicalFilePath: db/changelog/org-role-enum-migration.yaml
       changes:
         - sql:
             sql: |
@@ -76,6 +81,7 @@ databaseChangeLog:
   - changeSet:
       id: 2025-09-06-set-defaults
       author: urninax
+      logicalFilePath: db/changelog/org-role-enum-migration.yaml
       changes:
         - sql:
             sql: |

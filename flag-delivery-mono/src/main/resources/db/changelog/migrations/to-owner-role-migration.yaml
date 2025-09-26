@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 2025-09-06-drop-membership-role-check
       author: urninax
+      logicalFilePath: db/changelog/to-owner-role-migration.yaml
       changes:
         - sql:
             sql: |
@@ -11,6 +12,7 @@ databaseChangeLog:
   - changeSet:
       id: 2025-09-06-drop-access-token-role-check
       author: urninax
+      logicalFilePath: db/changelog/to-owner-role-migration.yaml
       changes:
         - sql:
             sql: |
@@ -20,6 +22,7 @@ databaseChangeLog:
   - changeSet:
       id: 2025-09-06-create-membership-role-check
       author: urninax
+      logicalFilePath: db/changelog/to-owner-role-migration.yaml
       changes:
         - sql:
             sql: |
@@ -30,6 +33,7 @@ databaseChangeLog:
   - changeSet:
       id: 2025-09-06-create-access-token-role-check
       author: urninax
+      logicalFilePath: db/changelog/to-owner-role-migration.yaml
       changes:
         - sql:
             sql: |
@@ -40,6 +44,7 @@ databaseChangeLog:
   - changeSet:
       id: 2025-09-06-backfill-membership-roles
       author: urninax
+      logicalFilePath: db/changelog/to-owner-role-migration.yaml
       changes:
         - sql:
             sql: |
@@ -51,6 +56,7 @@ databaseChangeLog:
   - changeSet:
       id: 2025-09-06-drop-is-owner-column
       author: urninax
+      logicalFilePath: db/changelog/to-owner-role-migration.yaml
       changes:
         - dropColumn:
             tableName: organisation_memberships

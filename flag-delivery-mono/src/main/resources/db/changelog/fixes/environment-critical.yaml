@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 2025-09-25-environment-add-critical-column
       author: urninax
+      logicalFilePath: db/changelog/environment-critical.yaml
       changes:
         - addColumn:
             tableName: environment

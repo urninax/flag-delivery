@@ -1,52 +1,55 @@
 databaseChangeLog:
   - include:
-      file: 03-01-changelog.yaml
+      file: init/03-01-changelog.yaml
       relativeToChangelogFile: true
       context: test
   - include:
-      file: char-to-uuid-changelog.yaml
+      file: fixes/char-to-uuid-changelog.yaml
       relativeToChangelogFile: true
       context: test
   - include:
-      file: all-tables-uuid-migration.yaml
+      file: fixes/all-tables-uuid-migration.yaml
       relativeToChangelogFile: true
       context: test
   - include:
-      file: create-invitation-changelog.yaml
+      file: init/create-invitation-changelog.yaml
       relativeToChangelogFile: true
   - include:
-      file: add-version-column.yaml
+      file: fixes/add-version-column.yaml
       relativeToChangelogFile: true
   - include:
-      file: to-owner-role-migration.yaml
+      file: migrations/to-owner-role-migration.yaml
       relativeToChangelogFile: true
   - include:
-      file: org-role-enum-migration.yaml
+      file: migrations/org-role-enum-migration.yaml
       relativeToChangelogFile: true
   - include:
-      file: version-column-memberships.yaml
+      file: fixes/version-column-memberships.yaml
       relativeToChangelogFile: true
   - include:
-      file: create-user-activity-table.yaml
+      file: init/create-user-activity-table.yaml
       relativeToChangelogFile: true
   - include:
-      file: create-project.yaml
+      file: init/create-project.yaml
       relativeToChangelogFile: true
   - include:
-      file: project-increase-text-limitations.yaml
+      file: migrations/project-increase-text-limitations.yaml
       relativeToChangelogFile: true
   - include:
-      file: access-token-hashed-token-index.yaml
+      file: fixes/access-token-hashed-token-index.yaml
       relativeToChangelogFile: true
   - include:
-      file: normalize-project.yaml
+      file: migrations/normalize-project.yaml
       relativeToChangelogFile: true
   - include:
-      file: create-environment.yaml
+      file: init/create-environment.yaml
       relativeToChangelogFile: true
   - include:
-      file: environment-critical.yaml
+      file: fixes/environment-critical.yaml
       relativeToChangelogFile: true
   - include:
-      file: add-indexes.yaml
+      file: fixes/add-indexes.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: init/create-feature-flag.yaml
       relativeToChangelogFile: true

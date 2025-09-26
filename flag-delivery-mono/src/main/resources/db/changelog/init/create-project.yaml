@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 2025-09-10-create-project-table
       author: urninax
+      logicalFilePath: db/changelog/create-project.yaml
       changes:
         - createTable:
             tableName: project

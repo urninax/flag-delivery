@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 2025-09-06-add-version-column
       author: urninax
+      logicalFilePath: db/changelog/version-column-memberships.yaml
       changes:
         - addColumn:
             tableName: organisation_memberships

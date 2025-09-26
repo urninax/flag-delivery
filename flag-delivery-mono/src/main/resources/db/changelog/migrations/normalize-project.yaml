@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 2025-09-12-create-project-tags
       author: urninax
+      logicalFilePath: db/changelog/normalize-project.yaml
       changes:
         - createTable:
             tableName: project_tags
@@ -43,6 +44,7 @@ databaseChangeLog:
   - changeSet:
       id: 2025-09-12-migrate-tags-to-project-tags
       author: urninax
+      logicalFilePath: db/changelog/normalize-project.yaml
       changes:
         - sql:
             splitStatements: false
@@ -71,6 +73,7 @@ databaseChangeLog:
   - changeSet:
       id: 2025-09-12-delete-tags-column-project
       author: urninax
+      logicalFilePath: db/changelog/normalize-project.yaml
       changes:
         - dropColumn:
             tableName: project

@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 001-create-invitation
       author: urninax
+      logicalFilePath: db/changelog/create-invitation-changelog.yaml
       changes:
         - sql:
             sql: |
