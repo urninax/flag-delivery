@@ -1,0 +1,42 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2025-09-26-create-flag-tags-table
+      author: urninax
+      changes:
+        - createTable:
+            tableName: feature_flag_tags
+            columns:
+              - column:
+                  name: flag_id
+                  type: uuid
+                  constraints:
+                    foreignKeyName: fk_flag
+                    references: feature_flag(id)
+                    nullable: false
+
+              - column:
+                  name: tag
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+
+        - addPrimaryKey:
+            tableName: feature_flag_tags
+            columnNames: flag_id, tag
+            constraintName: pk_flag_tags
+        - createIndex:
+            indexName: idx_flag_tags_tag
+            tableName: feature_flag_tags
+            columns:
+              - column:
+                  name: tag
+
+      rollback:
+        - dropForeignKeyConstraint:
+            constraintName: fk_flag_tags_environment
+            baseTableName: feature_flag_tags
+        - dropIndex:
+            indexName: idx_flag_tags_tag
+            tableName: feature_flag_tags
+        - dropTable:
+            tableName: feature_flag_tags

@@ -8,6 +8,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -45,6 +47,9 @@ public class FeatureFlag{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "maintainer_id")
     private UserEntity maintainer;
+
+    @OneToMany(mappedBy = "featureFlag", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<FeatureFlagTag> tags = new HashSet<>();
 
     @Column(name = "temporary")
     private boolean temporary;
