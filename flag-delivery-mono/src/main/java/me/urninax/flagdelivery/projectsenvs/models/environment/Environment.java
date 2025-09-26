@@ -2,6 +2,7 @@ package me.urninax.flagdelivery.projectsenvs.models.environment;
 
 import jakarta.persistence.*;
 import lombok.*;
+import me.urninax.flagdelivery.projectsenvs.models.project.Project;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant;
@@ -43,8 +44,9 @@ public class Environment{
     @OneToMany(mappedBy = "environment", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<EnvironmentTag> tags = new HashSet<>();
 
-    @Column(name = "project_id")
-    private UUID projectId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id")
+    private Project project;
 
     @Column(name = "created_at")
     private Instant createdAt;

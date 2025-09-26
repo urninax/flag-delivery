@@ -2,6 +2,7 @@ package me.urninax.flagdelivery.projectsenvs.models.project;
 
 import jakarta.persistence.*;
 import lombok.*;
+import me.urninax.flagdelivery.projectsenvs.models.environment.Environment;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant;
@@ -37,6 +38,9 @@ public class Project{
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ProjectTag> tags = new HashSet<>();
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Environment> environments;
 
     @Column(name = "casing_convention")
     @Enumerated(EnumType.STRING)

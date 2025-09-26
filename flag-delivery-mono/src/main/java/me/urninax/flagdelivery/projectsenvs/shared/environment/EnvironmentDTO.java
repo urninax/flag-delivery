@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 
@@ -33,4 +34,10 @@ public class EnvironmentDTO{
 
     @JsonProperty("tags")
     private Set<String> tags;
+
+    @JsonProperty("created_at")
+    private Instant createdAt;
+
+    @JsonProperty("updated_at")
+    private Instant updatedAt;
 }

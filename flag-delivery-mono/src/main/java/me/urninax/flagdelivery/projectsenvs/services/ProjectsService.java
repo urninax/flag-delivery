@@ -1,12 +1,13 @@
 package me.urninax.flagdelivery.projectsenvs.services;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.projectsenvs.models.project.CasingConvention;
 import me.urninax.flagdelivery.projectsenvs.models.project.Project;
 import me.urninax.flagdelivery.projectsenvs.models.project.ProjectTag;
 import me.urninax.flagdelivery.projectsenvs.models.project.ProjectTagId;
-import me.urninax.flagdelivery.projectsenvs.repositories.ProjectTagsRepository;
 import me.urninax.flagdelivery.projectsenvs.repositories.ProjectsRepository;
+import me.urninax.flagdelivery.projectsenvs.shared.CommonSpecifications;
 import me.urninax.flagdelivery.projectsenvs.shared.project.ProjectDTO;
 import me.urninax.flagdelivery.projectsenvs.shared.project.ProjectSpecifications;
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.project.CreateProjectRequest;
@@ -17,7 +18,6 @@ import me.urninax.flagdelivery.shared.exceptions.ConflictException;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.shared.utils.EntityMapper;
 import me.urninax.flagdelivery.shared.utils.PersistenceExceptionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,25 +30,18 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.util.*;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ProjectsService{
     private final ProjectsRepository projectsRepository;
     private final EntityMapper entityMapper;
     private final CurrentUser currentUser;
     private final Clock clock;
-    private final ProjectTagsRepository projectTagsRepository;
-
-    @Autowired
-    public ProjectsService(ProjectsRepository projectsRepository, EntityMapper entityMapper, CurrentUser currentUser, Clock clock, ProjectTagsRepository projectTagsRepository){
-        this.projectsRepository = projectsRepository;
-        this.entityMapper = entityMapper;
-        this.currentUser = currentUser;
-        this.clock = clock;
-        this.projectTagsRepository = projectTagsRepository;
-    }
 
     @Transactional
     public ProjectDTO createProject(CreateProjectRequest request){
@@ -111,7 +104,7 @@ public class ProjectsService{
 
         if(request != null){
             if(!request.query().isBlank()){
-                projectSpec = projectSpec.and(ProjectSpecifications.hasQuery(request.query()));
+                projectSpec = projectSpec.and(CommonSpecifications.hasQuery(request.query()));
             }
 
             if(!request.keys().isEmpty()){
@@ -126,17 +119,6 @@ public class ProjectsService{
         Pageable sanitizedPageable = sanitize(pageable);
 
         Page<Project> projectPage = projectsRepository.findAll(projectSpec, sanitizedPageable);
-
-        List<UUID> ids = projectPage.getContent().stream().map(Project::getId).toList();
-        if (!ids.isEmpty()) {
-            List<ProjectTag> allTags = projectTagsRepository.findAllByProjectIdIn(ids);
-            Map<UUID, Set<ProjectTag>> byProject = allTags.stream()
-                    .collect(Collectors.groupingBy(pt -> pt.getProject().getId(),
-                            Collectors.toCollection(LinkedHashSet::new)));
-            projectPage.getContent().forEach(p ->
-                    p.setTags(byProject.getOrDefault(p.getId(), Set.of()))
-            );
-        }
 
         return projectPage.map(entityMapper::toDTO);
     }

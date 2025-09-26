@@ -47,3 +47,6 @@ databaseChangeLog:
   - include:
       file: environment-critical.yaml
       relativeToChangelogFile: true
+  - include:
+      file: add-indexes.yaml
+      relativeToChangelogFile: true

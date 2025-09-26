@@ -1,0 +1,38 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2025-09-26-add-indexes
+      author: urninax
+      changes:
+        - createIndex:
+            indexName: idx_project_orgid
+            tableName: project
+            columns:
+              - column:
+                  name: organisation_id
+
+        - createIndex:
+            indexName: idx_project_tags_proj_id
+            tableName: project_tags
+            columns:
+              - column:
+                  name: project_id
+
+        - createIndex:
+            indexName: idx_env_tags_env_id
+            tableName: environment_tags
+            columns:
+              - column:
+                  name: environment_id
+
+      rollback:
+        - dropIndex:
+            indexName: idx_project_orgid
+            tableName: project
+
+        - dropIndex:
+            indexName: idx_project_tags_proj_id
+            tableName: project_tags
+
+        - dropIndex:
+            indexName: idx_env_tags_env_id
+            tableName: environment_tags

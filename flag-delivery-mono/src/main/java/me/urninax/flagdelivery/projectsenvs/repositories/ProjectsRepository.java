@@ -1,6 +1,10 @@
 package me.urninax.flagdelivery.projectsenvs.repositories;
 
 import me.urninax.flagdelivery.projectsenvs.models.project.Project;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -17,6 +21,10 @@ public interface ProjectsRepository extends JpaRepository<Project, UUID>, JpaSpe
     @Query("SELECT p.id FROM Project p WHERE p.key = :key AND p.organisationId = :orgId")
     Optional<UUID> findIdByKeyAndOrgId(@Param("key") String key,
                                        @Param("orgId") UUID orgId);
+
+    @Override
+    @EntityGraph(attributePaths = "tags")
+    Page<Project> findAll(Specification<Project> specification, Pageable pageable);
 
     void deleteByOrganisationIdAndKey(UUID organisationId, String key);
 }

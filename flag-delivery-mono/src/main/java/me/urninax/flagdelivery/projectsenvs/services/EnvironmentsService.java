@@ -7,18 +7,24 @@ import me.urninax.flagdelivery.projectsenvs.models.environment.EnvironmentTag;
 import me.urninax.flagdelivery.projectsenvs.models.environment.EnvironmentTagId;
 import me.urninax.flagdelivery.projectsenvs.repositories.EnvironmentsRepository;
 import me.urninax.flagdelivery.projectsenvs.repositories.ProjectsRepository;
+import me.urninax.flagdelivery.projectsenvs.shared.CommonSpecifications;
 import me.urninax.flagdelivery.projectsenvs.shared.environment.EnvironmentDTO;
+import me.urninax.flagdelivery.projectsenvs.shared.environment.EnvironmentSpecifications;
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.environment.CreateEnvironmentRequest;
+import me.urninax.flagdelivery.projectsenvs.ui.models.requests.environment.ListAllEnvironmentsRequest;
 import me.urninax.flagdelivery.shared.exceptions.ConflictException;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.shared.utils.EntityMapper;
 import me.urninax.flagdelivery.shared.utils.PersistenceExceptionUtils;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -40,7 +46,7 @@ public class EnvironmentsService{
         Environment environment = Environment.builder()
                 .name(request.name().trim().replaceAll("\\s+", " "))
                 .key(request.key())
-                .projectId(projectId)
+                .project(projectsRepository.getReferenceById(projectId))
                 .confirmChanges(request.confirmChanges())
                 .requireComments(request.requireComments())
                 .critical(request.critical())
@@ -73,5 +79,42 @@ public class EnvironmentsService{
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Environment was not found"));
 
         return entityMapper.toDTO(environment);
+    }
+
+    public List<EnvironmentDTO> listEnvironments(String projectKey, ListAllEnvironmentsRequest request, Sort sort){
+        UUID orgId = currentUser.getOrganisationId();
+        Specification<Environment> envSpec = EnvironmentSpecifications.byOrgAndProjectKey(orgId, projectKey);
+
+        if(request != null){
+            if(!request.query().isBlank()){
+                envSpec = envSpec.and(CommonSpecifications.hasQuery(request.query()));
+            }
+
+            if(!request.tags().isEmpty()){
+                envSpec = envSpec.and(EnvironmentSpecifications.hasAllTags(request.tags()));
+            }
+        }
+
+        List<Environment> environments = environmentsRepository.findAll(envSpec, sanitize(sort));
+
+        return environments.stream().map(entityMapper::toDTO).toList();
+    }
+
+    private Sort sanitize(Sort sort) {
+        if(sort.isUnsorted()){
+            return sort;
+        }
+
+        List<String> allowed = List.of("createdAt", "critical", "name");
+        List<Sort.Order> safeOrders = sort
+                .stream()
+                .filter(order -> allowed.contains(order.getProperty()))
+                .toList();
+
+        if(safeOrders.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot be sorted");
+        }
+
+        return Sort.by(safeOrders);
     }
 }
