@@ -3,6 +3,8 @@ package me.urninax.flagdelivery.projectsenvs.models.environment;
 import jakarta.persistence.*;
 import lombok.*;
 import me.urninax.flagdelivery.projectsenvs.models.project.Project;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant;
@@ -48,9 +50,12 @@ public class Environment{
     @JoinColumn(name = "project_id")
     private Project project;
 
+    @CreationTimestamp
     @Column(name = "created_at")
     private Instant createdAt;
 
+
+    @UpdateTimestamp
     @Column(name = "updated_at")
     private Instant updatedAt;
 }

@@ -12,6 +12,7 @@ import me.urninax.flagdelivery.projectsenvs.shared.environment.EnvironmentDTO;
 import me.urninax.flagdelivery.projectsenvs.shared.environment.EnvironmentSpecifications;
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.environment.CreateEnvironmentRequest;
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.environment.ListAllEnvironmentsRequest;
+import me.urninax.flagdelivery.projectsenvs.ui.models.requests.environment.PatchEnvironmentRequest;
 import me.urninax.flagdelivery.shared.exceptions.ConflictException;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.shared.utils.EntityMapper;
@@ -98,6 +99,56 @@ public class EnvironmentsService{
         List<Environment> environments = environmentsRepository.findAll(envSpec, sanitize(sort));
 
         return environments.stream().map(entityMapper::toDTO).toList();
+    }
+
+    @Transactional
+    public EnvironmentDTO patchEnvironment(String projectKey, String environmentKey, PatchEnvironmentRequest request){
+        UUID orgId = currentUser.getOrganisationId();
+        Environment environment = environmentsRepository.findEnvironment(orgId, projectKey, environmentKey)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Environment was not found"));
+
+        if(request.name() != null && !request.name().isBlank()){
+            environment.setName(request.name().trim().replaceAll("\\s+", " "));
+        }
+
+        if(request.confirmChanges() != null){
+            environment.setConfirmChanges(request.confirmChanges());
+        }
+
+        if(request.requireComments() != null){
+            environment.setRequireComments(request.requireComments());
+        }
+
+        if(request.critical() != null){
+            environment.setCritical(request.critical());
+        }
+
+        if(request.tags() != null){
+            Set<EnvironmentTag> envTags = request.tags().stream()
+                    .map(et -> new EnvironmentTag(new EnvironmentTagId(null, et), environment))
+                    .collect(Collectors.toSet());
+            environment.getTags().clear();
+            environment.getTags().addAll(envTags);
+        }
+
+        Environment savedEnv = environmentsRepository.saveAndFlush(environment);
+
+        return entityMapper.toDTO(savedEnv);
+    }
+
+    @Transactional
+    public void deleteEnvironment(String projectKey, String environmentKey){
+        UUID orgId = currentUser.getOrganisationId();
+        int envCount = environmentsRepository.countEnvironmentByOrgIdAndProjectKey(orgId, projectKey);
+
+        if(envCount == 1){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Project must have at least one environment");
+        }
+
+        Environment environment = environmentsRepository.findEnvironment(orgId, projectKey, environmentKey)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Environment was not found"));
+
+        environmentsRepository.delete(environment);
     }
 
     private Sort sanitize(Sort sort) {

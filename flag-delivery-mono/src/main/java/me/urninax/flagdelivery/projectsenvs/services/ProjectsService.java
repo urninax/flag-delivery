@@ -80,9 +80,9 @@ public class ProjectsService{
 
         project.setTags(tags);
 
-        //todo: create default environments if not specified (publish event maybe)
         try{
             Project createdProject = projectsRepository.saveAndFlush(project);
+            //todo: create default environments if not specified (publish event maybe)
             return entityMapper.toDTO(createdProject);
         }catch(DataIntegrityViolationException exc){
             if(PersistenceExceptionUtils.isUniqueException(exc)){
@@ -148,6 +148,7 @@ public class ProjectsService{
         }
 
         projectsRepository.save(project);
+        //todo: return dto (saveAndFlush)
     }
 
     @Transactional

@@ -31,4 +31,13 @@ public interface EnvironmentsRepository extends JpaRepository<Environment, UUID>
     @Override
     @EntityGraph(attributePaths = "tags")
     List<Environment> findAll(Specification<Environment> spec, Sort sort);
+
+    @Query("""
+        select count(e)
+        from Environment e
+        join e.project p
+        where p.organisationId = :orgId
+            and p.key = :projectKey
+    """)
+    int countEnvironmentByOrgIdAndProjectKey(UUID orgId, String projectKey);
 }

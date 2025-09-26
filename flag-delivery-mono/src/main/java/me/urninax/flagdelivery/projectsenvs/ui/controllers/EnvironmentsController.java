@@ -5,6 +5,7 @@ import me.urninax.flagdelivery.projectsenvs.services.EnvironmentsService;
 import me.urninax.flagdelivery.projectsenvs.shared.environment.EnvironmentDTO;
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.environment.CreateEnvironmentRequest;
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.environment.ListAllEnvironmentsRequest;
+import me.urninax.flagdelivery.projectsenvs.ui.models.requests.environment.PatchEnvironmentRequest;
 import me.urninax.flagdelivery.shared.security.enums.AuthMethod;
 import me.urninax.flagdelivery.shared.utils.annotations.RequiresAuthMethod;
 import me.urninax.flagdelivery.shared.utils.annotations.RequiresRole;
@@ -51,16 +52,21 @@ public class EnvironmentsController{
         return new ResponseEntity<>(environmentDTOs, HttpStatus.OK);
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{environmentKey}")
     @RequiresRole(OrgRole.ADMIN)
-    public ResponseEntity<?> deleteEnvironment(){
-        return null;
+    public ResponseEntity<?> deleteEnvironment(@PathVariable("projectKey") String projectKey,
+                                               @PathVariable("environmentKey") String environmentKey){
+        environmentsService.deleteEnvironment(projectKey, environmentKey);
+        return ResponseEntity.ok().build();
     }
 
-    @PatchMapping
+    @PatchMapping("/{environmentKey}")
     @RequiresRole(OrgRole.ADMIN)
-    public ResponseEntity<?> updateEnvironment(){
-        return null;
+    public ResponseEntity<?> updateEnvironment(@PathVariable("projectKey") String projectKey,
+                                               @PathVariable("environmentKey") String environmentKey,
+                                               @RequestBody PatchEnvironmentRequest request){
+        EnvironmentDTO patchedEnvDTO = environmentsService.patchEnvironment(projectKey, environmentKey, request);
+        return new ResponseEntity<>(patchedEnvDTO, HttpStatus.OK);
     }
 }
 
