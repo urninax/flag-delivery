@@ -51,6 +51,9 @@ public class FeatureFlag{
     @JoinColumn(name = "maintainer_id")
     private UserEntity maintainer;
 
+    @OneToMany(mappedBy = "flag", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<EnvironmentFlagConfig> flagConfigs;
+
     @OneToMany(mappedBy = "featureFlag", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<FeatureFlagTag> tags = new HashSet<>();
 

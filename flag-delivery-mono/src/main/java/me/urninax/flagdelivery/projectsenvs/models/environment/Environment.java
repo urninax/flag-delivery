@@ -2,6 +2,7 @@ package me.urninax.flagdelivery.projectsenvs.models.environment;
 
 import jakarta.persistence.*;
 import lombok.*;
+import me.urninax.flagdelivery.flags.models.EnvironmentFlagConfig;
 import me.urninax.flagdelivery.projectsenvs.models.project.Project;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -46,6 +47,9 @@ public class Environment{
     @OneToMany(mappedBy = "environment", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<EnvironmentTag> tags = new HashSet<>();
 
+    @OneToMany(mappedBy = "environment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<EnvironmentFlagConfig> flagConfigs = new HashSet<>();
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
     private Project project;
@@ -53,7 +57,6 @@ public class Environment{
     @CreationTimestamp
     @Column(name = "created_at")
     private Instant createdAt;
-
 
     @UpdateTimestamp
     @Column(name = "updated_at")
