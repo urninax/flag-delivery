@@ -41,6 +41,14 @@ public class FeatureFlag{
     @OneToMany(mappedBy = "flag")
     private Set<FlagVariation> variations;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "default_on_variation_id")
+    private FlagVariation defaultOnVariation;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "default_off_variation_id")
+    private FlagVariation defaultOffVariation;
+
     @Column(name = "description")
     private String description;
 
