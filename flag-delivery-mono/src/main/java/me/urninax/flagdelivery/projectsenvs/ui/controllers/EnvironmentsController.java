@@ -1,5 +1,6 @@
 package me.urninax.flagdelivery.projectsenvs.ui.controllers;
 
+import jakarta.validation.Valid;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.projectsenvs.services.EnvironmentsService;
 import me.urninax.flagdelivery.projectsenvs.shared.environment.EnvironmentDTO;
@@ -30,7 +31,7 @@ public class EnvironmentsController{
     @PostMapping
     @RequiresRole(OrgRole.ADMIN)
     public ResponseEntity<?> createEnvironment(@PathVariable("projectKey") String projectKey,
-                                               @RequestBody CreateEnvironmentRequest request){
+                                               @Valid @RequestBody CreateEnvironmentRequest request){
         EnvironmentDTO environmentDTO = environmentsService.createEnvironment(projectKey, request);
         return new ResponseEntity<>(environmentDTO, HttpStatus.CREATED);
     }
@@ -46,7 +47,7 @@ public class EnvironmentsController{
     @GetMapping()
     @RequiresRole(OrgRole.READER)
     public ResponseEntity<?> listEnvironments(@PathVariable("projectKey") String projectKey,
-                                              @RequestParam(value = "filter", required = false)ListAllEnvironmentsRequest request,
+                                              @RequestParam(value = "filter", required = false) ListAllEnvironmentsRequest request,
                                               Sort sort){
         List<EnvironmentDTO> environmentDTOs = environmentsService.listEnvironments(projectKey, request, sort);
         return new ResponseEntity<>(environmentDTOs, HttpStatus.OK);
@@ -64,7 +65,7 @@ public class EnvironmentsController{
     @RequiresRole(OrgRole.ADMIN)
     public ResponseEntity<?> updateEnvironment(@PathVariable("projectKey") String projectKey,
                                                @PathVariable("environmentKey") String environmentKey,
-                                               @RequestBody PatchEnvironmentRequest request){
+                                               @Valid @RequestBody PatchEnvironmentRequest request){
         EnvironmentDTO patchedEnvDTO = environmentsService.patchEnvironment(projectKey, environmentKey, request);
         return new ResponseEntity<>(patchedEnvDTO, HttpStatus.OK);
     }

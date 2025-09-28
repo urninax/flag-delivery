@@ -33,7 +33,7 @@ public class AccessTokenService{
 
     public String issueToken(CreateAccessTokenRequest request){
         UUID userId = currentUser.getUserId();
-        Membership membership = membershipsService.findMembershipById(userId);
+        Membership membership = membershipsService.findById(userId);
 
         OrgRole role = membership.getRole();
         if(!role.atLeast(request.getRole())){

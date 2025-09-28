@@ -50,7 +50,7 @@ public class MembershipsService{
         membershipsRepository.save(membership);
     }
 
-    public Membership findMembershipById(UUID userId){
+    public Membership findById(UUID userId){
         return membershipsRepository.findById(userId)
                 .orElseThrow(() -> new AccessDeniedException("User has no organisation"));
     }
