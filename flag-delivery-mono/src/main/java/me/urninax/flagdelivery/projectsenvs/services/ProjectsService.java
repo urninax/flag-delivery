@@ -184,6 +184,11 @@ public class ProjectsService{
         }
     }
 
+    public UUID findIdByKeyAndOrg(String projectKey, UUID orgId){
+        return projectsRepository.findIdByKeyAndOrgId(projectKey, orgId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project was not found"));
+    }
+
     private Pageable sanitize(Pageable pageable) {
         if(pageable.getSort().isUnsorted()){
             return pageable;

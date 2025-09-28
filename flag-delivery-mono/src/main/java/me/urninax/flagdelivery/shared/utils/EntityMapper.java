@@ -1,5 +1,8 @@
 package me.urninax.flagdelivery.shared.utils;
 
+import me.urninax.flagdelivery.flags.models.FeatureFlag;
+import me.urninax.flagdelivery.flags.models.FeatureFlagTag;
+import me.urninax.flagdelivery.flags.shared.FeatureFlagDTO;
 import me.urninax.flagdelivery.organisation.models.AccessToken;
 import me.urninax.flagdelivery.organisation.models.invitation.Invitation;
 import me.urninax.flagdelivery.organisation.shared.AccessTokenDTO;
@@ -51,7 +54,10 @@ public interface EntityMapper{
     @Mapping(source = "tags", target = "tags")
     EnvironmentDTO toDTO(Environment environment);
 
-    default Set<String> mapProjectTags(Set<ProjectTag> tags) {
+    @Mapping(source = "tags", target = "tags")
+    FeatureFlagDTO toDTO(FeatureFlag featureFlag);
+
+    default Set<String> mapProjectTags(Set<ProjectTag> tags) { //todo: put all tags in one table
         if (tags == null) {
             return Collections.emptySet();
         }
@@ -66,6 +72,15 @@ public interface EntityMapper{
         }
         return tags.stream()
                 .map(et -> et.getId().getTag())
+                .collect(Collectors.toSet());
+    }
+
+    default Set<String> mapFeatureFlagTags(Set<FeatureFlagTag> tags){
+        if (tags == null) {
+            return Collections.emptySet();
+        }
+        return tags.stream()
+                .map(ft -> ft.getId().getTag())
                 .collect(Collectors.toSet());
     }
 }
