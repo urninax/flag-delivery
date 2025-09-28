@@ -54,7 +54,7 @@ public class ProjectsController{
     @PatchMapping("/{projectKey}")
     @RequiresRole(OrgRole.ADMIN)
     public ResponseEntity<?> patchProject(@PathVariable("projectKey") String projectKey,
-                                          @RequestBody PatchProjectRequest request){
+                                          @Valid @RequestBody PatchProjectRequest request){
         projectsService.patchProject(projectKey, request);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

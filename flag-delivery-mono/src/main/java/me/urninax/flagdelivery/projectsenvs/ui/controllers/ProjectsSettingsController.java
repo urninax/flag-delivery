@@ -1,5 +1,6 @@
 package me.urninax.flagdelivery.projectsenvs.ui.controllers;
 
+import jakarta.validation.Valid;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.projectsenvs.services.ProjectsService;
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.project.NamingConventionRequest;
@@ -24,7 +25,7 @@ public class ProjectsSettingsController{
     @PatchMapping("/flags")
     @RequiresRole(OrgRole.ADMIN)
     public ResponseEntity<?> editFlagsSettings(@PathVariable("projectKey") String projectKey,
-                                               @RequestBody NamingConventionRequest request){
+                                               @Valid @RequestBody NamingConventionRequest request){
         projectsService.editProjectFlagsSettings(projectKey, request);
         return new ResponseEntity<>(HttpStatus.OK);
     }

@@ -1,0 +1,30 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2025-09-28-add-default-variations
+      author: urninax
+      changes:
+        - addColumn:
+            tableName: feature_flag
+            columns:
+              - column:
+                  name: default_on_variation_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_flag_default_on_var
+                    references: flag_variation(id)
+              - column:
+                  name: default_off_variation_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_flag_default_off_var
+                    references: flag_variation(id)
+
+      rollback:
+        - dropColumn:
+            tableName: feature_flag
+            columnName: default_on_variation_id
+        - dropColumn:
+            tableName: feature_flag
+            columnName: default_on_variation_id

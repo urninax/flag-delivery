@@ -62,3 +62,6 @@ databaseChangeLog:
   - include:
       file: init/create-flag-config.yaml
       relativeToChangelogFile: true
+  - include:
+      file: fixes/add-default-variations-columns.yaml
+      relativeToChangelogFile: true

@@ -9,6 +9,7 @@ import me.urninax.flagdelivery.organisation.services.caching.MemberTokensCacheSe
 import me.urninax.flagdelivery.organisation.shared.AccessTokenDTO;
 import me.urninax.flagdelivery.organisation.shared.AccessTokenPrincipalDTO;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateAccessTokenRequest;
+import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.shared.utils.AccessTokenUtils;
 import me.urninax.flagdelivery.shared.utils.EntityMapper;
 import org.springframework.cache.annotation.Cacheable;
@@ -28,8 +29,10 @@ public class AccessTokenService{
     private final MembershipsService membershipsService;
     private final MemberTokensCacheService memberTokensCacheService;
     private final EntityMapper entityMapper;
+    private final CurrentUser currentUser;
 
-    public String issueToken(UUID userId, CreateAccessTokenRequest request){
+    public String issueToken(CreateAccessTokenRequest request){
+        UUID userId = currentUser.getUserId();
         Membership membership = membershipsService.findMembershipById(userId);
 
         OrgRole role = membership.getRole();
@@ -55,11 +58,11 @@ public class AccessTokenService{
         return token;
     }
 
-    public Page<AccessTokenDTO> getTokensForUserInOrg(UUID userId, Pageable pageable, Optional<Boolean> showAllOptional){
+    public Page<AccessTokenDTO> getTokensForUserInOrg(Pageable pageable, Optional<Boolean> showAllOptional){
         //todo: review visibility semantics
-        Membership membership = membershipsService.findMembershipById(userId);
-
-        OrgRole role = membership.getRole();
+        UUID userId = currentUser.getUserId();
+        UUID orgId = currentUser.getOrganisationId();
+        OrgRole role = currentUser.getOrgRole();
 
         boolean showAll = showAllOptional.orElse(false);
 
@@ -67,12 +70,12 @@ public class AccessTokenService{
             assertAdmin(role);
 
             Page<AccessToken> allTokensPage = accessTokenRepository
-                    .findAllByOrganisation_Id(membership.getOrganisation().getId(), pageable);
+                    .findAllByOrganisation_Id(orgId, pageable);
             return allTokensPage.map(entityMapper::toDTO);
         }
 
         Page<AccessToken> allUserTokensPage = accessTokenRepository
-                .findAllByOwner_IdAndOrganisation_Id(membership.getUserId(), membership.getOrganisation().getId(), pageable);
+                .findAllByOwner_IdAndOrganisation_Id(userId, orgId, pageable);
 
         return allUserTokensPage.map(entityMapper::toDTO);
     }
@@ -94,7 +97,7 @@ public class AccessTokenService{
     }
 
     private void assertAdmin(OrgRole role){
-        if(role != OrgRole.ADMIN){
+        if(role.lowerThan(OrgRole.ADMIN)){
             throw new AccessDeniedException("Role for this request is not sufficient");
         }
     }

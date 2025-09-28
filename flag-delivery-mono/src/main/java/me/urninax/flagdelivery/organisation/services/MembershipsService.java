@@ -14,7 +14,6 @@ import me.urninax.flagdelivery.organisation.ui.models.requests.MembersFilter;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import me.urninax.flagdelivery.user.repositories.UsersRepository;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -51,16 +50,20 @@ public class MembershipsService{
         membershipsRepository.save(membership);
     }
 
-    @Cacheable(value = "memberships", key = "#userId")
     public Membership findMembershipById(UUID userId){
         return membershipsRepository.findById(userId)
                 .orElseThrow(() -> new AccessDeniedException("User has no organisation"));
     }
 
+    public Membership findByIdAndOrg(UUID userId, UUID orgId){
+        return membershipsRepository.findByUserIdAndOrganisation_Id(userId, orgId)
+                .orElseThrow(() -> new AccessDeniedException("Member was not found"));
+    }
+
     @Transactional
     public void changeMembersRole(UUID memberId, ChangeMembersRoleRequest request){
-        Membership targetMembership = membershipsRepository.findById(memberId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Member was not found"));
+        UUID requesterOrgId = currentUser.getOrganisationId();
+        Membership targetMembership = findByIdAndOrg(memberId, requesterOrgId);
 
         if(currentUser.getUserId().equals(memberId)){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You cannot modify your own role");
@@ -85,16 +88,13 @@ public class MembershipsService{
     }
 
     public Page<MemberWithActivityDTO> getMembers(MembersFilter filter, Pageable pageable){
-        Membership membership = membershipsRepository.findById(currentUser.getUserId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User has no organisation"));
-
         LocalDate lastSeenAfter = filter.getLastSeenAfter();
         Instant threshold = lastSeenAfter != null
                 ? lastSeenAfter.atStartOfDay(ZoneId.of("UTC")).toInstant()
                 : null;
 
         return membershipsRepository.findMembers(
-                membership.getOrganisation().getId(),
+                currentUser.getOrganisationId(),
                 threshold,
                 filter.getRoles(),
                 pageable
