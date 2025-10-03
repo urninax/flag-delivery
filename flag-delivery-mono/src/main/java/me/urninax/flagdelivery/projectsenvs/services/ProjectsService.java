@@ -2,6 +2,7 @@ package me.urninax.flagdelivery.projectsenvs.services;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import me.urninax.flagdelivery.projectsenvs.models.environment.Environment;
 import me.urninax.flagdelivery.projectsenvs.models.project.CasingConvention;
 import me.urninax.flagdelivery.projectsenvs.models.project.Project;
 import me.urninax.flagdelivery.projectsenvs.models.project.ProjectTag;
@@ -30,6 +31,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -39,6 +41,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProjectsService{
     private final ProjectsRepository projectsRepository;
+    private final EnvironmentsService environmentsService;
     private final EntityMapper entityMapper;
     private final CurrentUser currentUser;
     private final Clock clock;
@@ -80,9 +83,26 @@ public class ProjectsService{
 
         project.setTags(tags);
 
+        List<Environment> envsList;
+
+        if(request.environments() == null || request.environments().isEmpty()){
+            envsList = environmentsService.generateDefaultEnvironments(project);
+        }else{
+            envsList = request.environments()
+                    .stream()
+                    .map(env -> environmentsService.buildEnvironment(env, project))
+                    .toList();
+        }
+        Set<Environment> envsSet = new HashSet<>(envsList);
+
+        if(envsSet.size() < envsList.size()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Keys of some environments are the same.");
+        }
+
+        project.setEnvironments(envsSet);
+
         try{
             Project createdProject = projectsRepository.saveAndFlush(project);
-            //todo: create default environments if not specified (publish event maybe)
             return entityMapper.toDTO(createdProject);
         }catch(DataIntegrityViolationException exc){
             if(PersistenceExceptionUtils.isUniqueException(exc)){
@@ -92,11 +112,11 @@ public class ProjectsService{
         }
     }
 
-    public ProjectDTO getProject(String projectKey){
+    public ProjectDTO getProject(String projectKey, String expand){
         Project project = projectsRepository.findByOrganisationIdAndKey(currentUser.getOrganisationId(), projectKey)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project was not found"));
 
-        return entityMapper.toDTO(project);
+        return "environments".equals(expand) ? entityMapper.toExpandedDTO(project) : entityMapper.toDTO(project);
     }
 
     public Page<ProjectDTO> getPaginatedProjects(ListAllProjectsRequest request, Pageable pageable){

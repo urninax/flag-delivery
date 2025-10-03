@@ -5,10 +5,12 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import me.urninax.flagdelivery.projectsenvs.services.validation.ValidKey;
 
 import java.util.List;
 
+@Builder
 public record CreateEnvironmentRequest(
         @JsonProperty("name")
         @NotBlank(message = "Environment name is required.")
@@ -22,10 +24,10 @@ public record CreateEnvironmentRequest(
         String key,
 
         @JsonProperty("confirm_changes")
-        boolean confirmChanges,
+        Boolean confirmChanges,
 
         @JsonProperty("require_comments")
-        boolean requireComments,
+        Boolean requireComments,
 
         @JsonProperty("tags")
         @Valid
@@ -36,5 +38,5 @@ public record CreateEnvironmentRequest(
                 String> tags,
 
         @JsonProperty("critical")
-        boolean critical
+        Boolean critical
 ){}

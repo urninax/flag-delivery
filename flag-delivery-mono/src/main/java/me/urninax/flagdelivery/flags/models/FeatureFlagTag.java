@@ -18,6 +18,7 @@ public class FeatureFlagTag{
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("flagId")
+    @JoinColumn(name = "flag_id", nullable = false)
     private FeatureFlag featureFlag;
 
     public static FeatureFlagTag of(FeatureFlag flag, String tag) {

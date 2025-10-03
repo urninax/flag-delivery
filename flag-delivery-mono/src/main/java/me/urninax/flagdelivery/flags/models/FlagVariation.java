@@ -24,7 +24,7 @@ public class FlagVariation{
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "flag_id")
+    @JoinColumn(name = "flag_id", nullable = false)
     private FeatureFlag flag;
 
     @Type(JsonType.class)

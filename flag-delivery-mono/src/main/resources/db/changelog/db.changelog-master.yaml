@@ -65,3 +65,12 @@ databaseChangeLog:
   - include:
       file: fixes/add-default-variations-columns.yaml
       relativeToChangelogFile: true
+  - include:
+      file: fixes/remove-on-variation-column.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: fixes/add-variation-order.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: fixes/replace-variations-fk.yaml
+      relativeToChangelogFile: true

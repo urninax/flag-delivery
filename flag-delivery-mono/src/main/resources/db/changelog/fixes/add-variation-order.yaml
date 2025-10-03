@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2025-10-03
+      author: urninax
+      changes:
+        - addColumn:
+            tableName: flag_variation
+            columns:
+              - column:
+                  name: variation_order
+                  type: int
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: "0"

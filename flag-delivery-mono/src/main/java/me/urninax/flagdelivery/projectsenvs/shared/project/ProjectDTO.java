@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import me.urninax.flagdelivery.projectsenvs.shared.environment.EnvironmentDTO;
 
 import java.time.Instant;
 import java.util.Set;
@@ -16,6 +17,9 @@ public class ProjectDTO{
     private UUID id;
     private String key;
     private String name;
+
+    @JsonProperty("naming_convention")
+    private NamingConventionDTO namingConvention;
     private Set<String> tags;
 
     @JsonProperty("created_by")
@@ -26,4 +30,6 @@ public class ProjectDTO{
 
     @JsonProperty("updated_at")
     private Instant updatedAt;
+
+    private Set<EnvironmentDTO> environments;
 }

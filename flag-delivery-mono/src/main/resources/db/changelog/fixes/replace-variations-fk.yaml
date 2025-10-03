@@ -1,0 +1,100 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2025-10-03-replace-variations-fk
+      author: urninax
+      changes:
+        - dropColumn:
+            tableName: feature_flag
+            columns:
+              - column:
+                  name: default_on_variation_id
+              - column:
+                  name: default_off_variation_id
+        - dropColumn:
+            tableName: environment_flag_config
+            columns:
+              - column:
+                  name: off_variation_id
+              - column:
+                  name: fallthrough_variation_id
+        - addColumn:
+            tableName: feature_flag
+            columns:
+              - column:
+                  name: default_on_variation_idx
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: default_off_variation_idx
+                  type: int
+                  constraints:
+                    nullable: false
+        - addColumn:
+            tableName: environment_flag_config
+            columns:
+              - column:
+                  name: off_variation_idx
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: fallthrough_variation_idx
+                  type: int
+                  constraints:
+                    nullable: false
+
+      rollback:
+        - dropColumn:
+            tableName: environment_flag_config
+            columns:
+              - column:
+                  name: fallthrough_variation_idx
+              - column:
+                  name: off_variation_idx
+        - dropColumn:
+            tableName: feature_flag
+            columns:
+              - column:
+                  name: default_off_variation_idx
+              - column:
+                  name: default_on_variation_idx
+        - addColumn:
+            tableName: environment_flag_config
+            columns:
+              - column:
+                  name: fallthrough_variation_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_flag_config_fallthrough_variation
+                    references: flag_variation(id)
+                    deleteCascade: true
+
+              - column:
+                  name: off_variation_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_flag_config_off_variation
+                    references: flag_variation(id)
+                    deleteCascade: true
+        - addColumn:
+            tableName: feature_flag
+            columns:
+              - column:
+                  name: default_off_variation_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_flag_default_off_var
+                    deleteCascade: true
+                    references: flag_variation(id)
+              - column:
+                  name: default_on_variation_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_flag_default_on_var
+                    deleteCascade: true
+                    references: flag_variation(id)

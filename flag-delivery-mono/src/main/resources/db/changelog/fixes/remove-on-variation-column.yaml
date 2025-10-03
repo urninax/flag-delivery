@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2025-10-02-remove-on-variation-id-column
+      author: urninax
+      changes:
+        - dropColumn:
+            tableName: environment_flag_config
+            columnName: on_variation_id

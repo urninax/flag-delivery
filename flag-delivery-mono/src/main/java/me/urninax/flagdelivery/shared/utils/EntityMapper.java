@@ -1,7 +1,9 @@
 package me.urninax.flagdelivery.shared.utils;
 
+import me.urninax.flagdelivery.flags.models.EnvironmentFlagConfig;
 import me.urninax.flagdelivery.flags.models.FeatureFlag;
 import me.urninax.flagdelivery.flags.models.FeatureFlagTag;
+import me.urninax.flagdelivery.flags.shared.EnvironmentFlagConfigDTO;
 import me.urninax.flagdelivery.flags.shared.FeatureFlagDTO;
 import me.urninax.flagdelivery.organisation.models.AccessToken;
 import me.urninax.flagdelivery.organisation.models.invitation.Invitation;
@@ -21,6 +23,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -49,13 +52,25 @@ public interface EntityMapper{
     InvitationMailDTO toMailDTO(Invitation invitation);
 
     @Mapping(source = "tags", target = "tags")
+//    @Mapping(target = "environments", ignore = true)
+    @Mapping(source = "casingConvention", target = "namingConvention.casing")
+    @Mapping(source = "prefix", target = "namingConvention.prefix")
     ProjectDTO toDTO(Project project);
+
+    @Mapping(source = "tags", target = "tags")
+    ProjectDTO toExpandedDTO(Project project);
 
     @Mapping(source = "tags", target = "tags")
     EnvironmentDTO toDTO(Environment environment);
 
     @Mapping(source = "tags", target = "tags")
+    @Mapping(source = "defaultOnVariationIdx", target = "defaults.onVariationIdx")
+    @Mapping(source = "defaultOffVariationIdx", target = "defaults.offVariationIdx")
+    @Mapping(target = "maintainerId", source = "maintainer.id")
+    @Mapping(source = "environmentFlagConfigMap", target = "environments")
     FeatureFlagDTO toDTO(FeatureFlag featureFlag);
+
+    EnvironmentFlagConfigDTO toDTO(EnvironmentFlagConfig flagConfig);
 
     default Set<String> mapProjectTags(Set<ProjectTag> tags) { //todo: put all tags in one table
         if (tags == null) {
@@ -82,5 +97,13 @@ public interface EntityMapper{
         return tags.stream()
                 .map(ft -> ft.getId().getTag())
                 .collect(Collectors.toSet());
+    }
+
+    default Map<String, EnvironmentFlagConfigDTO> mapFlagConfigs(Map<String, EnvironmentFlagConfig> configsMap){
+        return configsMap.entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> toDTO(entry.getValue())));
     }
 }

@@ -46,8 +46,9 @@ public class ProjectsController{
 
     @GetMapping("/{projectKey}")
     @RequiresRole(OrgRole.READER)
-    public ResponseEntity<?> getProject(@PathVariable("projectKey") String projectKey){
-        ProjectDTO projectDTO = projectsService.getProject(projectKey);
+    public ResponseEntity<?> getProject(@PathVariable("projectKey") String projectKey,
+                                        @RequestParam(required = false) String expand){
+        ProjectDTO projectDTO = projectsService.getProject(projectKey, expand);
         return new ResponseEntity<>(projectDTO, HttpStatus.OK);
     }
 

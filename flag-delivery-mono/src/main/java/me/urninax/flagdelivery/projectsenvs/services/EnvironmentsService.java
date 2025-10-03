@@ -1,10 +1,12 @@
 package me.urninax.flagdelivery.projectsenvs.services;
 
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.projectsenvs.models.environment.Environment;
 import me.urninax.flagdelivery.projectsenvs.models.environment.EnvironmentTag;
 import me.urninax.flagdelivery.projectsenvs.models.environment.EnvironmentTagId;
+import me.urninax.flagdelivery.projectsenvs.models.project.Project;
 import me.urninax.flagdelivery.projectsenvs.repositories.EnvironmentsRepository;
 import me.urninax.flagdelivery.projectsenvs.repositories.ProjectsRepository;
 import me.urninax.flagdelivery.projectsenvs.shared.CommonSpecifications;
@@ -37,6 +39,11 @@ public class EnvironmentsService{
     private final ProjectsRepository projectsRepository;
     private final EntityMapper entityMapper;
     private final CurrentUser currentUser;
+    private final EntityManager em;
+
+    // ----------------
+    // CRUD
+    // ----------------
 
     @Transactional
     public EnvironmentDTO createEnvironment(String projectKey, CreateEnvironmentRequest request){
@@ -44,24 +51,10 @@ public class EnvironmentsService{
         UUID projectId = projectsRepository.findIdByKeyAndOrgId(projectKey, orgId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project was not found"));
 
-        Environment environment = Environment.builder()
-                .name(request.name().trim().replaceAll("\\s+", " "))
-                .key(request.key())
-                .project(projectsRepository.getReferenceById(projectId))
-                .confirmChanges(request.confirmChanges())
-                .requireComments(request.requireComments())
-                .critical(request.critical())
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
-                .build();
+        Project project = em.getReference(Project.class, projectId);
 
-        Set<EnvironmentTag> tags = request.tags()
-                .stream()
-                .map(tag -> new EnvironmentTag(
-                        new EnvironmentTagId(null, tag), environment))
-                .collect(Collectors.toSet());
-
-        environment.setTags(tags);
+        Environment environment = buildEnvironment(request, project);
+        environment.setProject(projectsRepository.getReferenceById(projectId));
 
         try{
             Environment createdEnv = environmentsRepository.saveAndFlush(environment);
@@ -72,6 +65,8 @@ public class EnvironmentsService{
             }
             throw exc;
         }
+
+        //todo: create flag configs for each feature flag
     }
 
     public EnvironmentDTO getEnvironment(String projectKey, String environmentKey){
@@ -96,9 +91,10 @@ public class EnvironmentsService{
             }
         }
 
-        List<Environment> environments = environmentsRepository.findAll(envSpec, sanitize(sort));
-
-        return environments.stream().map(entityMapper::toDTO).toList();
+        return environmentsRepository.findAll(envSpec, sanitize(sort))
+                .stream()
+                .map(entityMapper::toDTO)
+                .toList();
     }
 
     @Transactional
@@ -107,29 +103,7 @@ public class EnvironmentsService{
         Environment environment = environmentsRepository.findEnvironment(orgId, projectKey, environmentKey)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Environment was not found"));
 
-        if(request.name() != null && !request.name().isBlank()){
-            environment.setName(request.name().trim().replaceAll("\\s+", " "));
-        }
-
-        if(request.confirmChanges() != null){
-            environment.setConfirmChanges(request.confirmChanges());
-        }
-
-        if(request.requireComments() != null){
-            environment.setRequireComments(request.requireComments());
-        }
-
-        if(request.critical() != null){
-            environment.setCritical(request.critical());
-        }
-
-        if(request.tags() != null){
-            Set<EnvironmentTag> envTags = request.tags().stream()
-                    .map(et -> new EnvironmentTag(new EnvironmentTagId(null, et), environment))
-                    .collect(Collectors.toSet());
-            environment.getTags().clear();
-            environment.getTags().addAll(envTags);
-        }
+        applyPatch(environment, request);
 
         Environment savedEnv = environmentsRepository.saveAndFlush(environment);
 
@@ -151,6 +125,67 @@ public class EnvironmentsService{
         environmentsRepository.delete(environment);
     }
 
+    // -----------------
+    // Helpers
+    // -----------------
+
+    public List<Environment> generateDefaultEnvironments(Project project){
+        CreateEnvironmentRequest request = CreateEnvironmentRequest.builder()
+                .name("Production")
+                .key("default")
+                .confirmChanges(true)
+                .requireComments(true)
+                .critical(true)
+                .build();
+
+        return List.of(buildEnvironment(request, project));
+    }
+
+    public Environment buildEnvironment(CreateEnvironmentRequest request, Project project){
+        Environment environment = Environment.builder()
+                .name(request.name().trim().replaceAll("\\s+", " "))
+                .key(request.key())
+                .confirmChanges(defaultIfNull(request.confirmChanges(), false))
+                .requireComments(defaultIfNull(request.requireComments(), false))
+                .critical(defaultIfNull(request.critical(), false))
+                .project(project)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
+
+        if(request.tags() != null){
+            environment.setTags(toTags(request.tags(), environment));
+        }
+
+        return environment;
+    }
+
+    private void applyPatch(Environment env, PatchEnvironmentRequest request) {
+        if (request.name() != null && !request.name().isBlank()) {
+            env.setName(request.name().trim().replaceAll("\\s+", " "));
+        }
+        if (request.confirmChanges() != null) {
+            env.setConfirmChanges(request.confirmChanges());
+        }
+        if (request.requireComments() != null) {
+            env.setRequireComments(request.requireComments());
+        }
+        if (request.critical() != null) {
+            env.setCritical(request.critical());
+        }
+        if (request.tags() != null) {
+            env.getTags().clear();
+            env.getTags().addAll(toTags(request.tags(), env));
+        }
+        env.setUpdatedAt(Instant.now());
+    }
+
+    private Set<EnvironmentTag> toTags(List<String> tags, Environment env) {
+        return tags.stream()
+                .map(tag -> new EnvironmentTag(new EnvironmentTagId(null, tag), env))
+                .collect(Collectors.toSet());
+    }
+
     private Sort sanitize(Sort sort) {
         if(sort.isUnsorted()){
             return sort;
@@ -167,5 +202,9 @@ public class EnvironmentsService{
         }
 
         return Sort.by(safeOrders);
+    }
+
+    private boolean defaultIfNull(Boolean value, boolean defaultVal){
+        return value != null ? value : defaultVal;
     }
 }

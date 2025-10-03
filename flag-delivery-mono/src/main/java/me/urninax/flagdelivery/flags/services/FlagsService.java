@@ -4,16 +4,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import me.urninax.flagdelivery.flags.models.FeatureFlag;
-import me.urninax.flagdelivery.flags.models.FeatureFlagTag;
-import me.urninax.flagdelivery.flags.models.FlagKind;
-import me.urninax.flagdelivery.flags.models.FlagVariation;
+import me.urninax.flagdelivery.flags.models.*;
 import me.urninax.flagdelivery.flags.repositories.FlagsRepository;
 import me.urninax.flagdelivery.flags.shared.FeatureFlagDTO;
 import me.urninax.flagdelivery.flags.ui.requests.CreateFeatureFlagRequest;
 import me.urninax.flagdelivery.flags.ui.requests.VariationRequest;
+import me.urninax.flagdelivery.flags.utils.FlagConfigEnvironmentProjection;
 import me.urninax.flagdelivery.organisation.repositories.MembershipsRepository;
 import me.urninax.flagdelivery.projectsenvs.models.project.Project;
+import me.urninax.flagdelivery.projectsenvs.repositories.EnvironmentsRepository;
 import me.urninax.flagdelivery.projectsenvs.services.ProjectsService;
 import me.urninax.flagdelivery.shared.exceptions.ConflictException;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
@@ -33,11 +32,13 @@ import java.util.stream.Collectors;
 public class FlagsService{
     private final FlagsRepository flagsRepository;
     private final MembershipsRepository membershipsRepository;
+    private final EnvironmentsRepository environmentsRepository;
     private final CurrentUser currentUser;
     private final ProjectsService projectsService;
     private final FlagVariationsService flagVariationsService;
     private final EntityManager em;
     private final EntityMapper entityMapper;
+    private final FlagConfigService flagConfigService;
 
     @Transactional
     public FeatureFlagDTO createFlag(String projectKey, CreateFeatureFlagRequest request){
@@ -96,14 +97,16 @@ public class FlagsService{
                 .key(request.key())
                 .description(request.description())
                 .kind(variationsKinds.iterator().next())
-                .variations(new HashSet<>(variations))
-                .defaultOnVariation(variations.get(onIdx))
-                .defaultOffVariation(variations.get(offIdx))
+                .defaultOnVariationIdx(onIdx)
+                .defaultOffVariationIdx(offIdx)
                 .maintainer(maintainer)
                 .flagOn(flagOn)
                 .temporary(temporary)
                 .project(project)
                 .build();
+
+        flag.setVariations(new LinkedList<>());
+        variations.forEach(flag::addVariation);
 
         // map FeatureFlagTags if exist in request
         if(request.tags() != null && !request.tags().isEmpty()){
@@ -115,15 +118,23 @@ public class FlagsService{
         }
 
         //todo: create flag configs for each environment is the project
-        try{
-            return entityMapper.toDTO(flagsRepository.save(flag));
 
+        FeatureFlag created;
+        try{
+            created = flagsRepository.saveAndFlush(flag);
         }catch(DataIntegrityViolationException exc){
             if(PersistenceExceptionUtils.isUniqueException(exc)){
                 throw new ConflictException("Project key already in use");
             }
             throw exc;
         }
+
+        Set<FlagConfigEnvironmentProjection> envProjections = environmentsRepository.findAllByProject_Id(projectId);
+
+        Map<String, EnvironmentFlagConfig> flagConfigs = flagConfigService.createFlagConfigForEnvs(created, envProjections);
+        created.setEnvironmentFlagConfigMap(flagConfigs);
+
+        return entityMapper.toDTO(created);
     }
 
 

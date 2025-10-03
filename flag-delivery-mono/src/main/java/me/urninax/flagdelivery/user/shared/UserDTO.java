@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -24,10 +23,5 @@ public class UserDTO{
 
     private String email;
 
-    private MembershipDTO membership;
-
     private boolean enabled;
-
-    @JsonProperty("internal_roles")
-    private List<String> internalRoles;
 }

@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import me.urninax.flagdelivery.projectsenvs.services.validation.ValidKey;
+import me.urninax.flagdelivery.projectsenvs.ui.models.requests.environment.CreateEnvironmentRequest;
 
 import java.util.List;
 
@@ -28,7 +29,9 @@ public record CreateProjectRequest(
                 @Size(max = 64, message = "Tags should be at most 64 chars.")
                 @Pattern(regexp = "^[A-Za-z0-9._-]{1,64}$", message = "Tags should contain only letters, digits, '.', '-', '_'")
                 String> tags,
-//        List<CreateEnvironmentRequest> environments,
+
+        @Valid
+        List<CreateEnvironmentRequest> environments,
 
         @JsonProperty("naming_convention")
         NamingConventionRequest namingConvention

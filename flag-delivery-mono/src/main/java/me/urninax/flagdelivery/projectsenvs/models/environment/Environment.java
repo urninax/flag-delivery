@@ -10,6 +10,7 @@ import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -61,4 +62,18 @@ public class Environment{
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @Override
+    public final boolean equals(Object o){
+        if (this == o) return true;
+        if (!(o instanceof Environment that)) return false;
+        return Objects.equals(key, that.key) &&
+                Objects.equals(project != null ? project.getId() : null,
+                        that.project != null ? that.project.getId() : null);
+    }
+
+    @Override
+    public int hashCode(){
+        return Objects.hash(key, project != null ? project.getId() : null);
+    }
 }

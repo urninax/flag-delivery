@@ -8,9 +8,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.time.Instant;
+import java.util.*;
 
 @Entity
 @Table(name = "feature_flag")
@@ -38,16 +37,23 @@ public class FeatureFlag{
     @Column(name = "kind")
     private FlagKind kind;
 
-    @OneToMany(mappedBy = "flag")
-    private Set<FlagVariation> variations;
+    @OneToMany(mappedBy = "flag", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderColumn(name = "variation_order")
+    private List<FlagVariation> variations = new LinkedList<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "default_on_variation_id")
-    private FlagVariation defaultOnVariation;
+//    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+//    @JoinColumn(name = "default_on_variation_id")
+//    private FlagVariation defaultOnVariation;
+//
+//    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+//    @JoinColumn(name = "default_off_variation_id")
+//    private FlagVariation defaultOffVariation;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "default_off_variation_id")
-    private FlagVariation defaultOffVariation;
+    @Column(name = "default_on_variation_idx")
+    private int defaultOnVariationIdx;
+
+    @Column(name = "default_off_variation_idx")
+    private int defaultOffVariationIdx;
 
     @Column(name = "description")
     private String description;
@@ -60,7 +66,10 @@ public class FeatureFlag{
     private UserEntity maintainer;
 
     @OneToMany(mappedBy = "flag", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<EnvironmentFlagConfig> flagConfigs;
+    private List<EnvironmentFlagConfig> flagConfigs;
+
+    @Transient
+    private Map<String, EnvironmentFlagConfig> environmentFlagConfigMap;
 
     @OneToMany(mappedBy = "featureFlag", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<FeatureFlagTag> tags = new HashSet<>();
@@ -73,14 +82,19 @@ public class FeatureFlag{
 
     @CreationTimestamp
     @Column(name = "created_at")
-    private boolean createdAt;
+    private Instant createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at")
-    private boolean updatedAt;
+    private Instant updatedAt;
 
     @Version
     @Column(name = "version")
     private Long version;
+
+    public void addVariation(FlagVariation variation){
+        variations.add(variation);
+        variation.setFlag(this);
+    }
 
 }
