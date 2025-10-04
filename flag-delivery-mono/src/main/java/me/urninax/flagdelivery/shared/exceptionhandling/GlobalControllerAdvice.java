@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import jakarta.persistence.OptimisticLockException;
 import lombok.extern.slf4j.Slf4j;
+import me.urninax.flagdelivery.shared.exceptions.ApiException;
 import me.urninax.flagdelivery.shared.exceptions.ConflictException;
 import me.urninax.flagdelivery.shared.utils.ErrorMessage;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -29,6 +30,21 @@ public class GlobalControllerAdvice{
 
     public GlobalControllerAdvice(Clock clock){
         this.clock = clock;
+    }
+
+    @ExceptionHandler({ApiException.class})
+    public ResponseEntity<ErrorMessage> handleApiException(ApiException exc, WebRequest request){
+        HttpStatus status = exc.getStatus();
+
+        ErrorMessage errorMessage = ErrorMessage.builder()
+                .timestamp(Instant.now())
+                .status(exc.getStatus().value())
+                .errorCode(exc.getErrorCode())
+                .message(exc.getMessage())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(errorMessage, status);
     }
 
     @ExceptionHandler({HttpMessageNotReadableException.class})

@@ -1,17 +1,18 @@
 package me.urninax.flagdelivery.user.services;
 
-import me.urninax.flagdelivery.shared.exceptions.ConflictException;
+import me.urninax.flagdelivery.shared.security.enums.InternalRole;
+import me.urninax.flagdelivery.shared.security.principals.UserPrincipal;
+import me.urninax.flagdelivery.shared.utils.EntityMapper;
 import me.urninax.flagdelivery.shared.utils.PersistenceExceptionUtils;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import me.urninax.flagdelivery.user.repositories.UsersRepository;
-import me.urninax.flagdelivery.shared.security.principals.UserPrincipal;
-import me.urninax.flagdelivery.shared.security.enums.InternalRole;
 import me.urninax.flagdelivery.user.ui.models.requests.ChangePasswordRequest;
 import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
 import me.urninax.flagdelivery.user.ui.models.requests.UpdatePersonalInfoRequest;
-import me.urninax.flagdelivery.shared.utils.EntityMapper;
 import me.urninax.flagdelivery.user.utils.exceptions.EmailAlreadyExistsException;
-import me.urninax.flagdelivery.user.utils.exceptions.PasswordMismatchException;
+import me.urninax.flagdelivery.user.utils.exceptions.IncorrectCurrentPasswordException;
+import me.urninax.flagdelivery.user.utils.exceptions.PasswordConfirmationMismatchException;
+import me.urninax.flagdelivery.user.utils.exceptions.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -45,7 +46,7 @@ public class UsersServiceImpl implements UsersService{
             usersRepository.saveAndFlush(userEntity);
         }catch(DataIntegrityViolationException exc){
             if(PersistenceExceptionUtils.isUniqueException(exc)){
-                throw new ConflictException("Email already exists");
+                throw new EmailAlreadyExistsException();
             }
             throw exc;
         }
@@ -54,7 +55,7 @@ public class UsersServiceImpl implements UsersService{
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException{
         UserEntity userEntity = usersRepository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User was not found"));
+                .orElseThrow(UserNotFoundException::new);
 
         return new UserPrincipal(userEntity);
     }
@@ -62,7 +63,7 @@ public class UsersServiceImpl implements UsersService{
 
     public void updateUser(UpdatePersonalInfoRequest request, UUID userId){
         UserEntity userEntity = usersRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("User was not found"));
+                .orElseThrow(UserNotFoundException::new);
 
         if(request.getFirstName() != null && !request.getFirstName().isBlank()){
             userEntity.setFirstName(request.getFirstName());
@@ -74,7 +75,7 @@ public class UsersServiceImpl implements UsersService{
 
         if(request.getEmail() != null && !request.getEmail().isBlank()){
             if(usersRepository.existsByEmail(request.getEmail())){
-                throw new EmailAlreadyExistsException("Email is already in use");
+                throw new EmailAlreadyExistsException();
             }
             userEntity.setEmail(request.getEmail());
         }
@@ -84,14 +85,14 @@ public class UsersServiceImpl implements UsersService{
 
     public void changeUserPassword(ChangePasswordRequest request, UUID userId){
         UserEntity userEntity = usersRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("User was not found"));
+                .orElseThrow(UserNotFoundException::new);
 
         if(!request.getNewPassword().equals(request.getNewPasswordConfirmation())){
-            throw new PasswordMismatchException("New password and new password confirmation do not match");
+            throw new PasswordConfirmationMismatchException();
         }
 
         if(!passwordEncoder.matches(request.getCurrentPassword(), userEntity.getPassword())){
-            throw new PasswordMismatchException("Incorrect provided current password");
+            throw new IncorrectCurrentPasswordException();
         }
 
         userEntity.setPassword(passwordEncoder.encode(request.getNewPassword()));

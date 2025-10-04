@@ -1,7 +1,10 @@
 package me.urninax.flagdelivery.user.utils.exceptions;
 
-public class EmailAlreadyExistsException extends RuntimeException{
-    public EmailAlreadyExistsException(String message){
-        super(message);
+import me.urninax.flagdelivery.shared.exceptions.ApiException;
+import org.springframework.http.HttpStatus;
+
+public class EmailAlreadyExistsException extends ApiException{
+    public EmailAlreadyExistsException(){
+        super("Email already exists.", HttpStatus.CONFLICT, "EMAIL_ALREADY_EXISTS");
     }
 }

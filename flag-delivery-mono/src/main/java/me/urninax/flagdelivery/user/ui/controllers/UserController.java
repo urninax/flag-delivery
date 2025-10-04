@@ -10,7 +10,10 @@ import me.urninax.flagdelivery.user.ui.models.requests.ChangePasswordRequest;
 import me.urninax.flagdelivery.user.ui.models.requests.UpdatePersonalInfoRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
@@ -36,10 +39,5 @@ public class UserController{
         usersService.changeUserPassword(changePasswordRequest, userId);
 
         return ResponseEntity.accepted().build();
-    }
-
-    @GetMapping("/test")
-    public ResponseEntity<?> testJwtEndpoint(){
-        return ResponseEntity.ok().build();
     }
 }
