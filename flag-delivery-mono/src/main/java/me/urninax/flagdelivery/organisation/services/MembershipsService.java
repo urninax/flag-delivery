@@ -1,5 +1,6 @@
 package me.urninax.flagdelivery.organisation.services;
 
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.organisation.events.invitation.MemberRoleChangedEvent;
@@ -7,20 +8,19 @@ import me.urninax.flagdelivery.organisation.models.Organisation;
 import me.urninax.flagdelivery.organisation.models.membership.Membership;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.organisation.repositories.MembershipsRepository;
-import me.urninax.flagdelivery.organisation.repositories.OrganisationsRepository;
 import me.urninax.flagdelivery.organisation.shared.MemberWithActivityDTO;
 import me.urninax.flagdelivery.organisation.ui.models.requests.ChangeMembersRoleRequest;
 import me.urninax.flagdelivery.organisation.ui.models.requests.MembersFilter;
+import me.urninax.flagdelivery.organisation.utils.exceptions.ForbiddenException;
+import me.urninax.flagdelivery.organisation.utils.exceptions.membership.AdminRoleChangeForbiddenException;
+import me.urninax.flagdelivery.organisation.utils.exceptions.membership.OwnerRoleModificationException;
+import me.urninax.flagdelivery.organisation.utils.exceptions.membership.SelfRoleModificationException;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.user.models.UserEntity;
-import me.urninax.flagdelivery.user.repositories.UsersRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -31,15 +31,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MembershipsService{
     private final MembershipsRepository membershipsRepository;
-    private final OrganisationsRepository organisationsRepository;
-    private final UsersRepository usersRepository;
     private final CurrentUser currentUser;
+    private final EntityManager em;
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
     public void addMembership(UUID organisationId, UUID userId, OrgRole role){
-        Organisation orgRef = organisationsRepository.getReferenceById(organisationId);
-        UserEntity userRef = usersRepository.getReferenceById(userId);
+        UserEntity userRef = em.getReference(UserEntity.class, userId);
+        Organisation orgRef = em.getReference(Organisation.class, organisationId);
 
         Membership membership = Membership.builder()
                 .organisation(orgRef)
@@ -50,14 +49,9 @@ public class MembershipsService{
         membershipsRepository.save(membership);
     }
 
-    public Membership findById(UUID userId){
-        return membershipsRepository.findById(userId)
-                .orElseThrow(() -> new AccessDeniedException("User has no organisation"));
-    }
-
     public Membership findByIdAndOrg(UUID userId, UUID orgId){
         return membershipsRepository.findByUserIdAndOrganisation_Id(userId, orgId)
-                .orElseThrow(() -> new AccessDeniedException("Member was not found"));
+                .orElseThrow(ForbiddenException::new);
     }
 
     @Transactional
@@ -66,7 +60,7 @@ public class MembershipsService{
         Membership targetMembership = findByIdAndOrg(memberId, requesterOrgId);
 
         if(currentUser.getUserId().equals(memberId)){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You cannot modify your own role");
+            throw new SelfRoleModificationException();
         }
 
         if(targetMembership.getRole() == request.role()){
@@ -74,11 +68,11 @@ public class MembershipsService{
         }
 
         if(targetMembership.getRole() == OrgRole.ADMIN && currentUser.getOrgRole() != OrgRole.OWNER){
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only organisation owner can change ADMIN's role");
+            throw new AdminRoleChangeForbiddenException();
         }
 
         if(targetMembership.getRole() == OrgRole.OWNER){
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Owner role cannot be modified");
+            throw new OwnerRoleModificationException();
         }
 
         targetMembership.setRole(request.role());

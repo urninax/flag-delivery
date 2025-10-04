@@ -1,7 +1,10 @@
 package me.urninax.flagdelivery.organisation.services;
 
+import jakarta.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.organisation.events.invitation.InvitationAcceptedEvent;
 import me.urninax.flagdelivery.organisation.events.invitation.InvitationCreatedEvent;
+import me.urninax.flagdelivery.organisation.models.Organisation;
 import me.urninax.flagdelivery.organisation.models.invitation.Invitation;
 import me.urninax.flagdelivery.organisation.models.invitation.InvitationStatus;
 import me.urninax.flagdelivery.organisation.models.membership.Membership;
@@ -14,75 +17,65 @@ import me.urninax.flagdelivery.organisation.shared.InvitationPublicDTO;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateInvitationRequest;
 import me.urninax.flagdelivery.organisation.ui.models.requests.InvitationFilter;
 import me.urninax.flagdelivery.organisation.utils.InvitationSpecifications;
+import me.urninax.flagdelivery.organisation.utils.InvitationTokenUtils;
+import me.urninax.flagdelivery.organisation.utils.exceptions.ForbiddenException;
+import me.urninax.flagdelivery.organisation.utils.exceptions.invitation.*;
+import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.shared.utils.EntityMapper;
 import me.urninax.flagdelivery.user.models.UserEntity;
-import me.urninax.flagdelivery.user.repositories.UsersRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.util.Arrays;
-import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class InvitationsService{
     private final InvitationsRepository invitationsRepository;
     private final EntityMapper entityMapper;
-    private final UsersRepository usersRepository;
     private final MembershipsRepository membershipsRepository;
     private final MembershipsService membershipsService;
     private final InvitationExpiryService invitationExpiryService;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final CurrentUser currentUser;
+    private final EntityManager em;
 
     @Value("${invitation-token.expiration-time-seconds}")
     private long invitationTokenExpirationTime;
 
-    @Autowired
-    public InvitationsService(InvitationsRepository invitationsRepository, EntityMapper entityMapper, UsersRepository usersRepository, MembershipsRepository membershipsRepository, MembershipsService membershipsService, InvitationExpiryService invitationExpiryService, ApplicationEventPublisher applicationEventPublisher){
-        this.invitationsRepository = invitationsRepository;
-        this.entityMapper = entityMapper;
-        this.usersRepository = usersRepository;
-        this.membershipsRepository = membershipsRepository;
-        this.membershipsService = membershipsService;
-        this.invitationExpiryService = invitationExpiryService;
-        this.applicationEventPublisher = applicationEventPublisher;
-    }
-
     @Transactional
-    public void createInvitation(CreateInvitationRequest request, UUID userId){
-        Membership membership = membershipsRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "User has no organisation"));
+    public void createInvitation(CreateInvitationRequest request){
+        UUID userId = currentUser.getUserId();
+        UUID orgId = currentUser.getOrganisationId();
+        OrgRole userRole = currentUser.getOrgRole();
 
-        String token = generateToken();
+        UserEntity userRef = em.getReference(UserEntity.class, userId);
+        Organisation orgRef = em.getReference(Organisation.class, orgId);
 
-        if(!request.getRole().lowerThan(OrgRole.ADMIN)){
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Inviter's role should be higher than invitation role");
+        String token = InvitationTokenUtils.generateToken();
+
+        if(!request.getRole().lowerThan(userRole)){
+            throw new ForbiddenException();
         }
 
         Invitation invitation = Invitation.builder()
-                .organisation(membership.getOrganisation())
+                .organisation(orgRef)
                 .email(request.getEmail())
                 .role(request.getRole())
-                .tokenHash(hashToken(token))
+                .tokenHash(InvitationTokenUtils.hashToken(token))
                 .rawToken(token)
                 .status(InvitationStatus.PENDING)
-                .invitedBy(membership.getUser())
+                .invitedBy(userRef)
                 .message(request.getMessage())
                 .expiresAt(Instant.now().plusSeconds(invitationTokenExpirationTime))
                 .build();
@@ -100,11 +93,12 @@ public class InvitationsService{
     @Transactional(readOnly = true)
     public InvitationPublicDTO getInvitationDTO(UUID uuid, String token){
         Invitation invitation = invitationsRepository.findById(uuid)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invitation not found"));
+                .orElseThrow(InvitationNotFoundException::new);
 
-        byte[] hashedToken = hashToken(token);
-        if(!Arrays.equals(invitation.getTokenHash(), hashedToken)){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        byte[] hashedToken = InvitationTokenUtils.hashToken(token);
+
+        if(!MessageDigest.isEqual(invitation.getTokenHash(), hashedToken)){
+            throw new ForbiddenException();
         }
 
         return entityMapper.toPublicDTO(invitation);
@@ -127,29 +121,31 @@ public class InvitationsService{
     }
 
     @Transactional
-    public void acceptInvitation(UUID invitationId, String token, UUID userId, boolean isTransferAllowed){
-        Invitation inv = invitationsRepository.findById(invitationId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invitation not found"));
+    public void acceptInvitation(UUID invitationId, String token, boolean isTransferAllowed){
+        UUID userId = currentUser.getUserId();
 
-        byte[] hashedToken = hashToken(token);
+        Invitation inv = invitationsRepository.findById(invitationId)
+                .orElseThrow(InvitationNotFoundException::new);
+
+        byte[] hashedToken = InvitationTokenUtils.hashToken(token);
 
         if(!MessageDigest.isEqual(inv.getTokenHash(), hashedToken)){ // different tokens hashes -> FORBIDDEN
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            throw new ForbiddenException();
         }
 
         if(!inv.getStatus().isActive()){ // invitation status is not PENDING -> GONE
-            throw new ResponseStatusException(HttpStatus.GONE, "Invitation is not active");
+            throw new InvitationNotActiveException();
         }
 
         if(inv.getExpiresAt().isBefore(Instant.now())){ // invitation is expired -> GONE
             invitationExpiryService.markExpiredInNewTx(invitationId);
-            throw new ResponseStatusException(HttpStatus.GONE, "Invitation is expired");
+            throw new InvitationExpiredException();
         }
 
-        UserEntity user = usersRepository.getReferenceById(userId);
+        UserEntity user = em.getReference(UserEntity.class, userId);
 
         if(emailsNotEquals(user.getEmail(), inv.getEmail())){ // different emails of authenticated user and in invitation -> FORBIDDEN
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            throw new ForbiddenException();
         }
 
         Optional<Membership> membershipOptional = membershipsRepository.findById(userId);
@@ -163,10 +159,10 @@ public class InvitationsService{
         Membership membership = membershipOptional.get();
         if(!membership.getOrganisation().getId().equals(inv.getOrganisation().getId())){ // invitation for another organisation
             if(membership.getRole() == OrgRole.OWNER){
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "User is owner of the current organisation. Transfer is impossible.");
+                throw new OwnerTransferNotAllowedException();
             }
             if(!isTransferAllowed){
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "User has an organisation. Transfer was not allowed.");
+                throw new OrganisationTransferNotAllowedException();
             }
 
             membership.setRole(inv.getRole());
@@ -186,19 +182,21 @@ public class InvitationsService{
     }
 
     @Transactional
-    public void declineInvitation(UUID invitationId, String token, UUID userId){
-        Invitation inv = invitationsRepository.findById(invitationId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invitation not found."));
+    public void declineInvitation(UUID invitationId, String token){
+        UUID userId = currentUser.getUserId();
 
-        byte[] hashedToken = hashToken(token);
+        Invitation inv = invitationsRepository.findById(invitationId)
+                .orElseThrow(InvitationNotFoundException::new);
+
+        byte[] hashedToken = InvitationTokenUtils.hashToken(token);
 
         if(!MessageDigest.isEqual(inv.getTokenHash(), hashedToken)){
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Tokens are not the same");
+            throw new ForbiddenException();
         }
 
-        UserEntity user = usersRepository.getReferenceById(userId);
+        UserEntity user = em.getReference(UserEntity.class, userId);
         if(emailsNotEquals(inv.getEmail(), user.getEmail())){
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User's email differs from the one in the invitation");
+            throw new ForbiddenException();
         }
 
         if(inv.getStatus() == InvitationStatus.DECLINED){
@@ -207,11 +205,11 @@ public class InvitationsService{
 
         if(inv.getExpiresAt().isBefore(Instant.now())){
             invitationExpiryService.markExpiredInNewTx(invitationId);
-            throw new ResponseStatusException(HttpStatus.GONE, "Invitation is expired");
+            throw new InvitationExpiredException();
         }
 
         if(!inv.getStatus().isActive()){
-            throw new ResponseStatusException(HttpStatus.GONE, "Invitation is not active");
+            throw new InvitationNotActiveException();
         }
 
         inv.setDeclinedAt(Instant.now());
@@ -219,53 +217,25 @@ public class InvitationsService{
     }
 
     @Transactional
-    public void revokeInvitation(UUID invitationId, UUID userId){
-        Membership membership = membershipsRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "User has no organisation"));
+    public void revokeInvitation(UUID invitationId){
+        UUID currentOrgId = currentUser.getOrganisationId();
 
-        Invitation invitation = invitationsRepository.findById(invitationId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invitation not found"));
-
-        UUID invitationOrgId = invitation.getOrganisation().getId();
-        UUID membershipOrgId = membership.getOrganisation().getId();
-
-        if(!invitationOrgId.equals(membershipOrgId)){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Invitation not found");
-        }
+        Invitation invitation = invitationsRepository.findByIdAndOrganisation_Id(invitationId, currentOrgId)
+                .orElseThrow(InvitationNotFoundException::new);
 
         if(invitation.getExpiresAt().isBefore(Instant.now())){
             invitationExpiryService.markExpiredInNewTx(invitationId);
-            throw new ResponseStatusException(HttpStatus.GONE, "Invitation is not active.");
+            throw new InvitationExpiredException();
         }
 
         if(!invitation.getStatus().isActive()){
-            throw new ResponseStatusException(HttpStatus.GONE, "Invitation is not active.");
+            throw new InvitationNotActiveException();
         }
 
         invitation.setStatus(InvitationStatus.REVOKED);
         invitation.setRevokedAt(Instant.now());
     }
 
-    private String generateToken(){
-        byte[] bytes = new byte[32];
-        try{
-            SecureRandom sr = SecureRandom.getInstanceStrong();
-            sr.nextBytes(bytes);
-        }catch(NoSuchAlgorithmException e){
-            throw new RuntimeException(e);
-        }
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-    }
-
-    byte[] hashToken(String rawToken){
-        MessageDigest md;
-        try{
-            md = MessageDigest.getInstance("SHA-256");
-        }catch(NoSuchAlgorithmException e){
-            throw new RuntimeException(e);
-        }
-        return md.digest(rawToken.getBytes(StandardCharsets.US_ASCII));
-    }
 
     private boolean emailsNotEquals(String email1, String email2){
         if(email1 == null || email2 == null) return true;

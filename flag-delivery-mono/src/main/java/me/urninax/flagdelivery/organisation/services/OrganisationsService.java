@@ -1,17 +1,16 @@
 package me.urninax.flagdelivery.organisation.services;
 
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.organisation.models.Organisation;
-import me.urninax.flagdelivery.organisation.models.membership.Membership;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.organisation.repositories.MembershipsRepository;
 import me.urninax.flagdelivery.organisation.repositories.OrganisationsRepository;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateOrganisationRequest;
-import me.urninax.flagdelivery.organisation.utils.exceptions.OrganisationAlreadyExistsException;
+import me.urninax.flagdelivery.organisation.utils.exceptions.organisation.AlreadyInOrganisationException;
+import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.user.models.UserEntity;
-import me.urninax.flagdelivery.user.repositories.UsersRepository;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -23,15 +22,18 @@ public class OrganisationsService{
     private final OrganisationsRepository organisationsRepository;
     private final MembershipsService membershipsService;
     private final MembershipsRepository membershipsRepository;
-    private final UsersRepository usersRepository;
+    private final EntityManager em;
+    private final CurrentUser currentUser;
 
     @Transactional
-    public UUID createOrganisation(CreateOrganisationRequest request, UUID userId){
+    public UUID createOrganisation(CreateOrganisationRequest request){
+        UUID userId = currentUser.getUserId();
+
         if(membershipsRepository.existsById(userId)){
-            throw new OrganisationAlreadyExistsException();
+            throw new AlreadyInOrganisationException();
         }
 
-        UserEntity userRef = usersRepository.getReferenceById(userId);
+        UserEntity userRef = em.getReference(UserEntity.class, userId);
 
         Organisation organisation = Organisation.builder()
                 .name(request.getName())
@@ -51,14 +53,8 @@ public class OrganisationsService{
     }
 
     @Transactional
-    public void deleteOrganisation(UUID userId){
-        Membership membership = membershipsRepository.findById(userId)
-                .orElseThrow(() -> new AccessDeniedException("No role in any organisation"));
-
-        if(membership.getRole() != OrgRole.OWNER){
-            throw new AccessDeniedException("User is not an owner of organisation");
-        }
-
-        organisationsRepository.deleteById(membership.getOrganisation().getId());
+    public void deleteOrganisation(){
+        UUID orgId = currentUser.getOrganisationId();
+        organisationsRepository.deleteById(orgId);
     }
 }

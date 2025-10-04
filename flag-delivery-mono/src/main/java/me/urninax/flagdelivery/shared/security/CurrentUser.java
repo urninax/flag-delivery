@@ -3,6 +3,7 @@ package me.urninax.flagdelivery.shared.security;
 import me.urninax.flagdelivery.organisation.models.membership.Membership;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.organisation.repositories.MembershipsRepository;
+import me.urninax.flagdelivery.organisation.utils.exceptions.organisation.NotInOrganisationException;
 import me.urninax.flagdelivery.shared.security.enums.AuthMethod;
 import me.urninax.flagdelivery.shared.security.principals.AccessTokenPrincipal;
 import me.urninax.flagdelivery.shared.security.principals.UserPrincipal;
@@ -42,7 +43,7 @@ public class CurrentUser{
 
         if(principal instanceof UserPrincipal userPrincipal){
             Membership membership = membershipsRepository.findById(userPrincipal.getId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User has no organisation"));
+                    .orElseThrow(NotInOrganisationException::new);
 
             return membership.getOrganisation().getId();
         }
@@ -59,7 +60,7 @@ public class CurrentUser{
 
         if(principal instanceof UserPrincipal userPrincipal){
             Membership membership = membershipsRepository.findById(userPrincipal.getId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User has no organisation")); // cache in the future
+                    .orElseThrow(NotInOrganisationException::new); // cache in the future
 
             return membership.getRole();
         }

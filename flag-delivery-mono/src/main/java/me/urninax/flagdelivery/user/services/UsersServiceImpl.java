@@ -1,5 +1,6 @@
 package me.urninax.flagdelivery.user.services;
 
+import jakarta.transaction.Transactional;
 import me.urninax.flagdelivery.shared.security.enums.InternalRole;
 import me.urninax.flagdelivery.shared.security.principals.UserPrincipal;
 import me.urninax.flagdelivery.shared.utils.EntityMapper;
@@ -37,6 +38,7 @@ public class UsersServiceImpl implements UsersService{
     }
 
     @Override
+    @Transactional
     public void createUser(SignupRequest signupRequest){
         UserEntity userEntity = entityMapper.toEntity(signupRequest);
         userEntity.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
@@ -61,6 +63,7 @@ public class UsersServiceImpl implements UsersService{
     }
 
 
+    @Transactional
     public void updateUser(UpdatePersonalInfoRequest request, UUID userId){
         UserEntity userEntity = usersRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
@@ -83,6 +86,7 @@ public class UsersServiceImpl implements UsersService{
         usersRepository.save(userEntity);
     }
 
+    @Transactional
     public void changeUserPassword(ChangePasswordRequest request, UUID userId){
         UserEntity userEntity = usersRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);

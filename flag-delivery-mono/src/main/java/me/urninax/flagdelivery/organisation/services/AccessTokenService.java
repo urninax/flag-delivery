@@ -1,22 +1,25 @@
 package me.urninax.flagdelivery.organisation.services;
 
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.organisation.models.AccessToken;
-import me.urninax.flagdelivery.organisation.models.membership.Membership;
+import me.urninax.flagdelivery.organisation.models.Organisation;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.organisation.repositories.AccessTokenRepository;
 import me.urninax.flagdelivery.organisation.services.caching.MemberTokensCacheService;
 import me.urninax.flagdelivery.organisation.shared.AccessTokenDTO;
 import me.urninax.flagdelivery.organisation.shared.AccessTokenPrincipalDTO;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateAccessTokenRequest;
+import me.urninax.flagdelivery.organisation.utils.exceptions.ForbiddenException;
+import me.urninax.flagdelivery.organisation.utils.exceptions.accesstoken.InvalidAccessTokenException;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.shared.utils.AccessTokenUtils;
 import me.urninax.flagdelivery.shared.utils.EntityMapper;
+import me.urninax.flagdelivery.user.models.UserEntity;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -26,19 +29,18 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AccessTokenService{
     private final AccessTokenRepository accessTokenRepository;
-    private final MembershipsService membershipsService;
     private final MemberTokensCacheService memberTokensCacheService;
     private final EntityMapper entityMapper;
     private final CurrentUser currentUser;
+    private final EntityManager em;
 
+    @Transactional
     public String issueToken(CreateAccessTokenRequest request){
         UUID userId = currentUser.getUserId();
-        Membership membership = membershipsService.findById(userId);
+        UUID orgId = currentUser.getOrganisationId();
 
-        OrgRole role = membership.getRole();
-        if(!role.atLeast(request.getRole())){
-            throw new AccessDeniedException("Insufficient user role for token with requested role");
-        }
+        UserEntity userRef = em.getReference(UserEntity.class, userId);
+        Organisation orgRef = em.getReference(Organisation.class, orgId);
 
         String token = String.format("api-%s", UUID.randomUUID());
         String hashedToken = AccessTokenUtils.hashSha256(token);
@@ -50,8 +52,8 @@ public class AccessTokenService{
                 .name(request.getName())
                 .role(request.getRole())
                 .isService(request.isService())
-                .owner(membership.getUser())
-                .organisation(membership.getOrganisation())
+                .owner(userRef)
+                .organisation(orgRef)
                 .build();
 
         accessTokenRepository.save(accessTokenEntity);
@@ -83,7 +85,7 @@ public class AccessTokenService{
     @Cacheable(value = "accessTokens", key = "#hashedToken")
     public AccessTokenPrincipalDTO validateAndResolveByHash(String hashedToken){
         AccessTokenPrincipalDTO accessTokenPrincipalDTO = accessTokenRepository.findByHashedToken(hashedToken)
-                .orElseThrow(() -> new BadCredentialsException("Invalid access token"));
+                .orElseThrow(InvalidAccessTokenException::new);
 
         memberTokensCacheService.addToken(accessTokenPrincipalDTO.ownerId(), hashedToken);
 
@@ -98,7 +100,7 @@ public class AccessTokenService{
 
     private void assertAdmin(OrgRole role){
         if(role.lowerThan(OrgRole.ADMIN)){
-            throw new AccessDeniedException("Role for this request is not sufficient");
+            throw new ForbiddenException();
         }
     }
 }

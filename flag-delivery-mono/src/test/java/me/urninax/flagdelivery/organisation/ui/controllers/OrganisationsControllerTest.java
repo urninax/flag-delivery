@@ -3,7 +3,7 @@ package me.urninax.flagdelivery.organisation.ui.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.urninax.flagdelivery.organisation.services.OrganisationsService;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateOrganisationRequest;
-import me.urninax.flagdelivery.organisation.utils.exceptions.OrganisationAlreadyExistsException;
+import me.urninax.flagdelivery.organisation.utils.exceptions.organisation.AlreadyInOrganisationException;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -56,7 +56,7 @@ public class OrganisationsControllerTest {
     @DisplayName("POST /api/v1/organisation with valid request -> 201 and Location header")
     void createOrganisation_withValidRequest_shouldReturn201() throws Exception{
         UUID orgId = UUID.randomUUID();
-        when(organisationsService.createOrganisation(any(), eq(userId))).thenReturn(orgId);
+        when(organisationsService.createOrganisation(any())).thenReturn(orgId);
 
         mockMvc.perform(post("/api/v1/organisation")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -66,7 +66,7 @@ public class OrganisationsControllerTest {
                 .andExpect(header().string("Location", containsString("/api/v1/organisation/" + orgId)));
 
         verify(currentUser, times(1)).getUserId();
-        verify(organisationsService, times(1)).createOrganisation(any(), eq(userId));
+        verify(organisationsService, times(1)).createOrganisation(any());
     }
 
     @Test
@@ -95,7 +95,7 @@ public class OrganisationsControllerTest {
     @Test
     @DisplayName("POST /api/v1/organisation when already in organisation -> 409")
     void createOrganisation_alreadyExists_shouldReturn409() throws Exception{
-        doThrow(new OrganisationAlreadyExistsException()).when(organisationsService).createOrganisation(any(), eq(userId));
+        doThrow(new AlreadyInOrganisationException()).when(organisationsService).createOrganisation(any());
 
         mockMvc.perform(post("/api/v1/organisation")
                         .contentType(MediaType.APPLICATION_JSON)
