@@ -11,7 +11,7 @@ import me.urninax.flagdelivery.organisation.repositories.MembershipsRepository;
 import me.urninax.flagdelivery.organisation.shared.MemberWithActivityDTO;
 import me.urninax.flagdelivery.organisation.ui.models.requests.ChangeMembersRoleRequest;
 import me.urninax.flagdelivery.organisation.ui.models.requests.MembersFilter;
-import me.urninax.flagdelivery.organisation.utils.exceptions.ForbiddenException;
+import me.urninax.flagdelivery.shared.exceptions.ForbiddenException;
 import me.urninax.flagdelivery.organisation.utils.exceptions.membership.AdminRoleChangeForbiddenException;
 import me.urninax.flagdelivery.organisation.utils.exceptions.membership.OwnerRoleModificationException;
 import me.urninax.flagdelivery.organisation.utils.exceptions.membership.SelfRoleModificationException;

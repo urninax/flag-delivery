@@ -7,8 +7,8 @@ import me.urninax.flagdelivery.flags.models.EnvironmentFlagConfig;
 import me.urninax.flagdelivery.flags.models.FeatureFlag;
 import me.urninax.flagdelivery.flags.repositories.FlagConfigsRepository;
 import me.urninax.flagdelivery.flags.utils.FlagConfigEnvironmentProjection;
+import me.urninax.flagdelivery.flags.utils.exceptions.FlagConfigAlreadyExistsException;
 import me.urninax.flagdelivery.projectsenvs.models.environment.Environment;
-import me.urninax.flagdelivery.shared.exceptions.ConflictException;
 import me.urninax.flagdelivery.shared.utils.PersistenceExceptionUtils;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -58,7 +58,7 @@ public class FlagConfigService{
             flagConfigsRepository.saveAllAndFlush(configs);
         }catch(DataIntegrityViolationException exc){
             if(PersistenceExceptionUtils.isUniqueException(exc)){
-                throw new ConflictException("Flag config(s) already exists.");
+                throw new FlagConfigAlreadyExistsException();
             }
             throw exc;
         }

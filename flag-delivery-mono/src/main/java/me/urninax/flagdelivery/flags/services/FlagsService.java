@@ -10,19 +10,20 @@ import me.urninax.flagdelivery.flags.shared.FeatureFlagDTO;
 import me.urninax.flagdelivery.flags.ui.requests.CreateFeatureFlagRequest;
 import me.urninax.flagdelivery.flags.ui.requests.VariationRequest;
 import me.urninax.flagdelivery.flags.utils.FlagConfigEnvironmentProjection;
+import me.urninax.flagdelivery.flags.utils.exceptions.FlagAlreadyExistsException;
+import me.urninax.flagdelivery.flags.utils.exceptions.VariationIndexOutOfBoundsException;
+import me.urninax.flagdelivery.flags.utils.exceptions.VariationNotUniqueException;
+import me.urninax.flagdelivery.flags.utils.exceptions.VariationTypesMismatchException;
 import me.urninax.flagdelivery.organisation.repositories.MembershipsRepository;
 import me.urninax.flagdelivery.projectsenvs.models.project.Project;
 import me.urninax.flagdelivery.projectsenvs.repositories.EnvironmentsRepository;
 import me.urninax.flagdelivery.projectsenvs.services.ProjectsService;
-import me.urninax.flagdelivery.shared.exceptions.ConflictException;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.shared.utils.EntityMapper;
 import me.urninax.flagdelivery.shared.utils.PersistenceExceptionUtils;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -57,7 +58,7 @@ public class FlagsService{
         int offIdx = Objects.requireNonNullElse(request.defaults().offVariation(), variations.size() - 1);
 
         if(onIdx >= variations.size() || offIdx >= variations.size()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Default variation index is out of bounds.");
+            throw new VariationIndexOutOfBoundsException();
         }
 
         // map each variation to FlagKind and collect to set to find out if all variations have the same kind
@@ -66,12 +67,12 @@ public class FlagsService{
                 .collect(Collectors.toSet());
 
         if(variationsKinds.size() > 1){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Variations types are different.");
+            throw new VariationTypesMismatchException();
         }
 
         // compare set of variations with list. size should not change if unique
         if(new HashSet<>(variations).size() < variations.size()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Variations are not unique.");
+            throw new VariationNotUniqueException();
         }
 
         // find out maintainer. maintainer from request if exists in the organisation, take requester id otherwise
@@ -117,14 +118,13 @@ public class FlagsService{
             flag.setTags(tags);
         }
 
-        //todo: create flag configs for each environment is the project
 
         FeatureFlag created;
         try{
             created = flagsRepository.saveAndFlush(flag);
         }catch(DataIntegrityViolationException exc){
             if(PersistenceExceptionUtils.isUniqueException(exc)){
-                throw new ConflictException("Project key already in use");
+                throw new FlagAlreadyExistsException();
             }
             throw exc;
         }

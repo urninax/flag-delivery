@@ -15,7 +15,11 @@ import me.urninax.flagdelivery.projectsenvs.ui.models.requests.project.CreatePro
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.project.ListAllProjectsRequest;
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.project.NamingConventionRequest;
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.project.PatchProjectRequest;
-import me.urninax.flagdelivery.shared.exceptions.ConflictException;
+import me.urninax.flagdelivery.projectsenvs.utils.exceptions.project.InvalidPrefixException;
+import me.urninax.flagdelivery.projectsenvs.utils.exceptions.project.ProjectAlreadyExistsException;
+import me.urninax.flagdelivery.projectsenvs.utils.exceptions.project.ProjectNotFoundException;
+import me.urninax.flagdelivery.projectsenvs.utils.exceptions.project.SortNotPossibleException;
+import me.urninax.flagdelivery.projectsenvs.utils.exceptions.environment.EnvironmentAlreadyExistsException;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.shared.utils.EntityMapper;
 import me.urninax.flagdelivery.shared.utils.PersistenceExceptionUtils;
@@ -25,9 +29,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -96,7 +98,7 @@ public class ProjectsService{
         Set<Environment> envsSet = new HashSet<>(envsList);
 
         if(envsSet.size() < envsList.size()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Keys of some environments are the same.");
+            throw new EnvironmentAlreadyExistsException();
         }
 
         project.setEnvironments(envsSet);
@@ -106,7 +108,7 @@ public class ProjectsService{
             return entityMapper.toDTO(createdProject);
         }catch(DataIntegrityViolationException exc){
             if(PersistenceExceptionUtils.isUniqueException(exc)){
-                throw new ConflictException("Project key already in use");
+                throw new ProjectAlreadyExistsException();
             }
             throw exc;
         }
@@ -114,7 +116,7 @@ public class ProjectsService{
 
     public ProjectDTO getProject(String projectKey, String expand){
         Project project = projectsRepository.findByOrganisationIdAndKey(currentUser.getOrganisationId(), projectKey)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project was not found"));
+                .orElseThrow(ProjectNotFoundException::new);
 
         return "environments".equals(expand) ? entityMapper.toExpandedDTO(project) : entityMapper.toDTO(project);
     }
@@ -150,7 +152,7 @@ public class ProjectsService{
         }
 
         Project project = projectsRepository.findByOrganisationIdAndKey(currentUser.getOrganisationId(), projectKey)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project was not found"));
+                .orElseThrow(ProjectNotFoundException::new);
 
         if(request.name() != null && !request.name().isBlank()){
             project.setName(request.name().trim().replaceAll("\\s+", " "));
@@ -178,7 +180,7 @@ public class ProjectsService{
         }
 
         Project project = projectsRepository.findByOrganisationIdAndKey(currentUser.getOrganisationId(), projectKey)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project was not found"));
+                .orElseThrow(ProjectNotFoundException::new);
 
         CasingConvention convention = request.casingConvention() != null ? request.casingConvention() : project.getCasingConvention();
 
@@ -197,8 +199,7 @@ public class ProjectsService{
 
     private void validatePrefixAgainstConvention(CasingConvention convention, String prefix){
         if(!convention.matches(prefix)){
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
+            throw new InvalidPrefixException(
                     String.format("Use %s: %s", convention, convention.description())
             );
         }
@@ -206,7 +207,7 @@ public class ProjectsService{
 
     public UUID findIdByKeyAndOrg(String projectKey, UUID orgId){
         return projectsRepository.findIdByKeyAndOrgId(projectKey, orgId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project was not found"));
+                .orElseThrow(ProjectNotFoundException::new);
     }
 
     private Pageable sanitize(Pageable pageable) {
@@ -221,7 +222,7 @@ public class ProjectsService{
                 .toList();
 
         if(safeOrders.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot be sorted");
+            throw new SortNotPossibleException();
         }
 
         Sort safeSort = Sort.by(safeOrders);

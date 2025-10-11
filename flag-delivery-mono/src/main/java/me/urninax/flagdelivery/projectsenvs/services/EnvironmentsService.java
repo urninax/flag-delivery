@@ -15,7 +15,10 @@ import me.urninax.flagdelivery.projectsenvs.shared.environment.EnvironmentSpecif
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.environment.CreateEnvironmentRequest;
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.environment.ListAllEnvironmentsRequest;
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.environment.PatchEnvironmentRequest;
-import me.urninax.flagdelivery.shared.exceptions.ConflictException;
+import me.urninax.flagdelivery.projectsenvs.utils.exceptions.environment.EnvironmentAlreadyExistsException;
+import me.urninax.flagdelivery.projectsenvs.utils.exceptions.project.ProjectNotFoundException;
+import me.urninax.flagdelivery.projectsenvs.utils.exceptions.environment.EnvironmentNotFoundException;
+import me.urninax.flagdelivery.projectsenvs.utils.exceptions.environment.MissingEnvironmentException;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.shared.utils.EntityMapper;
 import me.urninax.flagdelivery.shared.utils.PersistenceExceptionUtils;
@@ -49,7 +52,7 @@ public class EnvironmentsService{
     public EnvironmentDTO createEnvironment(String projectKey, CreateEnvironmentRequest request){
         UUID orgId = currentUser.getOrganisationId();
         UUID projectId = projectsRepository.findIdByKeyAndOrgId(projectKey, orgId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project was not found"));
+                .orElseThrow(ProjectNotFoundException::new);
 
         Project project = em.getReference(Project.class, projectId);
 
@@ -61,7 +64,7 @@ public class EnvironmentsService{
             return entityMapper.toDTO(createdEnv);
         }catch(DataIntegrityViolationException exc){
             if(PersistenceExceptionUtils.isUniqueException(exc)){
-                throw new ConflictException("Environment key already in use");
+                throw new EnvironmentAlreadyExistsException();
             }
             throw exc;
         }
@@ -72,7 +75,7 @@ public class EnvironmentsService{
     public EnvironmentDTO getEnvironment(String projectKey, String environmentKey){
         UUID orgId = currentUser.getOrganisationId();
         Environment environment = environmentsRepository.findEnvironment(orgId, projectKey, environmentKey)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Environment was not found"));
+                .orElseThrow(EnvironmentNotFoundException::new);
 
         return entityMapper.toDTO(environment);
     }
@@ -101,7 +104,7 @@ public class EnvironmentsService{
     public EnvironmentDTO patchEnvironment(String projectKey, String environmentKey, PatchEnvironmentRequest request){
         UUID orgId = currentUser.getOrganisationId();
         Environment environment = environmentsRepository.findEnvironment(orgId, projectKey, environmentKey)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Environment was not found"));
+                .orElseThrow(EnvironmentNotFoundException::new);
 
         applyPatch(environment, request);
 
@@ -116,11 +119,11 @@ public class EnvironmentsService{
         int envCount = environmentsRepository.countEnvironmentByOrgIdAndProjectKey(orgId, projectKey);
 
         if(envCount == 1){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Project must have at least one environment");
+            throw new MissingEnvironmentException();
         }
 
         Environment environment = environmentsRepository.findEnvironment(orgId, projectKey, environmentKey)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Environment was not found"));
+                .orElseThrow(EnvironmentNotFoundException::new);
 
         environmentsRepository.delete(environment);
     }

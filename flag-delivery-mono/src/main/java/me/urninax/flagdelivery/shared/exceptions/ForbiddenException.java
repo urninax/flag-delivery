@@ -1,6 +1,5 @@
-package me.urninax.flagdelivery.organisation.utils.exceptions;
+package me.urninax.flagdelivery.shared.exceptions;
 
-import me.urninax.flagdelivery.shared.exceptions.ApiException;
 import org.springframework.http.HttpStatus;
 
 public class ForbiddenException extends ApiException{

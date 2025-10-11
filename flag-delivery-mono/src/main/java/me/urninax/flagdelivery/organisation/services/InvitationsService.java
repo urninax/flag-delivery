@@ -18,7 +18,7 @@ import me.urninax.flagdelivery.organisation.ui.models.requests.CreateInvitationR
 import me.urninax.flagdelivery.organisation.ui.models.requests.InvitationFilter;
 import me.urninax.flagdelivery.organisation.utils.InvitationSpecifications;
 import me.urninax.flagdelivery.organisation.utils.InvitationTokenUtils;
-import me.urninax.flagdelivery.organisation.utils.exceptions.ForbiddenException;
+import me.urninax.flagdelivery.shared.exceptions.ForbiddenException;
 import me.urninax.flagdelivery.organisation.utils.exceptions.invitation.*;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.shared.utils.EntityMapper;
