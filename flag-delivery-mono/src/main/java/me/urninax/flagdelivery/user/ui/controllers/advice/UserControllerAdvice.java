@@ -3,7 +3,6 @@ package me.urninax.flagdelivery.user.ui.controllers.advice;
 import lombok.extern.slf4j.Slf4j;
 import me.urninax.flagdelivery.shared.utils.ErrorMessage;
 import me.urninax.flagdelivery.user.utils.exceptions.EmailAlreadyExistsException;
-import me.urninax.flagdelivery.user.utils.exceptions.PasswordMismatchException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -15,7 +14,7 @@ import java.time.Instant;
 @RestControllerAdvice
 @Slf4j
 public class UserControllerAdvice{
-    @ExceptionHandler({EmailAlreadyExistsException.class, PasswordMismatchException.class})
+    @ExceptionHandler({EmailAlreadyExistsException.class})
     public ResponseEntity<ErrorMessage> handleEmailAlreadyExistsException(Exception exc,
                                                                               WebRequest request){
 

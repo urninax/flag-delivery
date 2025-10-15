@@ -1,5 +1,6 @@
 package me.urninax.flagdelivery.organisation.ui.controllers;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.organisation.services.InvitationsService;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,13 +30,13 @@ import java.util.UUID;
 public class OrganisationInvitationsController{
     private final InvitationsService invitationsService;
 
-    @PostMapping
-    public ResponseEntity<?> invite(@RequestBody CreateInvitationRequest request){
+    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> invite(@RequestBody @Valid CreateInvitationRequest request){
         invitationsService.createInvitation(request);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    @GetMapping
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PageResponse<InvitationOrganisationDTO>> listOrgInvitations(@PageableDefault(
                                                                                             direction = Sort.Direction.DESC,
                                                                                             sort = "updatedAt") Pageable pageable,

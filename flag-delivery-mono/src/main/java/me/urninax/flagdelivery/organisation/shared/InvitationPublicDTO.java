@@ -1,15 +1,15 @@
 package me.urninax.flagdelivery.organisation.shared;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import me.urninax.flagdelivery.organisation.models.invitation.InvitationStatus;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 
 import java.time.Instant;
 
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Getter
 @Setter
 public class InvitationPublicDTO{

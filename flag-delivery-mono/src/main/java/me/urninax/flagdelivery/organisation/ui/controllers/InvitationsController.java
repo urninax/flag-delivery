@@ -1,12 +1,11 @@
 package me.urninax.flagdelivery.organisation.ui.controllers;
 
 import jakarta.validation.constraints.Pattern;
+import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.organisation.services.InvitationsService;
 import me.urninax.flagdelivery.organisation.shared.InvitationPublicDTO;
-import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.shared.security.enums.AuthMethod;
 import me.urninax.flagdelivery.shared.utils.annotations.RequiresAuthMethod;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,18 +13,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/invitations")
 @RequiresAuthMethod(AuthMethod.JWT)
 public class InvitationsController{
-
-    private final CurrentUser currentUser;
     private final InvitationsService invitationsService;
-
-    @Autowired
-    public InvitationsController(CurrentUser currentUser, InvitationsService invitationsService){
-        this.currentUser = currentUser;
-        this.invitationsService = invitationsService;
-    }
 
     @GetMapping("/{uuid}.{token}")
     public ResponseEntity<?> getInvitationInfo(@PathVariable UUID uuid,
@@ -38,16 +30,14 @@ public class InvitationsController{
     public ResponseEntity<?> acceptInvitation(@PathVariable UUID uuid,
                                               @PathVariable @Pattern(regexp = "^[A-Za-z0-9_-]{43}$") String token,
                                               @RequestParam(name = "transfer", defaultValue = "false") boolean transfer){
-        UUID userId = currentUser.getUserId();
-        invitationsService.acceptInvitation(uuid, token, userId, transfer);
+        invitationsService.acceptInvitation(uuid, token, transfer);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @PostMapping("/{uuid}.{token}/decline")
     public ResponseEntity<?> declineInvitation(@PathVariable UUID uuid,
                                                @PathVariable @Pattern(regexp = "^[A-Za-z0-9_-]{43}$") String token){
-        UUID userId = currentUser.getUserId();
-        invitationsService.declineInvitation(uuid, token, userId);
+        invitationsService.declineInvitation(uuid, token);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
