@@ -41,15 +41,10 @@ public class OrganisationsControllerTest {
     @MockitoBean
     private CurrentUser currentUser;
 
-    private UUID userId;
-
     @BeforeEach
     void setUp(){
         request = CreateOrganisationRequest.builder()
                 .name("Valid name").build();
-
-        userId = UUID.randomUUID();
-        when(currentUser.getUserId()).thenReturn(userId);
     }
 
     @Test
@@ -65,7 +60,6 @@ public class OrganisationsControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", containsString("/api/v1/organisation/" + orgId)));
 
-        verify(currentUser, times(1)).getUserId();
         verify(organisationsService, times(1)).createOrganisation(any());
     }
 
@@ -102,7 +96,7 @@ public class OrganisationsControllerTest {
                         .accept(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message").value("User is already in organisation"));
+                .andExpect(jsonPath("$.message").value("User is already in organisation."));
     }
 
     @Test

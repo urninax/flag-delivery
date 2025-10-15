@@ -1,6 +1,7 @@
 package me.urninax.flagdelivery.organisation.ui.controllers;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.organisation.services.MembershipsService;
 import me.urninax.flagdelivery.organisation.shared.MemberWithActivityDTO;
@@ -10,7 +11,6 @@ import me.urninax.flagdelivery.organisation.ui.models.responses.PageResponse;
 import me.urninax.flagdelivery.shared.security.enums.AuthMethod;
 import me.urninax.flagdelivery.shared.utils.annotations.RequiresAuthMethod;
 import me.urninax.flagdelivery.shared.utils.annotations.RequiresRole;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -22,16 +22,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/organisation/members")
 @RequiresAuthMethod(AuthMethod.ACCESS_TOKEN)
 public class OrganisationMembershipsController{
-
     private final MembershipsService membershipsService;
-
-    @Autowired
-    public OrganisationMembershipsController(MembershipsService membershipsService){
-        this.membershipsService = membershipsService;
-    }
 
     @GetMapping
     @RequiresRole(OrgRole.READER)
