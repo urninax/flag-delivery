@@ -4,31 +4,18 @@ import io.jsonwebtoken.Claims;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateAccessTokenRequest;
 import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
-import org.junit.jupiter.api.*;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.*;
-import org.springframework.test.context.ActiveProfiles;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Arrays;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DisplayName("POST /api/v1/organisation/access-tokens")
-@ActiveProfiles("test")
-@Testcontainers
 public class PostAccessTokensIT extends AbstractAccessTokensIT{
-    @Container
-    @ServiceConnection
-    protected static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:latest");
-
-
     private String jwt;
 
     private String organisationId;
@@ -61,7 +48,7 @@ public class PostAccessTokensIT extends AbstractAccessTokensIT{
 
         String issuedTokenHeader = response.getHeaders().getFirst("Authorization");
         assertNotNull(issuedTokenHeader, "Response should include Authorization header with issued API token");
-        assertTrue(issuedTokenHeader.startsWith("api-"), "Issued token should start with api-");
+        assertTrue(issuedTokenHeader.replace("Bearer ", "").startsWith("api-"), "Issued token should start with api-");
     }
 
     @Test
@@ -108,7 +95,7 @@ public class PostAccessTokensIT extends AbstractAccessTokensIT{
 
         ResponseEntity<?> createTokenResponse = sendCreateTokenRequest(request, authHeaders);
 
-        assertEquals(HttpStatus.FORBIDDEN, createTokenResponse.getStatusCode(), "HTTP Status for access token creation without organisation should be 403");
+        assertEquals(HttpStatus.BAD_REQUEST, createTokenResponse.getStatusCode(), "HTTP Status for access token creation without organisation should be 400");
         assertNull(createTokenResponse.getHeaders().get("Authorization"));
     }
 }

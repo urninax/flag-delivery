@@ -11,8 +11,8 @@ import me.urninax.flagdelivery.organisation.services.caching.MemberTokensCacheSe
 import me.urninax.flagdelivery.organisation.shared.AccessTokenDTO;
 import me.urninax.flagdelivery.organisation.shared.AccessTokenPrincipalDTO;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateAccessTokenRequest;
-import me.urninax.flagdelivery.shared.exceptions.ForbiddenException;
 import me.urninax.flagdelivery.organisation.utils.exceptions.accesstoken.InvalidAccessTokenException;
+import me.urninax.flagdelivery.shared.exceptions.ForbiddenException;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.shared.utils.AccessTokenUtils;
 import me.urninax.flagdelivery.shared.utils.EntityMapper;

@@ -4,31 +4,15 @@ import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
-@Testcontainers
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DisplayName("POST /api/v1/auth/signup")
 public class SignupIT extends AbstractAuthIT{
-
-    @Container
-    @ServiceConnection
-    protected static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:latest");
-
     private SignupRequest signupRequest;
 
 

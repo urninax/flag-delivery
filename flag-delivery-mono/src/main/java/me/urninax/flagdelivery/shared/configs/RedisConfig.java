@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import me.urninax.flagdelivery.organisation.models.membership.Membership;
 import me.urninax.flagdelivery.organisation.shared.AccessTokenPrincipalDTO;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
@@ -17,6 +18,7 @@ import java.time.Duration;
 
 @Configuration
 @Slf4j
+@ConditionalOnProperty(name = "spring.cache.type", havingValue = "redis")
 public class RedisConfig{
 
     @Bean

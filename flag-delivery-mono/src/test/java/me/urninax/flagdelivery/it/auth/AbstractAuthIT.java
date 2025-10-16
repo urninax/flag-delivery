@@ -1,23 +1,18 @@
 package me.urninax.flagdelivery.it.auth;
 
+import me.urninax.flagdelivery.it.AbstractIntegrationTest;
 import me.urninax.flagdelivery.user.ui.models.requests.SigninRequest;
 import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ActiveProfiles("test")
-public class AbstractAuthIT{
+public class AbstractAuthIT extends AbstractIntegrationTest {
     @Autowired
     protected TestRestTemplate template;
 
