@@ -1,16 +1,11 @@
-package me.urninax.flagdelivery.it.accesstokens;
+package me.urninax.flagdelivery.it.organisation.accesstokens;
 
-import io.jsonwebtoken.Claims;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateAccessTokenRequest;
-import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.*;
-
-import java.util.Arrays;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -25,15 +20,10 @@ public class PostAccessTokensIT extends AbstractAccessTokensIT{
     @BeforeEach
     void setUp(){
         //create user
-        SignupRequest signupRequest = createUser();
-        String jwt = signinUser(signupRequest.getEmail(), signupRequest.getPassword());
+        String jwt = createUser();
         this.jwt = jwt;
 
-        String organisationLocation = createOrganisationForUser(jwt);
-
-        if(organisationLocation != null){
-            organisationId = Arrays.stream(organisationLocation.split("/")).toList().getLast();
-        }
+        organisationId = createOrganisationForUser(jwt);
 
         request = CreateAccessTokenRequest.builder().name("CI Token").role(OrgRole.READER).isService(true).build();
     }
@@ -65,16 +55,10 @@ public class PostAccessTokensIT extends AbstractAccessTokensIT{
     @Test
     @DisplayName("With access token role higher than user's one -> 403")
     void createAccessToken_whenTokenRoleIsHigherThanUsers_shouldReturn403(){
-        SignupRequest signupRequest = createUser();
-        String secondUserAuthToken = signinUser(signupRequest.getEmail(), signupRequest.getPassword());
-        String secondUserJwt = secondUserAuthToken.substring(7);
-        Claims claims = jwtUtils.parse(secondUserJwt);
+        String secondUserAuthToken = createUser();
+        addUserToOrganisation(secondUserAuthToken, organisationId, OrgRole.READER);
 
-        String secondUserId = claims.getSubject();
-
-        membershipsService.addMembership(UUID.fromString(organisationId), UUID.fromString(secondUserId), OrgRole.READER);
-
-        HttpHeaders authHeaders = authHeaders(secondUserJwt);
+        HttpHeaders authHeaders = authHeaders(secondUserAuthToken);
 
         request.setRole(OrgRole.ADMIN);
 

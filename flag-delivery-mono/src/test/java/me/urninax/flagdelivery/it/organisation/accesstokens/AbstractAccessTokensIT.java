@@ -1,6 +1,8 @@
-package me.urninax.flagdelivery.it.accesstokens;
+package me.urninax.flagdelivery.it.organisation.accesstokens;
 
+import io.jsonwebtoken.Claims;
 import me.urninax.flagdelivery.it.AbstractIntegrationTest;
+import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.organisation.services.MembershipsService;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateAccessTokenRequest;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateOrganisationRequest;
@@ -11,7 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -39,14 +43,14 @@ public abstract class AbstractAccessTokensIT extends AbstractIntegrationTest {
         return headers;
     }
 
-    protected SignupRequest createUser(){
+    protected String createUser(){
         SignupRequest signupRequest = SignupRequest.builder().firstName("CI First Name").lastName("CI Last Name").email("ci." + UUID.randomUUID() + "@example.com").password("CIPassword123!").build();
 
         HttpEntity<SignupRequest> signupRequestEntity = new HttpEntity<>(signupRequest, defaultHeaders());
         ResponseEntity<?> signupResponse = template.postForEntity("/api/v1/auth/signup", signupRequestEntity, Object.class);
         assertEquals(HttpStatus.CREATED, signupResponse.getStatusCode(), "Signup should succeed for IT setup");
 
-        return signupRequest;
+        return signinUser(signupRequest.getEmail(), signupRequest.getPassword());
     }
 
     protected String signinUser(String email, String password){
@@ -75,7 +79,18 @@ public abstract class AbstractAccessTokensIT extends AbstractIntegrationTest {
         ResponseEntity<Void> createOrganisationResponse = template.postForEntity("/api/v1/organisation", createOrganisationRequestEntity, Void.class);
         assertEquals(HttpStatus.CREATED, createOrganisationResponse.getStatusCode(), "Create organisation should return 201");
 
-        return createOrganisationResponse.getHeaders().getFirst("Location");
+        String organisationLocation = Objects.requireNonNull(createOrganisationResponse.getHeaders().getFirst("Location"));
+
+        return Arrays.stream(organisationLocation.split("/")).toList().getLast();
+    }
+
+    protected void addUserToOrganisation(String userAuthToken, String organisationId, OrgRole role){
+        String userJwt = userAuthToken.substring(7);
+        Claims claims = jwtUtils.parse(userJwt);
+
+        String userId = claims.getSubject();
+
+        membershipsService.addMembership(UUID.fromString(organisationId), UUID.fromString(userId), role);
     }
 
     protected ResponseEntity<?> sendCreateTokenRequest(CreateAccessTokenRequest request, HttpHeaders headers){

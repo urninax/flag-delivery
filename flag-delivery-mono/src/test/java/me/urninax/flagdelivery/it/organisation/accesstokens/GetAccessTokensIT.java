@@ -1,11 +1,9 @@
-package me.urninax.flagdelivery.it.accesstokens;
+package me.urninax.flagdelivery.it.organisation.accesstokens;
 
-import io.jsonwebtoken.Claims;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.organisation.shared.AccessTokenDTO;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateAccessTokenRequest;
 import me.urninax.flagdelivery.organisation.ui.models.responses.PageResponse;
-import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -30,20 +28,16 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @DisplayName("GET /api/v1/organisation/access-tokens")
 public class GetAccessTokensIT extends AbstractAccessTokensIT{
     private String accessToken;
-    private String organisationId;
 
     @BeforeAll
     void setup(){
-        SignupRequest signupRequest = createUser();
-        String jwt = signinUser(signupRequest.getEmail(), signupRequest.getPassword());
+        String jwt = createUser();
 
         String organisationLocation = createOrganisationForUser(jwt);
+        String organisationId = Arrays.stream(organisationLocation.split("/")).toList().getLast();
 
-        if(organisationLocation != null){
-            organisationId = Arrays.stream(organisationLocation.split("/")).toList().getLast();
-        }
-
-        String secondUserJwt = createSecondUser();
+        String secondUserJwt = createUser();
+        addUserToOrganisation(secondUserJwt, organisationId, OrgRole.WRITER);
 
         CreateAccessTokenRequest createMainAT = CreateAccessTokenRequest.builder()
                 .name("MAIN TOKEN")
@@ -108,19 +102,5 @@ public class GetAccessTokensIT extends AbstractAccessTokensIT{
                     }
             );
         });
-    }
-
-    private String createSecondUser(){
-        SignupRequest signupRequest = createUser();
-        String secondUserAuthToken = signinUser(signupRequest.getEmail(), signupRequest.getPassword());
-
-        String secondUserJwt = secondUserAuthToken.substring(7);
-        Claims claims = jwtUtils.parse(secondUserJwt);
-
-        String secondUserId = claims.getSubject();
-
-        membershipsService.addMembership(UUID.fromString(organisationId), UUID.fromString(secondUserId), OrgRole.WRITER);
-
-        return secondUserAuthToken;
     }
 }

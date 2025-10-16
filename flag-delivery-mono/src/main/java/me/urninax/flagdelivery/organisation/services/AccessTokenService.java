@@ -11,6 +11,7 @@ import me.urninax.flagdelivery.organisation.services.caching.MemberTokensCacheSe
 import me.urninax.flagdelivery.organisation.shared.AccessTokenDTO;
 import me.urninax.flagdelivery.organisation.shared.AccessTokenPrincipalDTO;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateAccessTokenRequest;
+import me.urninax.flagdelivery.organisation.utils.exceptions.accesstoken.InsufficientRoleException;
 import me.urninax.flagdelivery.organisation.utils.exceptions.accesstoken.InvalidAccessTokenException;
 import me.urninax.flagdelivery.shared.exceptions.ForbiddenException;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
@@ -41,6 +42,10 @@ public class AccessTokenService{
 
         UserEntity userRef = em.getReference(UserEntity.class, userId);
         Organisation orgRef = em.getReference(Organisation.class, orgId);
+
+        if(request.getRole().higherThan(currentUser.getOrgRole())){
+            throw new InsufficientRoleException();
+        }
 
         String token = String.format("api-%s", UUID.randomUUID());
         String hashedToken = AccessTokenUtils.hashSha256(token);
