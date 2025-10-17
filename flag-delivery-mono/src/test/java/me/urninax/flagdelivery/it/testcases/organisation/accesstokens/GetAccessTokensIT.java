@@ -3,7 +3,6 @@ package me.urninax.flagdelivery.it.testcases.organisation.accesstokens;
 import me.urninax.flagdelivery.it.AbstractIntegrationTest;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.organisation.shared.AccessTokenDTO;
-import me.urninax.flagdelivery.organisation.ui.models.requests.CreateAccessTokenRequest;
 import me.urninax.flagdelivery.organisation.ui.models.responses.PageResponse;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -17,7 +16,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,13 +35,7 @@ public class GetAccessTokensIT extends AbstractIntegrationTest {
         String secondUserJwt = helper.createUser();
         helper.addUserToOrganisation(secondUserJwt, organisationId, OrgRole.WRITER);
 
-        CreateAccessTokenRequest createMainAT = CreateAccessTokenRequest.builder()
-                .name("MAIN TOKEN")
-                .role(OrgRole.ADMIN)
-                .isService(false)
-                .build();
-
-        accessToken = helper.createAccessToken(createMainAT, jwt);
+        accessToken = helper.createAccessToken(jwt, false, OrgRole.ADMIN);
 
         createTokensMatrix(jwt, List.of(OrgRole.ADMIN, OrgRole.READER), List.of(true, false));
         createTokensMatrix(secondUserJwt, List.of(OrgRole.READER), List.of(true, false));
@@ -87,19 +79,8 @@ public class GetAccessTokensIT extends AbstractIntegrationTest {
     }
 
     private void createTokensMatrix(String bearer, List<OrgRole> roles, List<Boolean> svcFlags){
-        roles.forEach(role -> svcFlags.forEach(flag -> {
-                    CreateAccessTokenRequest request = CreateAccessTokenRequest.builder()
-                            .name("CI TOKEN - " + UUID.randomUUID())
-                            .role(role)
-                            .isService(flag)
-                            .build();
-
-                    client.post()
-                            .uri("/api/v1/organisation/access-tokens")
-                            .header(HttpHeaders.AUTHORIZATION, bearer)
-                            .bodyValue(request)
-                            .exchange();
-                }
+        roles.forEach(role ->
+                svcFlags.forEach(flag -> helper.createAccessToken(bearer, flag, role)
         ));
     }
 }

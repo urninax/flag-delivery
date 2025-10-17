@@ -92,7 +92,13 @@ public class TestHelper {
         membershipsService.addMembership(UUID.fromString(organisationId), UUID.fromString(userId), role);
     }
 
-    public String createAccessToken(CreateAccessTokenRequest request, String authToken){
+    public String createAccessToken(String authToken, boolean isService, OrgRole role){
+        CreateAccessTokenRequest request = CreateAccessTokenRequest.builder()
+                .name("CI TOKEN - " + UUID.randomUUID())
+                .role(role)
+                .isService(isService)
+                .build();
+
         EntityExchangeResult<Void> response = client.post().uri("/api/v1/organisation/access-tokens")
                 .header(HttpHeaders.AUTHORIZATION, authToken)
                 .bodyValue(request)
