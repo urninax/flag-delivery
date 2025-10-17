@@ -1,20 +1,16 @@
-package me.urninax.flagdelivery.it.auth;
+package me.urninax.flagdelivery.it.testcases.auth;
 
+import me.urninax.flagdelivery.it.AbstractIntegrationTest;
 import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 @DisplayName("POST /api/v1/auth/signup")
-public class SignupIT extends AbstractAuthIT{
+public class SignupIT extends AbstractIntegrationTest {
     private SignupRequest signupRequest;
-
 
     @BeforeEach
     void setUp(){
@@ -29,10 +25,10 @@ public class SignupIT extends AbstractAuthIT{
     @Test
     @DisplayName("POST /api/v1/auth/signup with valid request -> 201")
     void signup_withValidRequest_shouldReturn201(){
-        ResponseEntity<?> response = sendCreateUserRequest(signupRequest, defaultHeaders());
-
-        assertEquals(HttpStatus.CREATED, response.getStatusCode(),
-                () -> "Incorrect status code returned");
+        client.post().uri("/api/v1/auth/signup")
+                .bodyValue(signupRequest)
+                .exchange()
+                .expectStatus().isCreated();
     }
 
     @Test
@@ -40,9 +36,10 @@ public class SignupIT extends AbstractAuthIT{
     void signup_withInvalidEmail_shouldReturn400(){
         signupRequest.setEmail("invalid-email");
 
-        ResponseEntity<?> response = sendCreateUserRequest(signupRequest, defaultHeaders());
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode(), "Invalid response status");
+        client.post().uri("/api/v1/auth/signup")
+                .bodyValue(signupRequest)
+                .exchange()
+                .expectStatus().isBadRequest();
     }
 
     @Test
@@ -50,17 +47,18 @@ public class SignupIT extends AbstractAuthIT{
     void signup_withMissingPassword_shouldReturn400(){
         signupRequest.setPassword(null);
 
-        ResponseEntity<?> response = sendCreateUserRequest(signupRequest, defaultHeaders());
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode(), "Invalid response status");
+        client.post().uri("/api/v1/auth/signup")
+                .bodyValue(signupRequest)
+                .exchange()
+                .expectStatus().isBadRequest();
     }
 
     @Test
     @DisplayName("POST /api/v1/auth/signup with empty body -> 400")
     void signup_withEmptyBody_shouldReturn400(){
-        ResponseEntity<?> response = sendCreateUserRequest(null, defaultHeaders());
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode(), "Invalid response status");
+        client.post().uri("/api/v1/auth/signup")
+                .exchange()
+                .expectStatus().isBadRequest();
     }
 
     @Test
@@ -69,13 +67,14 @@ public class SignupIT extends AbstractAuthIT{
         String uniqueEmail = "test_" + UUID.randomUUID() + "@example.com";
         signupRequest.setEmail(uniqueEmail);
 
-        ResponseEntity<?> firstResponse = sendCreateUserRequest(signupRequest, defaultHeaders());
+        client.post().uri("/api/v1/auth/signup")
+                .bodyValue(signupRequest)
+                .exchange()
+                .expectStatus().isCreated();
 
-        assertEquals(HttpStatus.CREATED, firstResponse.getStatusCode(), "Initial signup failed.");
-
-        ResponseEntity<?> response = sendCreateUserRequest(signupRequest, defaultHeaders());
-
-        assertEquals(HttpStatus.CONFLICT, response.getStatusCode(),
-                () -> "Incorrect status code returned");
+        client.post().uri("/api/v1/auth/signup")
+                .bodyValue(signupRequest)
+                .exchange()
+                .expectStatus().isEqualTo(409);
     }
 }

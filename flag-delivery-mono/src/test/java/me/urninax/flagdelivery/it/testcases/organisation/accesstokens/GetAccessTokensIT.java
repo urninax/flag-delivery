@@ -1,5 +1,6 @@
-package me.urninax.flagdelivery.it.organisation.accesstokens;
+package me.urninax.flagdelivery.it.testcases.organisation.accesstokens;
 
+import me.urninax.flagdelivery.it.AbstractIntegrationTest;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.organisation.shared.AccessTokenDTO;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateAccessTokenRequest;
@@ -10,10 +11,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
@@ -26,18 +24,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @DisplayName("GET /api/v1/organisation/access-tokens")
-public class GetAccessTokensIT extends AbstractAccessTokensIT{
+public class GetAccessTokensIT extends AbstractIntegrationTest {
     private String accessToken;
 
     @BeforeAll
     void setup(){
-        String jwt = createUser();
+        String jwt = helper.createUser();
 
-        String organisationLocation = createOrganisationForUser(jwt);
+        String organisationLocation = helper.createOrganisationForUser(jwt);
         String organisationId = Arrays.stream(organisationLocation.split("/")).toList().getLast();
 
-        String secondUserJwt = createUser();
-        addUserToOrganisation(secondUserJwt, organisationId, OrgRole.WRITER);
+        String secondUserJwt = helper.createUser();
+        helper.addUserToOrganisation(secondUserJwt, organisationId, OrgRole.WRITER);
 
         CreateAccessTokenRequest createMainAT = CreateAccessTokenRequest.builder()
                 .name("MAIN TOKEN")
@@ -45,10 +43,7 @@ public class GetAccessTokensIT extends AbstractAccessTokensIT{
                 .isService(false)
                 .build();
 
-        HttpHeaders headers = authHeaders(jwt);
-
-        ResponseEntity<?> mainATResponse = sendCreateTokenRequest(createMainAT, headers);
-        accessToken = mainATResponse.getHeaders().getFirst("Authorization");
+        accessToken = helper.createAccessToken(createMainAT, jwt);
 
         createTokensMatrix(jwt, List.of(OrgRole.ADMIN, OrgRole.READER), List.of(true, false));
         createTokensMatrix(secondUserJwt, List.of(OrgRole.READER), List.of(true, false));
@@ -58,10 +53,7 @@ public class GetAccessTokensIT extends AbstractAccessTokensIT{
     @MethodSource("getTokensCases")
     @DisplayName("With valid request -> 200 and Access tokens page")
     void getAccessTokens_withValidRequestWithoutPathParameters_shouldReturn200AndTokensPage(Boolean showAll, int expectedCount){
-        HttpHeaders authHeaders = authHeaders(accessToken);
-        HttpEntity<HttpHeaders> entity = new HttpEntity<>(authHeaders);
-
-        URI uri = (showAll == null)
+         URI uri = (showAll == null)
                 ? URI.create("/api/v1/organisation/access-tokens")
                 : UriComponentsBuilder
                 .fromPath("/api/v1/organisation/access-tokens")
@@ -69,16 +61,21 @@ public class GetAccessTokensIT extends AbstractAccessTokensIT{
                 .build(true)
                 .toUri();
 
-        ResponseEntity<PageResponse<AccessTokenDTO>> response = template.exchange(uri, HttpMethod.GET, entity, new ParameterizedTypeReference<>(){});
-        PageResponse<AccessTokenDTO> body = response.getBody();
-
-        assertNotNull(body, "Response body should have not been null");
-        assertNotNull(body.getContent(), "Body Content should have not been null");
-        assertEquals(expectedCount, body.getContent().size(), String.format("Content section should have contained %s items", expectedCount));
-        assertEquals(0, body.getPage(), "Response should have returned page 0");
-        assertEquals(25, body.getSize(), "Page size should have been max 25 items");
-        assertEquals(expectedCount, body.getTotalElements(), String.format("Total elements should be %s", expectedCount));
-        assertEquals(1, body.getTotalPages(), "Total pages should be 1");
+        client.get()
+                .uri(uri.toString())
+                .header(HttpHeaders.AUTHORIZATION, accessToken)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(new ParameterizedTypeReference<PageResponse<AccessTokenDTO>>(){})
+                .value(body -> {
+                    assertNotNull(body, "Response body should have not been null");
+                    assertNotNull(body.getContent(), "Body Content should have not been null");
+                    assertEquals(expectedCount, body.getContent().size(), String.format("Content section should have contained %s items", expectedCount));
+                    assertEquals(0, body.getPage(), "Response should have returned page 0");
+                    assertEquals(25, body.getSize(), "Page size should have been max 25 items");
+                    assertEquals(expectedCount, body.getTotalElements(), String.format("Total elements should be %s", expectedCount));
+                    assertEquals(1, body.getTotalPages(), "Total pages should be 1");
+                });
     }
 
     private static Stream<Arguments> getTokensCases(){
@@ -90,17 +87,19 @@ public class GetAccessTokensIT extends AbstractAccessTokensIT{
     }
 
     private void createTokensMatrix(String bearer, List<OrgRole> roles, List<Boolean> svcFlags){
-        roles.forEach(role -> {
-            svcFlags.forEach(flag -> {
-                        sendCreateTokenRequest(
-                                CreateAccessTokenRequest.builder()
-                                        .name("CI TOKEN - " + UUID.randomUUID())
-                                        .role(role)
-                                        .isService(flag)
-                                        .build(),
-                                authHeaders(bearer));
-                    }
-            );
-        });
+        roles.forEach(role -> svcFlags.forEach(flag -> {
+                    CreateAccessTokenRequest request = CreateAccessTokenRequest.builder()
+                            .name("CI TOKEN - " + UUID.randomUUID())
+                            .role(role)
+                            .isService(flag)
+                            .build();
+
+                    client.post()
+                            .uri("/api/v1/organisation/access-tokens")
+                            .header(HttpHeaders.AUTHORIZATION, bearer)
+                            .bodyValue(request)
+                            .exchange();
+                }
+        ));
     }
 }

@@ -1,0 +1,106 @@
+package me.urninax.flagdelivery.it.helper;
+
+import io.jsonwebtoken.Claims;
+import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
+import me.urninax.flagdelivery.organisation.services.MembershipsService;
+import me.urninax.flagdelivery.organisation.ui.models.requests.CreateAccessTokenRequest;
+import me.urninax.flagdelivery.organisation.ui.models.requests.CreateOrganisationRequest;
+import me.urninax.flagdelivery.shared.utils.JwtUtils;
+import me.urninax.flagdelivery.user.ui.models.requests.SigninRequest;
+import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpHeaders;
+import org.springframework.stereotype.Component;
+import org.springframework.test.web.reactive.server.EntityExchangeResult;
+import org.springframework.test.web.reactive.server.WebTestClient;
+
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.UUID;
+
+@Component
+public class TestHelper {
+    @Lazy
+    @Autowired
+    private WebTestClient client;
+
+    @Autowired
+    private JwtUtils jwtUtils;
+
+    @Autowired
+    private MembershipsService membershipsService;
+
+    public String createUser(){
+        SignupRequest signupRequest = SignupRequest.builder()
+                .firstName("CI First Name").lastName("CI Last Name")
+                .email("ci." + UUID.randomUUID() + "@example.com")
+                .password("CIPassword123!")
+                .build();
+
+        client.post()
+                .uri("/api/v1/auth/signup")
+                .bodyValue(signupRequest)
+                .exchange()
+                .expectStatus().isCreated();
+
+        return signinUser(signupRequest.getEmail(), signupRequest.getPassword());
+    }
+
+    public String signinUser(String email, String password){
+        SigninRequest signinRequest = SigninRequest.builder()
+                .email(email)
+                .password(password)
+                .build();
+
+        EntityExchangeResult<Void> result = client.post().uri("/api/v1/auth/signin")
+                .bodyValue(signinRequest)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().exists("Authorization")
+                .expectHeader().valueMatches("Authorization", "^Bearer\\s.+")
+                .expectBody().isEmpty();
+
+        return result.getResponseHeaders().getFirst("Authorization");
+    }
+
+    public String createOrganisationForUser(String jwt){
+        CreateOrganisationRequest createOrganisationRequest = CreateOrganisationRequest.builder()
+                .name("CI Organisation name " + UUID.randomUUID())
+                .build();
+
+        EntityExchangeResult<Void> result = client.post()
+                .uri("/api/v1/organisation")
+                .bodyValue(createOrganisationRequest)
+                .header("Authorization", jwt)
+                .exchange()
+                .expectStatus().isCreated()
+                .expectHeader().exists("Location")
+                .expectBody().isEmpty();
+
+        String organisationLocation = Objects.requireNonNull(result.getResponseHeaders().getFirst("Location"));
+
+        return Arrays.stream(organisationLocation.split("/")).toList().getLast();
+    }
+
+    public void addUserToOrganisation(String userAuthToken, String organisationId, OrgRole role){
+        String userJwt = userAuthToken.substring(7);
+        Claims claims = jwtUtils.parse(userJwt);
+
+        String userId = claims.getSubject();
+
+        membershipsService.addMembership(UUID.fromString(organisationId), UUID.fromString(userId), role);
+    }
+
+    public String createAccessToken(CreateAccessTokenRequest request, String authToken){
+        EntityExchangeResult<Void> response = client.post().uri("/api/v1/organisation/access-tokens")
+                .header(HttpHeaders.AUTHORIZATION, authToken)
+                .bodyValue(request)
+                .exchange()
+                .expectStatus().isCreated()
+                .expectHeader().exists("Authorization")
+                .expectBody().isEmpty();
+
+        return response.getResponseHeaders().getFirst("Authorization");
+    }
+}
