@@ -8,11 +8,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 
+import java.util.UUID;
+
 @DisplayName("POST /api/v1/organisation/access-tokens")
 public class PostAccessTokensIT extends AbstractIntegrationTest {
     private String jwt;
 
-    private String organisationId;
+    private UUID organisationId;
 
     private CreateAccessTokenRequest request;
 
@@ -57,7 +59,8 @@ public class PostAccessTokensIT extends AbstractIntegrationTest {
     @DisplayName("With access token role higher than user's one -> 403")
     void createAccessToken_whenTokenRoleIsHigherThanUsers_shouldReturn403(){
         String secondUserAuthToken = helper.createUser();
-        helper.addUserToOrganisation(secondUserAuthToken, organisationId, OrgRole.READER);
+        UUID secondUserId = helper.extractUserId(secondUserAuthToken);
+        helper.addUserToOrganisation(secondUserId, organisationId, OrgRole.READER);
 
         request.setRole(OrgRole.ADMIN);
 

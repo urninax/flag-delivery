@@ -17,6 +17,6 @@ public class PermissionEvaluator{
 
     public boolean canAccess(OrgRole role){
         OrgRole userRole = currentUser.getOrgRole();
-        return userRole.atLeast(role);
+        return userRole.higherOrEqual(role);
     }
 }

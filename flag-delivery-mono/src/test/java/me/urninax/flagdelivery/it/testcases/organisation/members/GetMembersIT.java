@@ -16,6 +16,7 @@ import org.springframework.test.web.reactive.server.EntityExchangeResult;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
@@ -30,7 +31,7 @@ public class GetMembersIT extends AbstractIntegrationTest {
     void setup(){
         String mainUserJwt = helper.createUser();
 
-        String organisationId = helper.createOrganisationForUser(mainUserJwt);
+        UUID organisationId = helper.createOrganisationForUser(mainUserJwt);
         membersCount++;
 
         accessToken = helper.createAccessToken(mainUserJwt, false, OrgRole.ADMIN);
@@ -165,10 +166,11 @@ public class GetMembersIT extends AbstractIntegrationTest {
                 .expectStatus().isOk();
     }
 
-    private void addUsersToOrganisation(String organisationId, OrgRole role, int count){
+    private void addUsersToOrganisation(UUID organisationId, OrgRole role, int count){
         for (int i = 0; i < count; i++){
             String secondaryUserJwt = helper.createUser();
-            helper.addUserToOrganisation(secondaryUserJwt, organisationId, role);
+            UUID secondaryUserId = helper.extractUserId(secondaryUserJwt);
+            helper.addUserToOrganisation(secondaryUserId, organisationId, role);
         }
         membersCount += count;
         roleMembersCount.put(role, count);

@@ -14,8 +14,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
-import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,11 +29,11 @@ public class GetAccessTokensIT extends AbstractIntegrationTest {
     void setup(){
         String jwt = helper.createUser();
 
-        String organisationLocation = helper.createOrganisationForUser(jwt);
-        String organisationId = Arrays.stream(organisationLocation.split("/")).toList().getLast();
+        UUID organisationId = helper.createOrganisationForUser(jwt);
 
         String secondUserJwt = helper.createUser();
-        helper.addUserToOrganisation(secondUserJwt, organisationId, OrgRole.WRITER);
+        UUID secondUserId = helper.extractUserId(secondUserJwt);
+        helper.addUserToOrganisation(secondUserId, organisationId, OrgRole.WRITER);
 
         accessToken = helper.createAccessToken(jwt, false, OrgRole.ADMIN);
 

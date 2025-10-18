@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,6 +18,7 @@ import java.util.UUID;
 public interface AccessTokenRepository extends JpaRepository<AccessToken, UUID>{
     Page<AccessToken> findAllByOrganisation_Id(UUID orgId, Pageable pageable);
     Page<AccessToken> findAllByOwner_IdAndOrganisation_Id(UUID ownerId, UUID orgId, Pageable pageable);
+    List<AccessToken> findAllByOwner_IdAndOrganisation_IdAndIsServiceFalse(UUID ownerId, UUID orgId);
     Optional<AccessTokenPrincipalDTO> findByHashedToken(String hashedToken);
     @Modifying
     @Query("""

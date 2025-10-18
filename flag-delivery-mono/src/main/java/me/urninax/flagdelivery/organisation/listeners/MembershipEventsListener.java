@@ -1,18 +1,19 @@
 package me.urninax.flagdelivery.organisation.listeners;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.organisation.events.invitation.MemberRoleChangedEvent;
 import me.urninax.flagdelivery.organisation.services.AccessTokenService;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 @RequiredArgsConstructor
 @Component
 public class MembershipEventsListener{
     private final AccessTokenService accessTokenService;
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
+    @Transactional
     public void onMemberRoleChanged(MemberRoleChangedEvent event){
         accessTokenService.downgradeMemberTokens(event.memberId(), event.role());
     }

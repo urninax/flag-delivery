@@ -1,7 +1,9 @@
 package me.urninax.flagdelivery.it.helper;
 
 import io.jsonwebtoken.Claims;
+import me.urninax.flagdelivery.organisation.models.AccessToken;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
+import me.urninax.flagdelivery.organisation.services.AccessTokenService;
 import me.urninax.flagdelivery.organisation.services.MembershipsService;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateAccessTokenRequest;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateOrganisationRequest;
@@ -16,6 +18,7 @@ import org.springframework.test.web.reactive.server.EntityExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -30,6 +33,9 @@ public class TestHelper {
 
     @Autowired
     private MembershipsService membershipsService;
+
+    @Autowired
+    private AccessTokenService accessTokenService;
 
     public String createUser(){
         SignupRequest signupRequest = SignupRequest.builder()
@@ -64,7 +70,7 @@ public class TestHelper {
         return result.getResponseHeaders().getFirst("Authorization");
     }
 
-    public String createOrganisationForUser(String jwt){
+    public UUID createOrganisationForUser(String jwt){
         CreateOrganisationRequest createOrganisationRequest = CreateOrganisationRequest.builder()
                 .name("CI Organisation name " + UUID.randomUUID())
                 .build();
@@ -80,16 +86,18 @@ public class TestHelper {
 
         String organisationLocation = Objects.requireNonNull(result.getResponseHeaders().getFirst("Location"));
 
-        return Arrays.stream(organisationLocation.split("/")).toList().getLast();
+        return UUID.fromString(Arrays.stream(organisationLocation.split("/")).toList().getLast());
     }
 
-    public void addUserToOrganisation(String userAuthToken, String organisationId, OrgRole role){
-        String userJwt = userAuthToken.substring(7);
+    public UUID extractUserId(String jwt){
+        String userJwt = jwt.replace("Bearer ", "");
         Claims claims = jwtUtils.parse(userJwt);
 
-        String userId = claims.getSubject();
+        return UUID.fromString(claims.getSubject());
+    }
 
-        membershipsService.addMembership(UUID.fromString(organisationId), UUID.fromString(userId), role);
+    public void addUserToOrganisation(UUID userId, UUID organisationId, OrgRole role){
+        membershipsService.addMembership(organisationId, userId, role);
     }
 
     public String createAccessToken(String authToken, boolean isService, OrgRole role){
@@ -108,5 +116,16 @@ public class TestHelper {
                 .expectBody().isEmpty();
 
         return response.getResponseHeaders().getFirst("Authorization");
+    }
+
+    public OrgRole getUserRoleInOrganisation(UUID userId, UUID organisationId){
+        return membershipsService.findByIdAndOrg(userId, organisationId).getRole();
+    }
+
+    public boolean verifyTokensDowngraded(UUID userId, UUID organisationId, OrgRole expectedRole){
+        List<AccessToken> tokens = accessTokenService.getUserNonServiceTokens(userId, organisationId);
+
+        return tokens.stream()
+                .allMatch(token -> token.getRole().lowerOrEqual(expectedRole));
     }
 }

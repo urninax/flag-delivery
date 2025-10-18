@@ -17,7 +17,11 @@ public enum OrgRole{
         return this.level < other.level;
     }
 
-    public boolean atLeast(OrgRole other){
+    public boolean higherOrEqual(OrgRole other){
         return this.level >= other.level;
+    }
+
+    public boolean lowerOrEqual(OrgRole other){
+        return this.level <= other.level;
     }
 }
