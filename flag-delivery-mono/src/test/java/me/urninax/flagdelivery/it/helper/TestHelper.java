@@ -2,12 +2,16 @@ package me.urninax.flagdelivery.it.helper;
 
 import io.jsonwebtoken.Claims;
 import me.urninax.flagdelivery.organisation.models.AccessToken;
+import me.urninax.flagdelivery.organisation.models.invitation.Invitation;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
-import me.urninax.flagdelivery.organisation.services.AccessTokenService;
+import me.urninax.flagdelivery.organisation.repositories.AccessTokenRepository;
+import me.urninax.flagdelivery.organisation.repositories.InvitationsRepository;
 import me.urninax.flagdelivery.organisation.services.MembershipsService;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateAccessTokenRequest;
 import me.urninax.flagdelivery.organisation.ui.models.requests.CreateOrganisationRequest;
 import me.urninax.flagdelivery.shared.utils.JwtUtils;
+import me.urninax.flagdelivery.user.models.UserEntity;
+import me.urninax.flagdelivery.user.repositories.UsersRepository;
 import me.urninax.flagdelivery.user.ui.models.requests.SigninRequest;
 import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.test.web.reactive.server.EntityExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 public class TestHelper {
@@ -35,7 +36,11 @@ public class TestHelper {
     private MembershipsService membershipsService;
 
     @Autowired
-    private AccessTokenService accessTokenService;
+    private AccessTokenRepository accessTokenRepository;
+    @Autowired
+    private InvitationsRepository invitationsRepository;
+    @Autowired
+    private UsersRepository usersRepository;
 
     public String createUser(){
         SignupRequest signupRequest = SignupRequest.builder()
@@ -123,9 +128,23 @@ public class TestHelper {
     }
 
     public boolean verifyTokensDowngraded(UUID userId, UUID organisationId, OrgRole expectedRole){
-        List<AccessToken> tokens = accessTokenService.getUserNonServiceTokens(userId, organisationId);
+        List<AccessToken> tokens = accessTokenRepository.findAllByOwner_IdAndOrganisation_IdAndIsServiceFalse(userId, organisationId);
 
         return tokens.stream()
                 .allMatch(token -> token.getRole().lowerOrEqual(expectedRole));
+    }
+
+    public Optional<Invitation> findInvitationByEmailAndOrgId(String email, UUID orgId){
+        return invitationsRepository.findByEmailAndOrganisation_Id(email, orgId);
+    }
+
+    public String getUserEmailById(UUID userId){
+        Optional<UserEntity> userOptional = usersRepository.findById(userId);
+
+        if (userOptional.isEmpty()){
+            throw new AssertionError("User doesnt exist");
+        }
+
+        return userOptional.get().getEmail();
     }
 }

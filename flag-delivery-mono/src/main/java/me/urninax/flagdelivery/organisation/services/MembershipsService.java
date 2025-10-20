@@ -1,7 +1,6 @@
 package me.urninax.flagdelivery.organisation.services;
 
 import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.organisation.events.invitation.MemberRoleChangedEvent;
 import me.urninax.flagdelivery.organisation.models.Organisation;
@@ -21,6 +20,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -55,6 +55,7 @@ public class MembershipsService{
                 .orElseThrow(ForbiddenException::new);
     }
 
+    @Transactional(readOnly = true)
     public Optional<Membership> findByUserEmail(String email){
         return membershipsRepository.findByUser_Email(email);
     }

@@ -68,7 +68,7 @@ public class InvitationsService{
 
         membershipsService.findByUserEmail(request.getEmail())
                 .ifPresent(membership -> {
-                    if(membership.getOrganisation().getId() == orgId){
+                    if(membership.getOrganisation().getId().equals(orgId)){
                         throw new UserAlreadyInSameOrganisationException();
                     }
                 });
