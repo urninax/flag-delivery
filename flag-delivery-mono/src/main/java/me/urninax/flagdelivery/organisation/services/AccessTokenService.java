@@ -23,7 +23,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -102,10 +101,6 @@ public class AccessTokenService{
         accessTokenRepository.downgradeUserTokens(memberId, role);
 
         memberTokensCacheService.evictAllMemberTokens(memberId);
-    }
-
-    public List<AccessToken> getUserNonServiceTokens(UUID ownerId, UUID organisationId){
-        return accessTokenRepository.findAllByOwner_IdAndOrganisation_IdAndIsServiceFalse(ownerId, organisationId);
     }
 
     private void assertAdmin(OrgRole role){

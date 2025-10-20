@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -52,6 +53,10 @@ public class MembershipsService{
     public Membership findByIdAndOrg(UUID userId, UUID orgId){
         return membershipsRepository.findByUserIdAndOrganisation_Id(userId, orgId)
                 .orElseThrow(ForbiddenException::new);
+    }
+
+    public Optional<Membership> findByUserEmail(String email){
+        return membershipsRepository.findByUser_Email(email);
     }
 
     @Transactional

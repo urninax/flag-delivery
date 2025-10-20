@@ -15,6 +15,8 @@ import java.util.UUID;
 public interface InvitationsRepository extends JpaRepository<Invitation, UUID>, JpaSpecificationExecutor<Invitation>{
     Optional<Invitation> findByIdAndOrganisation_Id(UUID id, UUID organisationId);
 
+    Optional<Invitation> findByEmailAndOrganisation_Id(String email, UUID organisationId);
+
     @Modifying
     @Query("update Invitation i set i.status='EXPIRED', i.updatedAt=:now where i.id = :id")
     void updateStatusExpired(UUID id, Instant now);

@@ -59,12 +59,26 @@ public class InvitationsService{
         UUID orgId = currentUser.getOrganisationId();
         OrgRole userRole = currentUser.getOrgRole();
 
+        invitationsRepository.findByEmailAndOrganisation_Id(request.getEmail(), orgId)
+                .ifPresent(inv -> {
+                    if(inv.getStatus().isActive()){
+                        throw new InvitationAlreadyExistsException();
+                    }
+                });
+
+        membershipsService.findByUserEmail(request.getEmail())
+                .ifPresent(membership -> {
+                    if(membership.getOrganisation().getId() == orgId){
+                        throw new UserAlreadyInSameOrganisationException();
+                    }
+                });
+
         UserEntity userRef = em.getReference(UserEntity.class, userId);
         Organisation orgRef = em.getReference(Organisation.class, orgId);
 
         String token = InvitationTokenUtils.generateToken();
 
-        if(!request.getRole().lowerThan(userRole)){
+        if(userRole.lowerOrEqual(request.getRole())){
             throw new ForbiddenException();
         }
 
@@ -157,26 +171,18 @@ public class InvitationsService{
         }
 
         Membership membership = membershipOptional.get();
-        if(!membership.getOrganisation().getId().equals(inv.getOrganisation().getId())){ // invitation for another organisation
-            if(membership.getRole() == OrgRole.OWNER){
-                throw new OwnerTransferNotAllowedException();
-            }
-            if(!isTransferAllowed){
-                throw new OrganisationTransferNotAllowedException();
-            }
 
-            membership.setRole(inv.getRole());
-            membership.setOrganisation(inv.getOrganisation());
-            membershipsRepository.save(membership);
-
-            finalizeInvitation(inv);
-            return;
+        if(membership.getRole() == OrgRole.OWNER){
+            throw new OwnerTransferNotAllowedException();
         }
 
-        if(inv.getRole().higherThan(membership.getRole())){ // same organisation, but invitation role is higher than current
-            membership.setRole(inv.getRole());
-            membershipsRepository.save(membership);
+        if(!isTransferAllowed){
+            throw new OrganisationTransferNotAllowedException();
         }
+
+        membership.setRole(inv.getRole());
+        membership.setOrganisation(inv.getOrganisation());
+        membershipsRepository.save(membership);
 
         finalizeInvitation(inv);
     }
