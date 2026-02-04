@@ -1,5 +1,6 @@
 package me.urninax.flagdelivery.projectsenvs.shared.project;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,5 +32,6 @@ public class ProjectDTO{
     @JsonProperty("updated_at")
     private Instant updatedAt;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Set<EnvironmentDTO> environments;
 }

@@ -52,7 +52,7 @@ public interface EntityMapper{
     InvitationMailDTO toMailDTO(Invitation invitation);
 
     @Mapping(source = "tags", target = "tags")
-//    @Mapping(target = "environments", ignore = true)
+    @Mapping(target = "environments", ignore = true)
     @Mapping(source = "casingConvention", target = "namingConvention.casing")
     @Mapping(source = "prefix", target = "namingConvention.prefix")
     ProjectDTO toDTO(Project project);

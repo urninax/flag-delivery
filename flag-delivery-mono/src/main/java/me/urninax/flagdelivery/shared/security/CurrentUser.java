@@ -60,7 +60,7 @@ public class CurrentUser{
 
         if(principal instanceof UserPrincipal userPrincipal){
             Membership membership = membershipsRepository.findById(userPrincipal.getId())
-                    .orElseThrow(NotInOrganisationException::new); // cache in the future
+                    .orElseThrow(NotInOrganisationException::new);
 
             return membership.getRole();
         }

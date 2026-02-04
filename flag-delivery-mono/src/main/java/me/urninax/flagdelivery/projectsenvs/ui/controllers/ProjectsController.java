@@ -46,7 +46,7 @@ public class ProjectsController{
 
     @GetMapping("/{projectKey}")
     @RequiresRole(OrgRole.READER)
-    public ResponseEntity<?> getProject(@PathVariable("projectKey") String projectKey,
+    public ResponseEntity<?> getProject(@PathVariable String projectKey,
                                         @RequestParam(required = false) String expand){
         ProjectDTO projectDTO = projectsService.getProject(projectKey, expand);
         return new ResponseEntity<>(projectDTO, HttpStatus.OK);
@@ -54,7 +54,7 @@ public class ProjectsController{
 
     @PatchMapping("/{projectKey}")
     @RequiresRole(OrgRole.ADMIN)
-    public ResponseEntity<?> patchProject(@PathVariable("projectKey") String projectKey,
+    public ResponseEntity<?> patchProject(@PathVariable String projectKey,
                                           @Valid @RequestBody PatchProjectRequest request){
         projectsService.patchProject(projectKey, request);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -62,7 +62,7 @@ public class ProjectsController{
 
     @DeleteMapping("/{projectKey}")
     @RequiresRole(OrgRole.OWNER)
-    public ResponseEntity<?> deleteProject(@PathVariable("projectKey") String projectKey){
+    public ResponseEntity<?> deleteProject(@PathVariable String projectKey){
         projectsService.deleteProject(projectKey);
         return new ResponseEntity<>(HttpStatus.OK);
     }

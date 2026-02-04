@@ -30,7 +30,7 @@ public class EnvironmentsController{
 
     @PostMapping
     @RequiresRole(OrgRole.ADMIN)
-    public ResponseEntity<?> createEnvironment(@PathVariable("projectKey") String projectKey,
+    public ResponseEntity<?> createEnvironment(@PathVariable String projectKey,
                                                @Valid @RequestBody CreateEnvironmentRequest request){
         EnvironmentDTO environmentDTO = environmentsService.createEnvironment(projectKey, request);
         return new ResponseEntity<>(environmentDTO, HttpStatus.CREATED);
@@ -38,15 +38,15 @@ public class EnvironmentsController{
 
     @GetMapping("/{environmentKey}")
     @RequiresRole(OrgRole.READER)
-    public ResponseEntity<?> getEnvironment(@PathVariable("projectKey") String projectKey,
-                                            @PathVariable("environmentKey") String environmentKey){
+    public ResponseEntity<?> getEnvironment(@PathVariable String projectKey,
+                                            @PathVariable String environmentKey){
         EnvironmentDTO environmentDTO = environmentsService.getEnvironment(projectKey, environmentKey);
         return new ResponseEntity<>(environmentDTO, HttpStatus.OK);
     }
 
     @GetMapping()
     @RequiresRole(OrgRole.READER)
-    public ResponseEntity<?> listEnvironments(@PathVariable("projectKey") String projectKey,
+    public ResponseEntity<?> listEnvironments(@PathVariable String projectKey,
                                               @RequestParam(value = "filter", required = false) ListAllEnvironmentsRequest request,
                                               Sort sort){
         List<EnvironmentDTO> environmentDTOs = environmentsService.listEnvironments(projectKey, request, sort);
@@ -55,16 +55,16 @@ public class EnvironmentsController{
 
     @DeleteMapping("/{environmentKey}")
     @RequiresRole(OrgRole.ADMIN)
-    public ResponseEntity<?> deleteEnvironment(@PathVariable("projectKey") String projectKey,
-                                               @PathVariable("environmentKey") String environmentKey){
+    public ResponseEntity<?> deleteEnvironment(@PathVariable String projectKey,
+                                               @PathVariable String environmentKey){
         environmentsService.deleteEnvironment(projectKey, environmentKey);
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{environmentKey}")
     @RequiresRole(OrgRole.ADMIN)
-    public ResponseEntity<?> updateEnvironment(@PathVariable("projectKey") String projectKey,
-                                               @PathVariable("environmentKey") String environmentKey,
+    public ResponseEntity<?> updateEnvironment(@PathVariable String projectKey,
+                                               @PathVariable String environmentKey,
                                                @Valid @RequestBody PatchEnvironmentRequest request){
         EnvironmentDTO patchedEnvDTO = environmentsService.patchEnvironment(projectKey, environmentKey, request);
         return new ResponseEntity<>(patchedEnvDTO, HttpStatus.OK);

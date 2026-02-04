@@ -1,0 +1,958 @@
+databaseChangeLog:
+- changeSet:
+    id: baseline-0001-prelude
+    author: merged
+    changes:
+    - sql:
+        splitStatements: false
+        stripComments: true
+        sql: create extension if not exists citext;
+    - sql:
+        splitStatements: false
+        stripComments: true
+        sql: "DO $$\nBEGIN\n  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'org_role') THEN\n    CREATE TYPE org_role\
+          \ AS ENUM ('NONE','READER','WRITER','ADMIN','OWNER');\n  END IF;\nEND\n$$ LANGUAGE plpgsql;"
+- changeSet:
+    id: baseline-0010-create-user_entity
+    author: merged
+    changes:
+    - createTable:
+        tableName: user_entity
+        columns:
+        - column:
+            name: id
+            type: uuid
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: user_entity_pkey
+        - column:
+            name: first_name
+            type: varchar(50)
+            constraints:
+              nullable: false
+        - column:
+            name: last_name
+            type: varchar(70)
+            constraints:
+              nullable: false
+        - column:
+            name: email
+            type: citext
+            constraints:
+              nullable: false
+        - column:
+            name: password
+            type: varchar
+            constraints:
+              nullable: false
+        - column:
+            name: enabled
+            type: BOOLEAN
+            defaultValueBoolean: true
+- changeSet:
+    id: baseline-0011-create-organisation
+    author: merged
+    changes:
+    - createTable:
+        tableName: organisation
+        columns:
+        - column:
+            name: id
+            type: uuid
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: organisation_pkey
+        - column:
+            name: name
+            type: varchar
+            constraints:
+              nullable: false
+        - column:
+            name: owner_id
+            type: uuid
+            constraints:
+              nullable: false
+- changeSet:
+    id: baseline-0012-create-organisation_memberships
+    author: merged
+    changes:
+    - createTable:
+        tableName: organisation_memberships
+        columns:
+        - column:
+            name: user_id
+            type: uuid
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: organisation_memberships_pkey
+        - column:
+            name: organisation_id
+            type: uuid
+            constraints:
+              nullable: false
+        - column:
+            name: role
+            type: org_role
+            defaultValueComputed: '''NONE''::org_role'
+            constraints:
+              nullable: false
+        - column:
+            name: version
+            type: bigint
+            defaultValueNumeric: '0'
+            constraints:
+              nullable: false
+- changeSet:
+    id: baseline-0013-create-access_token
+    author: merged
+    changes:
+    - createTable:
+        tableName: access_token
+        columns:
+        - column:
+            name: id
+            type: uuid
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: access_token_pkey
+        - column:
+            name: hashed_token
+            type: varchar
+            constraints:
+              nullable: false
+        - column:
+            name: token_hint
+            type: varchar(20)
+            constraints:
+              nullable: false
+        - column:
+            name: name
+            type: varchar
+            constraints:
+              nullable: false
+        - column:
+            name: role
+            type: org_role
+            defaultValueComputed: '''NONE''::org_role'
+            constraints:
+              nullable: false
+        - column:
+            name: issued_at
+            type: timestamp
+            constraints:
+              nullable: false
+        - column:
+            name: last_used
+            type: timestamp
+        - column:
+            name: is_service
+            type: BOOLEAN
+            constraints:
+              nullable: false
+        - column:
+            name: owner_id
+            type: uuid
+            constraints:
+              nullable: false
+        - column:
+            name: organisation_id
+            type: uuid
+            constraints:
+              nullable: false
+- changeSet:
+    id: baseline-0014-create-user_internal_roles
+    author: merged
+    changes:
+    - createTable:
+        tableName: user_internal_roles
+        columns:
+        - column:
+            name: user_id
+            type: uuid
+            constraints:
+              nullable: false
+        - column:
+            name: internal_role
+            type: varchar(50)
+            constraints:
+              nullable: false
+    - addPrimaryKey:
+        tableName: user_internal_roles
+        columnNames: user_id, internal_role
+        constraintName: user_internal_roles_pkey
+- changeSet:
+    id: baseline-0015-create-invitation
+    author: merged
+    changes:
+    - createTable:
+        tableName: invitation
+        columns:
+        - column:
+            name: id
+            type: uuid
+            constraints:
+              primaryKey: true
+              nullable: false
+        - column:
+            name: organisation_id
+            type: uuid
+            constraints:
+              nullable: false
+              foreignKeyName: fk_invitation_org
+              references: organisation(id)
+              deleteCascade: true
+        - column:
+            name: email
+            type: citext
+            constraints:
+              nullable: false
+        - column:
+            name: role
+            type: org_role
+            constraints:
+              nullable: false
+        - column:
+            name: token_hash
+            type: bytea
+            constraints:
+              nullable: false
+        - column:
+            name: status
+            type: text
+            constraints:
+              nullable: false
+        - column:
+            name: invited_by
+            type: uuid
+            constraints:
+              foreignKeyName: fk_invitation_user
+              references: user_entity(id)
+              nullable: false
+        - column:
+            name: message
+            type: text
+        - column:
+            name: expires_at
+            type: timestamp
+            constraints:
+              nullable: false
+        - column:
+            name: accepted_at
+            type: timestamp
+        - column:
+            name: declined_at
+            type: timestamp
+        - column:
+            name: revoked_at
+            type: timestamp
+        - column:
+            name: created_at
+            type: timestamp
+            constraints:
+              nullable: false
+            defaultValueComputed: now()
+        - column:
+            name: updated_at
+            type: timestamp
+            constraints:
+              nullable: false
+            defaultValueComputed: now()
+        - column:
+            name: version
+            type: bigint
+            defaultValueNumeric: '0'
+            constraints:
+              nullable: false
+- changeSet:
+    id: baseline-0016-create-project
+    author: merged
+    changes:
+    - createTable:
+        tableName: project
+        columns:
+        - column:
+            name: id
+            type: uuid
+            constraints:
+              primaryKey: true
+              primaryKeyName: pk_project
+              nullable: false
+        - column:
+            name: organisation_id
+            type: uuid
+            constraints:
+              foreignKeyName: fk_project_org
+              references: organisation(id)
+              deleteCascade: true
+              nullable: false
+        - column:
+            name: key
+            type: varchar
+            constraints:
+              nullable: false
+        - column:
+            name: name
+            type: varchar(256)
+            constraints:
+              nullable: false
+        - column:
+            name: casing_convention
+            type: varchar(20)
+        - column:
+            name: prefix
+            type: varchar(128)
+        - column:
+            name: created_by
+            type: uuid
+            constraints:
+              nullable: false
+              foreignKeyName: fk_project_created_by_user
+              references: user_entity(id)
+        - column:
+            name: created_at
+            type: timestamp
+            defaultValueComputed: now()
+            constraints:
+              nullable: false
+        - column:
+            name: updated_at
+            type: timestamp
+            defaultValueComputed: now()
+            constraints:
+              nullable: false
+        - column:
+            name: archived
+            type: boolean
+            defaultValueBoolean: false
+            constraints:
+              nullable: false
+        - column:
+            name: version
+            type: bigint
+            defaultValueNumeric: '0'
+            constraints:
+              nullable: false
+- changeSet:
+    id: baseline-0017-create-project_tags
+    author: merged
+    changes:
+    - createTable:
+        tableName: project_tags
+        columns:
+        - column:
+            name: project_id
+            type: uuid
+            constraints:
+              nullable: false
+        - column:
+            name: tag
+            type: varchar(64)
+            constraints:
+              nullable: false
+    - addPrimaryKey:
+        tableName: project_tags
+        columnNames: project_id, tag
+        constraintName: pk_project_tags
+- changeSet:
+    id: baseline-0018-create-environment
+    author: merged
+    changes:
+    - createTable:
+        tableName: environment
+        columns:
+        - column:
+            name: id
+            type: uuid
+            constraints:
+              primaryKey: true
+              nullable: false
+              primaryKeyName: pk_environment
+        - column:
+            name: project_id
+            type: uuid
+            constraints:
+              nullable: false
+              foreignKeyName: fk_env_project
+              deleteCascade: true
+              references: project(id)
+        - column:
+            name: key
+            type: varchar(128)
+            constraints:
+              nullable: false
+        - column:
+            name: name
+            type: varchar(256)
+            constraints:
+              nullable: false
+        - column:
+            name: confirm_changes
+            type: boolean
+            defaultValueBoolean: false
+            constraints:
+              nullable: false
+        - column:
+            name: require_comments
+            type: boolean
+            defaultValueBoolean: false
+            constraints:
+              nullable: false
+        - column:
+            name: created_at
+            type: timestamp
+            constraints:
+              nullable: false
+            defaultValueComputed: now()
+        - column:
+            name: updated_at
+            type: timestamp
+            constraints:
+              nullable: false
+            defaultValueComputed: now()
+        - column:
+            name: version
+            type: bigint
+            defaultValueNumeric: '0'
+            constraints:
+              nullable: false
+        - column:
+            name: critical
+            type: boolean
+            defaultValueBoolean: false
+            constraints:
+              nullable: false
+- changeSet:
+    id: baseline-0019-create-environment_tags
+    author: merged
+    changes:
+    - createTable:
+        tableName: environment_tags
+        columns:
+        - column:
+            name: environment_id
+            type: uuid
+            constraints:
+              foreignKeyName: fk_env_tags_environment
+              references: environment(id)
+              nullable: false
+        - column:
+            name: tag
+            type: varchar(64)
+            constraints:
+              nullable: false
+    - addPrimaryKey:
+        tableName: environment_tags
+        columnNames: environment_id, tag
+        constraintName: pk_env_tags
+- changeSet:
+    id: baseline-0020-create-feature_flag
+    author: merged
+    changes:
+    - createTable:
+        tableName: feature_flag
+        columns:
+        - column:
+            name: id
+            type: uuid
+            constraints:
+              primaryKey: true
+              nullable: false
+              primaryKeyName: pk_feature_flag
+        - column:
+            name: project_id
+            type: uuid
+            constraints:
+              nullable: false
+              foreignKeyName: fk_flag_project
+              references: project(id)
+              deleteCascade: true
+        - column:
+            name: key
+            type: varchar(100)
+            constraints:
+              nullable: false
+        - column:
+            name: name
+            type: varchar(256)
+            constraints:
+              nullable: false
+        - column:
+            name: kind
+            type: varchar(30)
+            constraints:
+              nullable: false
+        - column:
+            name: description
+            type: text
+        - column:
+            name: flag_on
+            type: boolean
+            defaultValueBoolean: false
+            constraints:
+              nullable: false
+        - column:
+            name: maintainer_id
+            type: uuid
+            constraints:
+              nullable: false
+              foreignKeyName: fk_flag_maintainer
+              references: user_entity(id)
+        - column:
+            name: temporary
+            type: boolean
+            defaultValueBoolean: false
+        - column:
+            name: archived
+            type: boolean
+            defaultValueBoolean: false
+        - column:
+            name: deprecated
+            type: boolean
+            defaultValueBoolean: false
+        - column:
+            name: created_at
+            type: timestamp
+            defaultValueComputed: now()
+        - column:
+            name: updated_at
+            type: timestamp
+            defaultValueComputed: now()
+        - column:
+            name: version
+            type: bigint
+            defaultValueNumeric: '1'
+            constraints:
+              nullable: false
+        - column:
+            name: default_on_variation_idx
+            type: int
+            constraints:
+              nullable: false
+        - column:
+            name: default_off_variation_idx
+            type: int
+            constraints:
+              nullable: false
+- changeSet:
+    id: baseline-0021-create-feature_flag_tags
+    author: merged
+    changes:
+    - createTable:
+        tableName: feature_flag_tags
+        columns:
+        - column:
+            name: flag_id
+            type: uuid
+            constraints:
+              foreignKeyName: fk_flag
+              references: feature_flag(id)
+              nullable: false
+        - column:
+            name: tag
+            type: varchar(64)
+            constraints:
+              nullable: false
+    - addPrimaryKey:
+        tableName: feature_flag_tags
+        columnNames: flag_id, tag
+        constraintName: pk_flag_tags
+- changeSet:
+    id: baseline-0022-create-flag_variation
+    author: merged
+    changes:
+    - createTable:
+        tableName: flag_variation
+        columns:
+        - column:
+            name: id
+            type: uuid
+            constraints:
+              primaryKey: true
+              primaryKeyName: pk_flag_variation
+              nullable: false
+        - column:
+            name: flag_id
+            type: uuid
+            constraints:
+              foreignKeyName: fk_variation_flag
+              deleteCascade: true
+              nullable: false
+              references: feature_flag(id)
+        - column:
+            name: value
+            type: jsonb
+            constraints:
+              nullable: false
+        - column:
+            name: name
+            type: varchar(256)
+        - column:
+            name: description
+            type: text
+        - column:
+            name: variation_order
+            type: int
+            defaultValueNumeric: '0'
+            constraints:
+              nullable: false
+- changeSet:
+    id: baseline-0023-create-environment_flag_config
+    author: merged
+    changes:
+    - createTable:
+        tableName: environment_flag_config
+        columns:
+        - column:
+            name: id
+            type: uuid
+            constraints:
+              nullable: false
+              primaryKeyName: pk_flag_config
+              primaryKey: true
+        - column:
+            name: environment_id
+            type: uuid
+            constraints:
+              nullable: false
+              foreignKeyName: fk_flag_config_environment
+              deleteCascade: true
+              references: environment(id)
+        - column:
+            name: flag_id
+            type: uuid
+            constraints:
+              foreignKeyName: fk_flag_config_flag
+              nullable: false
+              deleteCascade: true
+              references: feature_flag(id)
+        - column:
+            name: is_on
+            type: boolean
+            defaultValueBoolean: false
+            constraints:
+              nullable: false
+        - column:
+            name: salt
+            type: varchar(64)
+            constraints:
+              nullable: false
+        - column:
+            name: sel
+            type: varchar(64)
+            constraints:
+              nullable: false
+        - column:
+            name: archived
+            type: boolean
+            defaultValueBoolean: false
+        - column:
+            name: updated_at
+            type: timestamp
+            constraints:
+              nullable: false
+            defaultValueComputed: now()
+        - column:
+            name: version
+            type: bigint
+            defaultValueNumeric: '1'
+            constraints:
+              nullable: false
+        - column:
+            name: off_variation_idx
+            type: int
+            constraints:
+              nullable: false
+        - column:
+            name: fallthrough_variation_idx
+            type: int
+            constraints:
+              nullable: false
+- changeSet:
+    id: baseline-0024-create-user_activity
+    author: merged
+    changes:
+    - createTable:
+        tableName: user_activity
+        columns:
+        - column:
+            name: user_id
+            type: uuid
+            constraints:
+              primaryKey: true
+              nullable: false
+              references: user_entity(id)
+              foreignKeyName: fk_user_activity_user
+              deleteCascade: true
+        - column:
+            name: last_seen
+            type: timestamp
+            constraints:
+              nullable: false
+            defaultValueComputed: now()
+        - column:
+            name: last_ip
+            type: inet
+        - column:
+            name: last_ua
+            type: text
+- changeSet:
+    id: baseline-2000-unique-organisation_owner_key
+    author: merged
+    changes:
+    - addUniqueConstraint:
+        tableName: organisation
+        columnNames: owner_id
+        constraintName: organisation_owner_key
+- changeSet:
+    id: baseline-2001-unique-unique_email
+    author: merged
+    changes:
+    - addUniqueConstraint:
+        tableName: user_entity
+        columnNames: email
+        constraintName: unique_email
+- changeSet:
+    id: baseline-2002-unique-ux_project_org_key
+    author: merged
+    changes:
+    - addUniqueConstraint:
+        tableName: project
+        columnNames: organisation_id, key
+        constraintName: ux_project_org_key
+- changeSet:
+    id: baseline-2003-unique-ux_env_project_key
+    author: merged
+    changes:
+    - addUniqueConstraint:
+        tableName: environment
+        columnNames: project_id, key
+        constraintName: ux_env_project_key
+- changeSet:
+    id: baseline-2004-unique-ux_flag_project_key
+    author: merged
+    changes:
+    - addUniqueConstraint:
+        tableName: feature_flag
+        columnNames: project_id, key
+        constraintName: ux_flag_project_key
+- changeSet:
+    id: baseline-2005-unique-ux_flag_config_environment_flag
+    author: merged
+    changes:
+    - addUniqueConstraint:
+        tableName: environment_flag_config
+        columnNames: environment_id, flag_id
+        constraintName: ux_flag_config_environment_flag
+- changeSet:
+    id: baseline-fk-access_token-access_token_owner_id_fkey
+    author: merged
+    changes:
+    - addForeignKeyConstraint:
+        baseTableName: access_token
+        baseColumnNames: owner_id
+        referencedTableName: user_entity
+        referencedColumnNames: id
+        constraintName: access_token_owner_id_fkey
+- changeSet:
+    id: baseline-fk-organisation-organisation_owner_fkey
+    author: merged
+    changes:
+    - addForeignKeyConstraint:
+        baseTableName: organisation
+        baseColumnNames: owner_id
+        referencedTableName: user_entity
+        referencedColumnNames: id
+        constraintName: organisation_owner_fkey
+- changeSet:
+    id: baseline-fk-organisation_memberships-organisation_memberships_user_id_fkey
+    author: merged
+    changes:
+    - addForeignKeyConstraint:
+        baseTableName: organisation_memberships
+        baseColumnNames: user_id
+        referencedTableName: user_entity
+        referencedColumnNames: id
+        constraintName: organisation_memberships_user_id_fkey
+        onDelete: CASCADE
+- changeSet:
+    id: baseline-fk-organisation_memberships-organisation_id_fkey
+    author: merged
+    changes:
+      - addForeignKeyConstraint:
+          baseTableName: organisation_memberships
+          baseColumnNames: organisation_id
+          referencedTableName: organisation
+          referencedColumnNames: id
+          constraintName: organisation_memberships_organisation_id_fkey
+          onDelete: CASCADE
+- changeSet:
+    id: baseline-fk-user_internal_roles-user_internal_roles_user_id_fkey
+    author: merged
+    changes:
+    - addForeignKeyConstraint:
+        baseTableName: user_internal_roles
+        baseColumnNames: user_id
+        referencedTableName: user_entity
+        referencedColumnNames: id
+        constraintName: user_internal_roles_user_id_fkey
+        onDelete: CASCADE
+- changeSet:
+    id: baseline-fk-access_token-access_token_organisation_id_fkey
+    author: merged
+    changes:
+    - addForeignKeyConstraint:
+        baseTableName: access_token
+        baseColumnNames: organisation_id
+        referencedTableName: organisation
+        referencedColumnNames: id
+        constraintName: access_token_organisation_id_fkey
+- changeSet:
+    id: baseline-fk-project_tags-fk_project_tags_project
+    author: merged
+    changes:
+    - addForeignKeyConstraint:
+        baseTableName: project_tags
+        baseColumnNames: project_id
+        referencedTableName: project
+        referencedColumnNames: id
+        constraintName: fk_project_tags_project
+- changeSet:
+    id: baseline-idx-access_token-at_hashed_token_index
+    author: merged
+    changes:
+    - createIndex:
+        tableName: access_token
+        indexName: at_hashed_token_index
+        columns:
+        - column:
+            name: hashed_token
+        unique: true
+- changeSet:
+    id: baseline-idx-project_tags-idx_project_tags_tag
+    author: merged
+    changes:
+    - createIndex:
+        tableName: project_tags
+        indexName: idx_project_tags_tag
+        columns:
+        - column:
+            name: tag
+- changeSet:
+    id: baseline-idx-environment-idx_environment_project_id
+    author: merged
+    changes:
+    - createIndex:
+        tableName: environment
+        indexName: idx_environment_project_id
+        columns:
+        - column:
+            name: project_id
+- changeSet:
+    id: baseline-idx-environment_tags-idx_env_tags_tag
+    author: merged
+    changes:
+    - createIndex:
+        tableName: environment_tags
+        indexName: idx_env_tags_tag
+        columns:
+        - column:
+            name: tag
+- changeSet:
+    id: baseline-idx-project-idx_project_orgid
+    author: merged
+    changes:
+    - createIndex:
+        tableName: project
+        indexName: idx_project_orgid
+        columns:
+        - column:
+            name: organisation_id
+- changeSet:
+    id: baseline-idx-project_tags-idx_project_tags_proj_id
+    author: merged
+    changes:
+    - createIndex:
+        tableName: project_tags
+        indexName: idx_project_tags_proj_id
+        columns:
+        - column:
+            name: project_id
+- changeSet:
+    id: baseline-idx-environment_tags-idx_env_tags_env_id
+    author: merged
+    changes:
+    - createIndex:
+        tableName: environment_tags
+        indexName: idx_env_tags_env_id
+        columns:
+        - column:
+            name: environment_id
+- changeSet:
+    id: baseline-idx-feature_flag-idx_flag_maintainer
+    author: merged
+    changes:
+    - createIndex:
+        tableName: feature_flag
+        indexName: idx_flag_maintainer
+        columns:
+        - column:
+            name: maintainer_id
+- changeSet:
+    id: baseline-idx-feature_flag_tags-idx_flag_tags_tag
+    author: merged
+    changes:
+    - createIndex:
+        tableName: feature_flag_tags
+        indexName: idx_flag_tags_tag
+        columns:
+        - column:
+            name: tag
+- changeSet:
+    id: baseline-idx-flag_variation-idx_flag_variation_flag_id
+    author: merged
+    changes:
+    - createIndex:
+        tableName: flag_variation
+        indexName: idx_flag_variation_flag_id
+        columns:
+        - column:
+            name: flag_id
+- changeSet:
+    id: baseline-idx-environment_flag_config-idx_env_flag_config_flag
+    author: merged
+    changes:
+    - createIndex:
+        tableName: environment_flag_config
+        indexName: idx_env_flag_config_flag
+        columns:
+        - column:
+            name: flag_id
+- changeSet:
+    id: baseline-9000-invitation-checks
+    author: merged
+    changes:
+    - sql:
+        splitStatements: false
+        stripComments: true
+        sql: alter table invitation add constraint chk_invitation_role check (role in ('READER','WRITER','ADMIN'));
+    - sql:
+        splitStatements: false
+        stripComments: true
+        sql: alter table invitation add constraint chk_invitation_status check (status in ('PENDING','ACCEPTED','DECLINED','REVOKED','EXPIRED'));
+    - sql:
+        splitStatements: false
+        stripComments: true
+        sql: create unique index uq_invite_unique_pending on invitation(organisation_id, email) where status = 'PENDING';
+- changeSet:
+    id: baseline-9001-role-defaults
+    author: merged
+    changes:
+    - sql:
+        splitStatements: false
+        stripComments: true
+        sql: alter table organisation_memberships alter column role set default 'NONE'::org_role; alter table access_token
+          alter column role set default 'NONE'::org_role;

@@ -24,7 +24,7 @@ public class ProjectsSettingsController{
 
     @PatchMapping("/flags")
     @RequiresRole(OrgRole.ADMIN)
-    public ResponseEntity<?> editFlagsSettings(@PathVariable("projectKey") String projectKey,
+    public ResponseEntity<?> editFlagsSettings(@PathVariable String projectKey,
                                                @Valid @RequestBody NamingConventionRequest request){
         projectsService.editProjectFlagsSettings(projectKey, request);
         return new ResponseEntity<>(HttpStatus.OK);
