@@ -21,13 +21,13 @@ public class AsyncConfig{
         return ex;
     }
 
-    @Bean("userActivityExecutor")
-    public Executor userActivityExecutor(){
+    @Bean("activityExecutor")
+    public Executor activityExecutor(){
         var ex = new ThreadPoolTaskExecutor();
         ex.setCorePoolSize(4);
         ex.setMaxPoolSize(16);
         ex.setQueueCapacity(2000);
-        ex.setThreadNamePrefix("user-activity-");
+        ex.setThreadNamePrefix("activity-");
         ex.initialize();
         return ex;
     }

@@ -29,6 +29,7 @@ public class AccessTokenAuthenticationProvider implements AuthenticationProvider
         AccessTokenPrincipal principal = AccessTokenPrincipal.builder()
                 .ownerId(tokenPrincipalDTO.ownerId())
                 .organisationId(tokenPrincipalDTO.organisationId())
+                .hashedToken(hashedToken)
                 .authorities(List.of(
                             new SimpleGrantedAuthority(String.format("ROLE_ORG_%s", tokenPrincipalDTO.role()))
                 )).build();

@@ -1,6 +1,7 @@
 package me.urninax.flagdelivery.shared.configs;
 
 import jakarta.servlet.DispatcherType;
+import me.urninax.flagdelivery.organisation.services.AccessTokenActivityService;
 import me.urninax.flagdelivery.shared.security.BearerTokenAuthenticationConverter;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.shared.security.filters.ActivityTrackerFilter;
@@ -104,7 +105,9 @@ public class SecurityConfig{
     }
 
     @Bean
-    public ActivityTrackerFilter activityTrackerFilter(UserActivityService service, CurrentUser currentUser){
-        return new ActivityTrackerFilter(service, currentUser);
+    public ActivityTrackerFilter activityTrackerFilter(UserActivityService service,
+                                                       AccessTokenActivityService accessTokenActivityService,
+                                                       CurrentUser currentUser){
+        return new ActivityTrackerFilter(service, accessTokenActivityService, currentUser);
     }
 }

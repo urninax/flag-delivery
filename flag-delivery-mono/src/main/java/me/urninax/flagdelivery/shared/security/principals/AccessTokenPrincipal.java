@@ -14,5 +14,6 @@ import java.util.UUID;
 public class AccessTokenPrincipal{
     private UUID ownerId;
     private UUID organisationId;
+    private String hashedToken;
     private Collection<? extends GrantedAuthority> authorities;
 }

@@ -17,13 +17,11 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, UUID
         on conflict (user_id)
         do update set
             last_seen = greatest(user_activity.last_seen, excluded.last_seen),
-            last_ip = coalesce(excluded.last_ip, user_activity.last_ip),
-            last_ua = coalesce(excluded.last_ua, user_activity.last_ua)
-        where excluded.last_seen > user_activity.last_seen + (:window || ' seconds')::interval
+            last_ip = excluded.last_ip,
+            last_ua = excluded.last_ua;
     """, nativeQuery = true)
     void upsertLastSeen(@Param("uid") UUID uid,
                         @Param("ts") Instant ts,
                         @Param("ip") String ip,
-                        @Param("ua") String ua,
-                        @Param("window") int windowSeconds);
+                        @Param("ua") String ua);
 }

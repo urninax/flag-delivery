@@ -20,6 +20,15 @@ public interface AccessTokenRepository extends JpaRepository<AccessToken, UUID>{
     Page<AccessToken> findAllByOwner_IdAndOrganisation_Id(UUID ownerId, UUID orgId, Pageable pageable);
     List<AccessToken> findAllByOwner_IdAndOrganisation_IdAndIsServiceFalse(UUID ownerId, UUID orgId);
     Optional<AccessTokenPrincipalDTO> findByHashedToken(String hashedToken);
+
+    @Modifying(clearAutomatically = true)
+    @Query("""
+        update AccessToken t
+        set t.lastUsed = current_timestamp
+        where t.hashedToken = :hashedToken
+    """)
+    void updateRecentlyUsed(String hashedToken);
+
     @Modifying
     @Query("""
         update AccessToken t

@@ -80,14 +80,10 @@ public class CurrentUser{
     public boolean isAuthMethod(AuthMethod authMethod){
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        if(principal instanceof UserPrincipal){
-            return authMethod == AuthMethod.JWT;
-        }
-
-        if(principal instanceof AccessTokenPrincipal){
-            return authMethod == AuthMethod.ACCESS_TOKEN;
-        }
-
-        return false;
+        return switch (principal) {
+            case UserPrincipal p -> authMethod == AuthMethod.JWT;
+            case AccessTokenPrincipal p -> authMethod == AuthMethod.ACCESS_TOKEN;
+            default -> false;
+        };
     }
 }
