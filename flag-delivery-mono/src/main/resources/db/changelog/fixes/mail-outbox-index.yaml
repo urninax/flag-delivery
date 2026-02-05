@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-02-05-status-createdAt-index
+      author: urninax
+      changes:
+        - createIndex:
+            tableName: mail_outbox
+            indexName: idx_mail_outbox_status_created_at
+            columns:
+              - column:
+                  name: status
+              - column:
+                  name: created_at
+      rollback:
+        - dropIndex:
+            indexName: idx_mail_outbox_status_created_at
+            tableName: mail_outbox

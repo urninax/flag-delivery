@@ -1,15 +1,18 @@
 package me.urninax.flagdelivery.organisation.services;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-import me.urninax.flagdelivery.organisation.events.invitation.InvitationAcceptedEvent;
-import me.urninax.flagdelivery.organisation.events.invitation.InvitationCreatedEvent;
 import me.urninax.flagdelivery.organisation.models.Organisation;
 import me.urninax.flagdelivery.organisation.models.invitation.Invitation;
 import me.urninax.flagdelivery.organisation.models.invitation.InvitationStatus;
+import me.urninax.flagdelivery.organisation.models.mailoutbox.MailOutboxEvent;
+import me.urninax.flagdelivery.organisation.models.mailoutbox.MailStatus;
 import me.urninax.flagdelivery.organisation.models.membership.Membership;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.organisation.repositories.InvitationsRepository;
+import me.urninax.flagdelivery.organisation.repositories.MailOutboxRepository;
 import me.urninax.flagdelivery.organisation.repositories.MembershipsRepository;
 import me.urninax.flagdelivery.organisation.shared.InvitationMailDTO;
 import me.urninax.flagdelivery.organisation.shared.InvitationOrganisationDTO;
@@ -18,13 +21,12 @@ import me.urninax.flagdelivery.organisation.ui.models.requests.CreateInvitationR
 import me.urninax.flagdelivery.organisation.ui.models.requests.InvitationFilter;
 import me.urninax.flagdelivery.organisation.utils.InvitationSpecifications;
 import me.urninax.flagdelivery.organisation.utils.InvitationTokenUtils;
-import me.urninax.flagdelivery.shared.exceptions.ForbiddenException;
 import me.urninax.flagdelivery.organisation.utils.exceptions.invitation.*;
+import me.urninax.flagdelivery.shared.exceptions.ForbiddenException;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.shared.utils.EntityMapper;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -32,6 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.MessageDigest;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -43,12 +46,14 @@ import java.util.UUID;
 public class InvitationsService{
     private final InvitationsRepository invitationsRepository;
     private final EntityMapper entityMapper;
+    private final ObjectMapper objectMapper;
     private final MembershipsRepository membershipsRepository;
     private final MembershipsService membershipsService;
     private final InvitationExpiryService invitationExpiryService;
-    private final ApplicationEventPublisher applicationEventPublisher;
     private final CurrentUser currentUser;
     private final EntityManager em;
+    private final MailOutboxRepository mailOutboxRepository;
+    private final Clock clock;
 
     @Value("${invitation-token.expiration-time-seconds}")
     private long invitationTokenExpirationTime;
@@ -99,9 +104,7 @@ public class InvitationsService{
         InvitationMailDTO invitationMailDTO = entityMapper.toMailDTO(invitationEntity);
         invitationMailDTO.setToken(token);
 
-        InvitationCreatedEvent event = new InvitationCreatedEvent(invitationMailDTO);
-
-        applicationEventPublisher.publishEvent(event);
+        mailOutboxRepository.save(formOutboxEvent(invitationMailDTO, "INVITATION_CREATED"));
     }
 
     @Transactional(readOnly = true)
@@ -242,6 +245,18 @@ public class InvitationsService{
         invitation.setRevokedAt(Instant.now());
     }
 
+    private MailOutboxEvent formOutboxEvent(InvitationMailDTO invitationMailDTO, String eventType){
+        JsonNode mailDTONode = objectMapper.valueToTree(invitationMailDTO);
+
+        return MailOutboxEvent.builder()
+                .aggregateId(invitationMailDTO.getInvitationId())
+                .type(eventType)
+                .payload(mailDTONode)
+                .status(MailStatus.PENDING)
+                .createdAt(Instant.now(clock))
+                .build();
+    }
+
 
     private boolean emailsNotEquals(String email1, String email2){
         if(email1 == null || email2 == null) return true;
@@ -255,6 +270,6 @@ public class InvitationsService{
         Invitation invitation = invitationsRepository.save(inv);
         InvitationMailDTO invitationMailDTO = entityMapper.toMailDTO(invitation);
 
-        applicationEventPublisher.publishEvent(new InvitationAcceptedEvent(invitationMailDTO));
+        mailOutboxRepository.save(formOutboxEvent(invitationMailDTO, "INVITATION_ACCEPTED"));
     }
 }

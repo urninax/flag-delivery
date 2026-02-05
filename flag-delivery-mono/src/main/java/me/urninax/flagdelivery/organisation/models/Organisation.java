@@ -44,18 +44,4 @@ public class Organisation{
             orphanRemoval = true
     )
     private List<AccessToken> tokens;
-
-//    public void addMembership(Membership membership){
-//        memberships.add(membership);
-//        membership.setOrganisation(this);
-//    }
-//
-//    public void removeMembership(Membership membership){
-//        memberships.remove(membership);
-//        membership.setOrganisation(null);
-//    }
-
-    //projects
-    //teams
-    //roles
 }

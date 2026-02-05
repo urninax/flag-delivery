@@ -2,3 +2,9 @@ databaseChangeLog:
 - include:
     file: init/db.changelog-baseline.yaml
     relativeToChangelogFile: true
+- include:
+    file: init/create-mail-outbox.yaml
+    relativeToChangelogFile: true
+- include:
+    file: fixes/mail-outbox-index.yaml
+    relativeToChangelogFile: true
