@@ -6,8 +6,10 @@ import me.urninax.flagdelivery.organisation.models.Organisation;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -41,6 +43,7 @@ public class Invitation{
 
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private OrgRole role;
 
     @Column(name = "token_hash", nullable = false, columnDefinition = "bytea")

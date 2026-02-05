@@ -1,0 +1,66 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-02-05-create-mail-outbox-status-enum
+      author: urninax
+      changes:
+        - sql:
+            splitStatements: false
+            stripComments: true
+            sql: "DO $$\nBEGIN\n  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'mail_status') THEN\n    CREATE TYPE mail_status\
+          \ AS ENUM ('PENDING', 'PROCESSED', 'FAILED');\n  END IF;\nEND\n$$ LANGUAGE plpgsql;"
+      rollback:
+        - sql:
+            sql: "DROP TYPE IF EXISTS mail_status;"
+  - changeSet:
+      id: 2026-02-05-create-mail-outbox-table
+      author: urninax
+      changes:
+        - createTable:
+            tableName: mail_outbox
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: mail_outbox_pkey
+                    nullable: false
+              - column:
+                  name: aggregate_id
+                  type: uuid
+                  constraints:
+                    foreignKeyName: fk_outbox_invitation
+                    nullable: false
+                    references: invitation(id)
+                    deleteCascade: true
+              - column:
+                  name: type
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: payload
+                  type: jsonb
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: mail_status
+                  defaultValueComputed: "'PENDING'::mail_status"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: retry_count
+                  type: int
+                  defaultValueNumeric: '0'
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: now()
+
+      rollback:
+        - dropForeignKeyConstraint:
+            baseTableName: mail_outbox
+            constraintName: fk_outbox_invitation
+        - dropTable:
+            tableName: mail_outbox

@@ -22,7 +22,7 @@ public class AccessTokenActivityService{
         String cacheKey = CacheKeys.accessTokenRecentlyUsed(hashedToken);
 
         Boolean wasSet = redisTemplate.opsForValue()
-                .setIfAbsent(cacheKey, "tracking", Duration.ofMinutes(5));
+                .setIfAbsent(cacheKey, "tracking", Duration.ofMinutes(1));
 
         if(Boolean.TRUE.equals(wasSet)){
             accessTokenRepository.updateRecentlyUsed(hashedToken);
