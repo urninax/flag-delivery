@@ -22,7 +22,7 @@ public class FlagsController{
 
     @PostMapping
     @RequiresRole(OrgRole.WRITER)
-    public ResponseEntity<?> createFlag(@PathVariable("projectKey") String projectKey,
+    public ResponseEntity<?> createFlag(@PathVariable String projectKey,
                                         @Valid @RequestBody CreateFeatureFlagRequest request){
         FeatureFlagDTO flagDTO = flagsService.createFlag(projectKey, request);
         return new ResponseEntity<>(flagDTO, HttpStatus.OK);

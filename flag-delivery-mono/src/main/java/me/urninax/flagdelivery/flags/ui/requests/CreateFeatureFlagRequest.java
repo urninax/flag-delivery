@@ -21,12 +21,12 @@ public record CreateFeatureFlagRequest(
         @JsonProperty("key")
         String key,
 
-        @Size(max = 2000, message = "Feature flag description should be at most 2000 characters long.")
+        @Size(max = 1000, message = "Feature flag description should be at most 1000 characters long.")
         @JsonProperty("description")
         String description,
 
-        @JsonProperty("variations") List<
-                        @Valid VariationRequest> variations,
+        @JsonProperty("variations")
+        List<@Valid VariationRequest> variations,
 
         @JsonProperty("temporary")
         Boolean temporary,
