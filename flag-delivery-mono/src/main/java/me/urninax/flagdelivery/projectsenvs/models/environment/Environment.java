@@ -46,9 +46,11 @@ public class Environment{
     private boolean critical;
 
     @OneToMany(mappedBy = "environment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private Set<EnvironmentTag> tags = new HashSet<>();
 
     @OneToMany(mappedBy = "environment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private Set<EnvironmentFlagConfig> flagConfigs = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)

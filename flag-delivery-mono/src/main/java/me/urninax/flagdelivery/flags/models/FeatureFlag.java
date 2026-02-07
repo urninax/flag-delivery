@@ -39,15 +39,8 @@ public class FeatureFlag{
 
     @OneToMany(mappedBy = "flag", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderColumn(name = "variation_order")
+    @Builder.Default
     private List<FlagVariation> variations = new LinkedList<>();
-
-//    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-//    @JoinColumn(name = "default_on_variation_id")
-//    private FlagVariation defaultOnVariation;
-//
-//    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-//    @JoinColumn(name = "default_off_variation_id")
-//    private FlagVariation defaultOffVariation;
 
     @Column(name = "default_on_variation_idx")
     private int defaultOnVariationIdx;
@@ -68,10 +61,8 @@ public class FeatureFlag{
     @OneToMany(mappedBy = "flag", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EnvironmentFlagConfig> flagConfigs;
 
-    @Transient
-    private Map<String, EnvironmentFlagConfig> environmentFlagConfigMap;
-
     @OneToMany(mappedBy = "featureFlag", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private Set<FeatureFlagTag> tags = new HashSet<>();
 
     @Column(name = "temporary")
