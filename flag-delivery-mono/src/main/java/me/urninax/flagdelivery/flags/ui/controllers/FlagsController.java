@@ -5,10 +5,15 @@ import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.flags.services.FlagsService;
 import me.urninax.flagdelivery.flags.shared.FeatureFlagDTO;
 import me.urninax.flagdelivery.flags.ui.requests.CreateFeatureFlagRequest;
+import me.urninax.flagdelivery.flags.ui.requests.ListAllFlagsRequest;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
+import me.urninax.flagdelivery.organisation.ui.models.responses.PageResponse;
 import me.urninax.flagdelivery.shared.security.enums.AuthMethod;
 import me.urninax.flagdelivery.shared.utils.annotations.RequiresAuthMethod;
 import me.urninax.flagdelivery.shared.utils.annotations.RequiresRole;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,8 +34,12 @@ public class FlagsController{
     }
 
     @GetMapping
-    public ResponseEntity<?> listFlags(){
-        return null;
+    @RequiresRole(OrgRole.READER)
+    public ResponseEntity<?> listFlags(@PathVariable String projectKey,
+                                       @PageableDefault Pageable pageable,
+                                       @RequestParam(name = "filter", required = false) ListAllFlagsRequest request){
+        Page<FeatureFlagDTO> flagDtoPage = flagsService.getPaginatedFlags(projectKey, pageable, request);
+        return new ResponseEntity<>(new PageResponse<>(flagDtoPage), HttpStatus.OK);
     }
 
     @GetMapping("/{flagKey}")

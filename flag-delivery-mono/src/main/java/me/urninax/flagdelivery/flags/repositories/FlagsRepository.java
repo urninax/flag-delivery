@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface FlagsRepository extends JpaRepository<FeatureFlag, UUID>{
+public interface FlagsRepository extends JpaRepository<FeatureFlag, UUID>, FlagsRepositoryCustom{
 }

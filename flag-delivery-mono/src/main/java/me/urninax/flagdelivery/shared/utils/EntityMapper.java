@@ -23,6 +23,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -67,7 +68,7 @@ public interface EntityMapper{
     @Mapping(source = "defaultOnVariationIdx", target = "defaults.onVariationIdx")
     @Mapping(source = "defaultOffVariationIdx", target = "defaults.offVariationIdx")
     @Mapping(target = "maintainerId", source = "maintainer.id")
-    @Mapping(source = "environmentFlagConfigMap", target = "environments")
+    @Mapping(source = "flagConfigs", target = "environments")
     FeatureFlagDTO toDTO(FeatureFlag featureFlag);
 
     EnvironmentFlagConfigDTO toDTO(EnvironmentFlagConfig flagConfig);
@@ -99,11 +100,10 @@ public interface EntityMapper{
                 .collect(Collectors.toSet());
     }
 
-    default Map<String, EnvironmentFlagConfigDTO> mapFlagConfigs(Map<String, EnvironmentFlagConfig> configsMap){
-        return configsMap.entrySet()
-                .stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        entry -> toDTO(entry.getValue())));
+    default Map<String, EnvironmentFlagConfigDTO> mapFlagConfigs(List<EnvironmentFlagConfig> configs){
+        return configs.stream().collect(Collectors.toMap(
+                key -> key.getEnvironment().getKey(),
+                this::toDTO
+        ));
     }
 }

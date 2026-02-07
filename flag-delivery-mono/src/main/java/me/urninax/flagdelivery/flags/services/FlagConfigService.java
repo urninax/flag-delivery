@@ -13,8 +13,9 @@ import me.urninax.flagdelivery.shared.utils.PersistenceExceptionUtils;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -23,36 +24,20 @@ public class FlagConfigService{
     private final EntityManager em;
 
     @Transactional
-    public Map<String, EnvironmentFlagConfig> createFlagConfigForEnvs(FeatureFlag flag, Set<FlagConfigEnvironmentProjection> environmentProjections){
-//        List<EnvironmentFlagConfig> configs = environmentProjections.stream()
-//                .map(proj ->
-//                        EnvironmentFlagConfig.builder()
-//                        .on(flag.isFlagOn())
-//                        .salt(randomHex())
-//                        .sel(randomHex())
-//                        .fallthroughVariationId(flag.getDefaultOnVariation())
-//                        .offVariationId(flag.getDefaultOffVariation())
-//                        .archived(false)
-//                        .flag(flag)
-//                        .environment(em.getReference(Environment.class, proj.getId()))
-//                        .build()
-//                ).toList();
-
-        Map<String, EnvironmentFlagConfig> configMap = environmentProjections.stream()
-                .collect(Collectors.toMap(FlagConfigEnvironmentProjection::getKey,
-                        proj ->
-                                EnvironmentFlagConfig.builder()
-                                        .on(flag.isFlagOn())
-                                        .salt(randomHex())
-                                        .sel(randomHex())
-                                        .fallthroughVariationIdx(flag.getDefaultOnVariationIdx())
-                                        .offVariationIdx(flag.getDefaultOffVariationIdx())
-                                        .archived(false)
-                                        .flag(flag)
-                                        .environment(em.getReference(Environment.class, proj.getId()))
-                                        .build()));
-
-        List<EnvironmentFlagConfig> configs = new LinkedList<>(configMap.values());
+    public List<EnvironmentFlagConfig> createFlagConfigForEnvs(FeatureFlag flag, Set<FlagConfigEnvironmentProjection> environmentProjections){
+        List<EnvironmentFlagConfig> configs = environmentProjections.stream()
+                .map(proj ->
+                        EnvironmentFlagConfig.builder()
+                            .on(flag.isFlagOn())
+                            .salt(randomHex())
+                            .sel(randomHex())
+                            .fallthroughVariationIdx(flag.getDefaultOnVariationIdx())
+                            .offVariationIdx(flag.getDefaultOffVariationIdx())
+                            .archived(false)
+                            .flag(flag)
+                            .environment(em.getReference(Environment.class, proj.getId()))
+                            .build()
+                ).toList();
 
         try{
             flagConfigsRepository.saveAllAndFlush(configs);
@@ -63,7 +48,7 @@ public class FlagConfigService{
             throw exc;
         }
 
-        return configMap;
+        return configs;
     }
 
     private String randomHex(){

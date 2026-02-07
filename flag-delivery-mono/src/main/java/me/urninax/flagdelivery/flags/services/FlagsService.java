@@ -8,6 +8,7 @@ import me.urninax.flagdelivery.flags.repositories.FlagsRepository;
 import me.urninax.flagdelivery.flags.shared.FeatureFlagDTO;
 import me.urninax.flagdelivery.flags.shared.ResolvedVariations;
 import me.urninax.flagdelivery.flags.ui.requests.CreateFeatureFlagRequest;
+import me.urninax.flagdelivery.flags.ui.requests.ListAllFlagsRequest;
 import me.urninax.flagdelivery.flags.utils.FlagConfigEnvironmentProjection;
 import me.urninax.flagdelivery.flags.utils.exceptions.FlagAlreadyExistsException;
 import me.urninax.flagdelivery.organisation.repositories.MembershipsRepository;
@@ -19,6 +20,8 @@ import me.urninax.flagdelivery.shared.utils.EntityMapper;
 import me.urninax.flagdelivery.shared.utils.PersistenceExceptionUtils;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -55,6 +58,17 @@ public class FlagsService{
 
         return entityMapper.toDTO(created);
     }
+
+    public Page<FeatureFlagDTO> getPaginatedFlags(String projectKey, Pageable pageable, ListAllFlagsRequest request){
+        UUID orgId = currentUser.getOrganisationId();
+        UUID projectId = projectsService.findIdByKeyAndOrg(projectKey, orgId);
+
+        Page<FeatureFlag> flagPage = flagsRepository.findAllWithFilter(projectId, request, pageable);
+
+        return flagPage.map(entityMapper::toDTO);
+    }
+
+    // Helper Methods
 
     private UserEntity resolveMaintainer(UUID candidateId, UUID orgId){
         // find out maintainer. maintainer from request if exists in the organisation, take requester id otherwise
@@ -117,7 +131,7 @@ public class FlagsService{
 
     private void initializeEnvironmentConfigs(FeatureFlag flag, UUID projectId) {
         Set<FlagConfigEnvironmentProjection> envs = environmentsRepository.findAllByProject_Id(projectId);
-        Map<String, EnvironmentFlagConfig> configs = flagConfigService.createFlagConfigForEnvs(flag, envs);
-        flag.setEnvironmentFlagConfigMap(configs);
+        List<EnvironmentFlagConfig> configs = flagConfigService.createFlagConfigForEnvs(flag, envs);
+        flag.setFlagConfigs(configs);
     }
 }
