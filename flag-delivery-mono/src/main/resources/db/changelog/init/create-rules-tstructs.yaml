@@ -1,0 +1,132 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-02-12-create-rule-table
+      author: urninax
+      changes:
+        - createTable:
+            tableName: rule
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_rule
+
+              - column:
+                  name: environment_flag_config_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    deleteCascade: true
+                    references: environment_flag_config(id)
+                    foreignKeyName: fk_rule_environment_flag_config
+
+              - column:
+                  name: priority
+                  type: int
+                  defaultValueNumeric: "0"
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: description
+                  type: varchar(500)
+
+              - column:
+                  name: variation_idx
+                  type: int
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropForeignKeyConstraint:
+            baseTableName: rule
+            constraintName: fk_rule_environment_flag_config
+        - dropTable:
+            tableName: rule
+
+  - changeSet:
+      id: 2026-02-12-create-rule_clause-table
+      author: urninax
+      changes:
+        - createTable:
+            tableName: rule_clause
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_rule_clause
+
+              - column:
+                  name: rule_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    deleteCascade: true
+                    references: rule(id)
+                    foreignKeyName: fk_clause_rule
+
+              - column:
+                  name: context_kind_key
+                  type: varchar(128)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: attribute
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: op
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: negate
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: values
+                  type: jsonb
+                  constraints:
+                    nullable: false
+
+      rollback:
+        - dropForeignKeyConstraint:
+            baseTableName: rule_clause
+            constraintName: fk_clause_rule
+        - dropTable:
+            tableName: rule_clause
+
+  - changeSet:
+      id: 2026-02-12-modify-environment-flag-config-table
+      author: urninax
+      changes:
+        - addColumn:
+            tableName: environment_flag_config
+            columns:
+              - column:
+                  name: context_targets
+                  type: jsonb
+
+              - column:
+                  name: prerequisites
+                  type: jsonb
+      rollback:
+        - dropColumn:
+            tableName: environment_flag_config
+            columns:
+              - column:
+                  name: context_targets
+              - column:
+                  name: prerequisites

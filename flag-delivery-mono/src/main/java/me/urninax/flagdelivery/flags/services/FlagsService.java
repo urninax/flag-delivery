@@ -11,6 +11,7 @@ import me.urninax.flagdelivery.flags.ui.requests.CreateFeatureFlagRequest;
 import me.urninax.flagdelivery.flags.ui.requests.ListAllFlagsRequest;
 import me.urninax.flagdelivery.flags.utils.FlagConfigEnvironmentProjection;
 import me.urninax.flagdelivery.flags.utils.exceptions.FlagAlreadyExistsException;
+import me.urninax.flagdelivery.flags.utils.exceptions.FlagNotFoundException;
 import me.urninax.flagdelivery.organisation.repositories.MembershipsRepository;
 import me.urninax.flagdelivery.projectsenvs.models.project.Project;
 import me.urninax.flagdelivery.projectsenvs.repositories.EnvironmentsRepository;
@@ -59,6 +60,16 @@ public class FlagsService{
         return entityMapper.toDTO(created);
     }
 
+    public FeatureFlagDTO getFlag(String projectKey, String flagKey){
+        UUID orgId = currentUser.getOrganisationId();
+        UUID projectId = projectsService.findIdByKeyAndOrg(projectKey, orgId);
+
+        FeatureFlag flag = flagsRepository.findByProjectIdAndKey(projectId, flagKey)
+                .orElseThrow(FlagNotFoundException::new);
+
+        return entityMapper.toDTO(flag);
+    }
+
     public Page<FeatureFlagDTO> getPaginatedFlags(String projectKey, Pageable pageable, ListAllFlagsRequest request){
         UUID orgId = currentUser.getOrganisationId();
         UUID projectId = projectsService.findIdByKeyAndOrg(projectKey, orgId);
@@ -66,6 +77,15 @@ public class FlagsService{
         Page<FeatureFlag> flagPage = flagsRepository.findAllWithFilter(projectId, request, pageable);
 
         return flagPage.map(entityMapper::toDTO);
+    }
+
+    public void deleteFlag(String projectKey, String flagKey){
+        UUID orgId = currentUser.getOrganisationId();
+        UUID projectId = projectsService.findIdByKeyAndOrg(projectKey, orgId);
+
+        if(!flagsRepository.deleteByProjectIdAndKey(projectId, flagKey)){
+            throw new FlagNotFoundException();
+        }
     }
 
     // Helper Methods

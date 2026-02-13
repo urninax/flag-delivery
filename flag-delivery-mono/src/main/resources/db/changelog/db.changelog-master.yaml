@@ -8,3 +8,9 @@ databaseChangeLog:
 - include:
     file: fixes/mail-outbox-index.yaml
     relativeToChangelogFile: true
+- include:
+    file: init/create-context-tstructs.yaml
+    relativeToChangelogFile: true
+- include:
+    file: init/create-rules-tstructs.yaml
+    relativeToChangelogFile: true

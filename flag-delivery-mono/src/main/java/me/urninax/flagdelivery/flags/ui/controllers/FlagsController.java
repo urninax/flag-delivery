@@ -43,7 +43,27 @@ public class FlagsController{
     }
 
     @GetMapping("/{flagKey}")
-    public ResponseEntity<?> getFlag(){
+    @RequiresRole(OrgRole.READER)
+    public ResponseEntity<?> getFlag(@PathVariable String projectKey,
+                                     @PathVariable String flagKey){
+        FeatureFlagDTO flagDTO = flagsService.getFlag(projectKey, flagKey);
+        return new ResponseEntity<>(flagDTO, HttpStatus.OK);
+    }
+
+    @PatchMapping("/{flagKey}")
+    @RequiresRole(OrgRole.WRITER)
+    public ResponseEntity<?> editFlag(@PathVariable String projectKey,
+                                      @PathVariable String flagKey){
         return null;
     }
+
+    @DeleteMapping("/{flagKey}")
+    @RequiresRole(OrgRole.WRITER)
+    public ResponseEntity<?> deleteFlag(@PathVariable String projectKey,
+                                        @PathVariable String flagKey){
+        flagsService.deleteFlag(projectKey, flagKey);
+        return ResponseEntity.ok().build();
+    }
+
+
 }

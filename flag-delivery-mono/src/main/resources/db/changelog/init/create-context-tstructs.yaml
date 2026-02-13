@@ -1,0 +1,211 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-02-09-create-context-kind-table
+      author: admin
+      changes:
+        - createTable:
+            tableName: context_kind
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: context_kind_pk
+
+              - column:
+                  name: project_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_context_kind_project
+                    references: project(id)
+                    deleteCascade: true
+
+              - column:
+                  name: name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: key
+                  type: varchar(128)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: attributes
+                  type: jsonb
+
+              - column:
+                  name: description
+                  type: varchar(1000)
+
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: context_kind
+            columnNames: key, project_id
+            constraintName: ux_key_project
+
+      rollback:
+        - dropForeignKeyConstraint:
+            constraintName: fk_context_kind_project
+            baseTableName: context_kind
+        - dropTable:
+            tableName: context_kind
+
+  - changeSet:
+      id: 2026-02-10-create-context-table
+      author: urninax
+      changes:
+        - createTable:
+            tableName: context
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: context_pk
+
+              - column:
+                  name: context_kind_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: context_kind(id)
+                    foreignKeyName: fk_context_context_kind
+                    deleteCascade: true
+
+              - column:
+                  name: environment_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: environment(id)
+                    foreignKeyName: fk_context_environment
+                    deleteCascade: true
+
+              - column:
+                  name: key
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: last_seen
+                  type: timestamp
+
+        - addUniqueConstraint:
+            tableName: context
+            columnNames: environment_id, key
+            constraintName: ux_context_env_key
+
+      rollback:
+        - dropForeignKeyConstraint:
+            baseTableName: context
+            constraintName: fk_context_context_kind
+        - dropForeignKeyConstraint:
+            baseTableName: context
+            constraintName: fk_context_environment
+        - dropUniqueConstraint:
+            tableName: context
+            constraintName: ux_context_env_key
+        - dropTable:
+            tableName: context
+
+  - changeSet:
+      id: 2026-02-11-create-context-instance
+      author: urninax
+      changes:
+        - createTable:
+            tableName: context_instance
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_context_instance
+
+              - column:
+                  name: hash
+                  type: varchar
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: body
+                  type: jsonb
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: version
+                  type: int
+                  defaultValueNumeric: "0"
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: updated_at
+                  type: timestamp
+
+        - createIndex:
+            tableName: context_instance
+            indexName: idx_context_instance_hash
+            columns:
+              - column:
+                  name: hash
+
+      rollback:
+        - dropTable:
+            tableName: context_instance
+
+  - changeSet:
+      id: 2026-02-11-create-context-instance-mappings
+      author: urninax
+      changes:
+        - createTable:
+            tableName: context_instance_mappings
+            columns:
+              - column:
+                  name: context_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: context(id)
+                    foreignKeyName: fk_context_instance_mappings_context
+                    deleteCascade: true
+
+              - column:
+                  name: context_instance_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    references: context_instance(id)
+                    foreignKeyName: fk_context_instance_mappings_context_instance
+                    deleteCascade: true
+
+        - addPrimaryKey:
+            tableName: context_instance_mappings
+            columnNames: context_id, context_instance_id
+            constraintName: pk_context_instance_mappings
+
+      rollback:
+        - dropTable:
+            tableName: context_instance_mappings
