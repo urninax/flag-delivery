@@ -3,8 +3,10 @@ package me.urninax.flagdelivery.shared.utils;
 import me.urninax.flagdelivery.flags.models.EnvironmentFlagConfig;
 import me.urninax.flagdelivery.flags.models.FeatureFlag;
 import me.urninax.flagdelivery.flags.models.FeatureFlagTag;
+import me.urninax.flagdelivery.flags.models.rule.RuleClause;
 import me.urninax.flagdelivery.flags.shared.EnvironmentFlagConfigDTO;
 import me.urninax.flagdelivery.flags.shared.FeatureFlagDTO;
+import me.urninax.flagdelivery.flags.ui.requests.rule.ClauseRequest;
 import me.urninax.flagdelivery.organisation.models.AccessToken;
 import me.urninax.flagdelivery.organisation.models.invitation.Invitation;
 import me.urninax.flagdelivery.organisation.shared.AccessTokenDTO;
@@ -21,6 +23,7 @@ import me.urninax.flagdelivery.user.models.UserEntity;
 import me.urninax.flagdelivery.user.ui.models.requests.SignupRequest;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 import java.util.Collections;
 import java.util.List;
@@ -72,6 +75,16 @@ public interface EntityMapper{
     FeatureFlagDTO toDTO(FeatureFlag featureFlag);
 
     EnvironmentFlagConfigDTO toDTO(EnvironmentFlagConfig flagConfig);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "rule", ignore = true)
+    @Mapping(target = "contextKindKey", source = "contextKind")
+    RuleClause toEntity(ClauseRequest request);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "rule", ignore = true)
+    @Mapping(target = "contextKindKey", source = "contextKind")
+    void updateEntityFromRequest(ClauseRequest request, @MappingTarget RuleClause entity);
 
     default Set<String> mapProjectTags(Set<ProjectTag> tags) { //todo: put all tags in one table
         if (tags == null) {

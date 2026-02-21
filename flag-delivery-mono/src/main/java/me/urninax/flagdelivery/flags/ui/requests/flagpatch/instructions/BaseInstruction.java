@@ -3,6 +3,8 @@ package me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.Getter;
+import lombok.Setter;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.clauses.*;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.lifecycle.*;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.prerequisites.AddPrerequisiteInstruction;
@@ -81,6 +83,12 @@ import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.variatio
         @JsonSubTypes.Type(value = UpdateMaintainerMemberInstruction.class, name = "updateMaintainerMember"),
 })
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Getter
+@Setter
 public abstract class BaseInstruction{
     private String kind;
+
+    public boolean requiresEnvironmentKey(){
+        return false;
+    }
 }

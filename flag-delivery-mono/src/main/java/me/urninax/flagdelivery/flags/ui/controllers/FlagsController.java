@@ -6,6 +6,7 @@ import me.urninax.flagdelivery.flags.services.FlagsService;
 import me.urninax.flagdelivery.flags.shared.FeatureFlagDTO;
 import me.urninax.flagdelivery.flags.ui.requests.CreateFeatureFlagRequest;
 import me.urninax.flagdelivery.flags.ui.requests.ListAllFlagsRequest;
+import me.urninax.flagdelivery.flags.ui.requests.PatchFeatureFlag;
 import me.urninax.flagdelivery.organisation.models.membership.OrgRole;
 import me.urninax.flagdelivery.organisation.ui.models.responses.PageResponse;
 import me.urninax.flagdelivery.shared.security.enums.AuthMethod;
@@ -53,8 +54,10 @@ public class FlagsController{
     @PatchMapping("/{flagKey}")
     @RequiresRole(OrgRole.WRITER)
     public ResponseEntity<?> editFlag(@PathVariable String projectKey,
-                                      @PathVariable String flagKey){
-        return null;
+                                      @PathVariable String flagKey,
+                                      @Valid @RequestBody PatchFeatureFlag request){
+        flagsService.patchFlag(request, projectKey, flagKey);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @DeleteMapping("/{flagKey}")
@@ -64,6 +67,4 @@ public class FlagsController{
         flagsService.deleteFlag(projectKey, flagKey);
         return ResponseEntity.ok().build();
     }
-
-
 }

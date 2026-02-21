@@ -52,9 +52,11 @@ public class GlobalControllerAdvice{
         Throwable cause = exc.getCause();
 
         String message = "Malformed request";
+        String errorCode = "MALFORMED_REQUEST";
 
         if(cause instanceof UnrecognizedPropertyException unrecognizedPropertyExc){
             message = String.format("Unknown field: %s", unrecognizedPropertyExc.getPropertyName());
+            errorCode = "UNKNOWN_FIELD";
         }else if(cause instanceof InvalidFormatException invalidFormatExc){
             Class<?> targetType = invalidFormatExc.getTargetType();
             Object value = invalidFormatExc.getValue();
@@ -69,13 +71,21 @@ public class GlobalControllerAdvice{
                         value,
                         invalidFormatExc.getPath().isEmpty() ? "unknown" : invalidFormatExc.getPath().getFirst().getFieldName(),
                         allowed);
+
+                errorCode = "INVALID_VALUE";
             }
+        }else{
+            if(exc.getMessage().contains("Required request body is missing:")){
+                errorCode = "REQUIRED_FIELD_MISSING";
+            }
+
         }
 
         ErrorMessage errorMessage = ErrorMessage.builder()
                 .timestamp(Instant.now())
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message(message)
+                .errorCode(errorCode)
                 .path(request.getDescription(false).replace("uri=", ""))
                 .build();
 

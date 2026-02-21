@@ -4,18 +4,26 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.flags.models.*;
+import me.urninax.flagdelivery.flags.models.rule.Rule;
 import me.urninax.flagdelivery.flags.repositories.FlagsRepository;
+import me.urninax.flagdelivery.flags.repositories.RulesRepository;
+import me.urninax.flagdelivery.flags.services.patch.*;
 import me.urninax.flagdelivery.flags.shared.FeatureFlagDTO;
 import me.urninax.flagdelivery.flags.shared.ResolvedVariations;
 import me.urninax.flagdelivery.flags.ui.requests.CreateFeatureFlagRequest;
 import me.urninax.flagdelivery.flags.ui.requests.ListAllFlagsRequest;
+import me.urninax.flagdelivery.flags.ui.requests.PatchFeatureFlag;
+import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.BaseInstruction;
+import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.ClauseInstruction;
 import me.urninax.flagdelivery.flags.utils.FlagConfigEnvironmentProjection;
 import me.urninax.flagdelivery.flags.utils.exceptions.FlagAlreadyExistsException;
 import me.urninax.flagdelivery.flags.utils.exceptions.FlagNotFoundException;
+import me.urninax.flagdelivery.flags.utils.exceptions.rule.RuleNotFoundException;
 import me.urninax.flagdelivery.organisation.repositories.MembershipsRepository;
 import me.urninax.flagdelivery.projectsenvs.models.project.Project;
 import me.urninax.flagdelivery.projectsenvs.repositories.EnvironmentsRepository;
 import me.urninax.flagdelivery.projectsenvs.services.ProjectsService;
+import me.urninax.flagdelivery.shared.exceptions.BadRequestException;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.shared.utils.EntityMapper;
 import me.urninax.flagdelivery.shared.utils.PersistenceExceptionUtils;
@@ -40,6 +48,14 @@ public class FlagsService{
     private final EntityManager em;
     private final EntityMapper entityMapper;
     private final FlagConfigService flagConfigService;
+    private final RulesService rulesService;
+    private final LifecycleService lifecycleService;
+    private final TargetsService targetsService;
+    private final PrerequisitesService prerequisitesService;
+    private final SettingsService settingsService;
+    private final VariationsService variationsService;
+    private final ClausesService clausesService;
+    private final RulesRepository rulesRepository;
 
     @Transactional
     public FeatureFlagDTO createFlag(String projectKey, CreateFeatureFlagRequest request){
@@ -77,6 +93,36 @@ public class FlagsService{
         Page<FeatureFlag> flagPage = flagsRepository.findAllWithFilter(projectId, request, pageable);
 
         return flagPage.map(entityMapper::toDTO);
+    }
+
+    @Transactional
+    public void patchFlag(PatchFeatureFlag request, String projectKey, String flagKey){
+        UUID orgId = currentUser.getOrganisationId();
+        UUID projectId = projectsService.findIdByKeyAndOrg(projectKey, orgId);
+
+        if(request.instructions().stream().anyMatch(BaseInstruction::requiresEnvironmentKey)){
+            if (request.environmentKey() == null) {
+                throw new BadRequestException("Environment key is required for some instructions");
+            }
+        }
+
+        for(BaseInstruction instruction : request.instructions()){
+            switch(instruction){
+                case ClauseInstruction c -> {
+                    Rule rule = rulesRepository.findRuleWithSecurityCheck(c.getRuleId(), request.environmentKey(), projectId)
+                                    .orElseThrow(RuleNotFoundException::new);
+                    clausesService.handle(rule, c);
+                }
+//                case RuleInstruction r -> rulesService.handle();
+//                case LifecycleInstruction l -> lifecycleService.handle();
+//                case TargetInstruction t -> targetsService.handle();
+//                case PrerequisiteInstruction p -> prerequisitesService.handle();
+//                case SettingInstruction s -> settingsService.handle();
+//                case VariationInstruction v -> variationsService.handle();
+                default -> throw new IllegalStateException("Unexpected value: " + instruction); // todo: change
+            }
+        }
+
     }
 
     public void deleteFlag(String projectKey, String flagKey){

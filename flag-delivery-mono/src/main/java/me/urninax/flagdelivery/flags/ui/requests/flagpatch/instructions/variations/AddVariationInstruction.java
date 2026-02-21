@@ -2,12 +2,14 @@ package me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.variati
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.validation.constraints.NotNull;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.VariationInstruction;
 
 public class AddVariationInstruction extends VariationInstruction{
     @JsonProperty("name")
     private String name;
 
+    @NotNull(message = "value cannot be null.")
     @JsonProperty("value")
     private JsonNode value;
 
