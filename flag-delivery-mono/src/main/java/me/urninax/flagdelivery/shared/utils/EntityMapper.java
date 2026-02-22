@@ -4,6 +4,7 @@ import me.urninax.flagdelivery.flags.models.EnvironmentFlagConfig;
 import me.urninax.flagdelivery.flags.models.FeatureFlag;
 import me.urninax.flagdelivery.flags.models.FeatureFlagTag;
 import me.urninax.flagdelivery.flags.models.rule.RuleClause;
+import me.urninax.flagdelivery.flags.shared.DefaultsDTO;
 import me.urninax.flagdelivery.flags.shared.EnvironmentFlagConfigDTO;
 import me.urninax.flagdelivery.flags.shared.FeatureFlagDTO;
 import me.urninax.flagdelivery.flags.ui.requests.rule.ClauseRequest;
@@ -68,12 +69,21 @@ public interface EntityMapper{
     EnvironmentDTO toDTO(Environment environment);
 
     @Mapping(source = "tags", target = "tags")
-    @Mapping(source = "defaultOnVariationIdx", target = "defaults.onVariationIdx")
-    @Mapping(source = "defaultOffVariationIdx", target = "defaults.offVariationIdx")
+    @Mapping(target = "defaults", expression = "java(mapDefaults(featureFlag))")
     @Mapping(target = "maintainerId", source = "maintainer.id")
     @Mapping(source = "flagConfigs", target = "environments")
     FeatureFlagDTO toDTO(FeatureFlag featureFlag);
 
+    default DefaultsDTO mapDefaults(FeatureFlag flag) {
+        if (flag == null) return null;
+        return new DefaultsDTO(
+                flag.getDefaultOnVariation() != null ? flag.getDefaultOnVariation().getId() : null,
+                flag.getDefaultOffVariation() != null ? flag.getDefaultOffVariation().getId() : null
+        );
+    }
+
+    @Mapping(source = "offVariation.id", target = "offVariationId")
+    @Mapping(source = "fallthroughVariation.id", target = "fallthroughVariationId")
     EnvironmentFlagConfigDTO toDTO(EnvironmentFlagConfig flagConfig);
 
     @Mapping(target = "id", ignore = true)

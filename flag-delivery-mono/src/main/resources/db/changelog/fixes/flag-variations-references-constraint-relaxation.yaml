@@ -1,0 +1,40 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-02-22-flag-variation-relax-nullable-constraint
+      author: urninax
+      changes:
+        - dropNotNullConstraint:
+            tableName: feature_flag
+            columnName: default_on_variation_id
+
+        - dropNotNullConstraint:
+            tableName: feature_flag
+            columnName: default_off_variation_id
+
+        - addForeignKeyConstraint:
+            baseTableName: feature_flag
+            baseColumnNames: default_off_variation_id
+            constraintName: fk_feature_flag_default_off_variation_id
+            referencedTableName: flag_variation
+            referencedColumnNames: id
+
+        - addForeignKeyConstraint:
+            baseTableName: rule
+            baseColumnNames: variation_id
+            referencedTableName: flag_variation
+            referencedColumnNames: id
+            constraintName: fk_rule_variation_id
+
+        - addForeignKeyConstraint:
+            baseTableName: environment_flag_config
+            baseColumnNames: off_variation_id
+            referencedTableName: flag_variation
+            referencedColumnNames: id
+            constraintName: fk_env_flag_config_off_variation_id
+
+        - addForeignKeyConstraint:
+            baseTableName: environment_flag_config
+            baseColumnNames: fallthrough_variation_id
+            referencedTableName: flag_variation
+            referencedColumnNames: id
+            constraintName: fk_env_flag_config_fallthrough_variation_id

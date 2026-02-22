@@ -14,3 +14,9 @@ databaseChangeLog:
 - include:
     file: init/create-rules-tstructs.yaml
     relativeToChangelogFile: true
+- include:
+    file: fixes/flag-variation-uuid-transition.yaml
+    relativeToChangelogFile: true
+- include:
+    file: fixes/flag-variations-references-constraint-relaxation.yaml
+    relativeToChangelogFile: true

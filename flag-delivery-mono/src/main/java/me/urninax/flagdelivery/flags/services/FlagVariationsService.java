@@ -40,7 +40,7 @@ public class FlagVariationsService{
         validateVariationTypes(variations);
         validateVariationsUniqueness(variations);
 
-        return new ResolvedVariations(variations, onIdx, offIdx);
+        return new ResolvedVariations(variations, variations.get(onIdx), variations.get(offIdx));
     }
 
     public List<FlagVariation> defaultVariations(){

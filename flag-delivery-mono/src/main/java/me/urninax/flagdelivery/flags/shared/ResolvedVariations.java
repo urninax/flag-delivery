@@ -6,6 +6,6 @@ import java.util.List;
 
 public record ResolvedVariations(
         List<FlagVariation> variations,
-        int onIdx,
-        int offIdx
+        FlagVariation onVariation,
+        FlagVariation offVariation
 ){}

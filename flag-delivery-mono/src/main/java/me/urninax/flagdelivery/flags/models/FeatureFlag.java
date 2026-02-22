@@ -38,15 +38,16 @@ public class FeatureFlag{
     private FlagKind kind;
 
     @OneToMany(mappedBy = "flag", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderColumn(name = "variation_order")
     @Builder.Default
     private List<FlagVariation> variations = new LinkedList<>();
 
-    @Column(name = "default_on_variation_idx")
-    private int defaultOnVariationIdx;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "default_on_variation_id")
+    private FlagVariation defaultOnVariation;
 
-    @Column(name = "default_off_variation_idx")
-    private int defaultOffVariationIdx;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "default_off_variation_id")
+    private FlagVariation defaultOffVariation;
 
     @Column(name = "description")
     private String description;

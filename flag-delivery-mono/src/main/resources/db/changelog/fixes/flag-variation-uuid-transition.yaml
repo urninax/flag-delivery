@@ -1,0 +1,76 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-02-22-add-uuid-columns
+      author: urninax
+      changes:
+        - addColumn:
+            tableName: feature_flag
+            columns:
+              - column: { name: default_on_variation_id, type: uuid }
+              - column: { name: default_off_variation_id, type: uuid }
+        - addColumn:
+            tableName: rule
+            columns:
+              - column: { name: variation_id, type: uuid }
+        - addColumn:
+            tableName: environment_flag_config
+            columns:
+              - column: { name: off_variation_id, type: uuid }
+              - column: { name: fallthrough_variation_id, type: uuid }
+
+  - changeSet:
+      id: 2026-02-22-migrate-index-to-uuid
+      author: urninax
+      changes:
+        - sql:
+            dbms: postgresql, h2
+            sql: >
+              UPDATE feature_flag ff 
+              SET default_on_variation_id = (SELECT v.id FROM flag_variation v WHERE v.flag_id = ff.id AND v.variation_order = ff.default_on_variation_idx),
+                  default_off_variation_id = (SELECT v.id FROM flag_variation v WHERE v.flag_id = ff.id AND v.variation_order = ff.default_off_variation_idx);
+              
+              UPDATE rule r
+              SET variation_id = (SELECT v.id FROM flag_variation v WHERE v.flag_id = (SELECT e.flag_id FROM environment_flag_config e WHERE e.id = r.environment_flag_config_id) AND v.variation_order = r.variation_idx);
+              
+              UPDATE environment_flag_config efc
+              SET off_variation_id = (SELECT v.id FROM flag_variation v WHERE v.flag_id = efc.flag_id AND v.variation_order = efc.off_variation_idx),
+                  fallthrough_variation_id = (SELECT v.id FROM flag_variation v WHERE v.flag_id = efc.flag_id AND v.variation_order = efc.fallthrough_variation_idx);
+
+  - changeSet:
+      id: 2026-02-22-finalize-uuid-transition
+      author: urninax
+      changes:
+        - addNotNullConstraint: { tableName: feature_flag, columnName: default_on_variation_id, columnDataType: uuid }
+        - addNotNullConstraint: { tableName: feature_flag, columnName: default_off_variation_id, columnDataType: uuid }
+        - addNotNullConstraint: { tableName: rule, columnName: variation_id, columnDataType: uuid }
+        - addNotNullConstraint: { tableName: environment_flag_config, columnName: off_variation_id, columnDataType: uuid }
+        - addNotNullConstraint: { tableName: environment_flag_config, columnName: fallthrough_variation_id, columnDataType: uuid }
+
+        - addForeignKeyConstraint:
+            baseTableName: feature_flag
+            baseColumnNames: default_on_variation_id
+            referencedTableName: flag_variation
+            referencedColumnNames: id
+            constraintName: fk_ff_default_on
+
+        - dropColumn: { tableName: feature_flag, columnName: default_on_variation_idx }
+        - dropColumn: { tableName: feature_flag, columnName: default_off_variation_idx }
+        - dropColumn: { tableName: flag_variation, columnName: variation_order }
+        - dropColumn: { tableName: rule, columnName: variation_idx }
+        - dropColumn: { tableName: environment_flag_config, columnName: off_variation_idx }
+        - dropColumn: { tableName: environment_flag_config, columnName: fallthrough_variation_idx }
+
+  - changeSet:
+      id: 2026-02-22-add-rule-indexes
+      author: urninax
+      changes:
+        - createIndex:
+            tableName: rule
+            indexName: idx_rule_env_flag_config_id
+            columns:
+              - column: { name: environment_flag_config_id }
+        - createIndex:
+            tableName: rule_clause
+            indexName: idx_rule_clause_rule_id
+            columns:
+              - column: { name: rule_id }

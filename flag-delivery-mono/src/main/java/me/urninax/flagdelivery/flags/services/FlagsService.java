@@ -15,6 +15,7 @@ import me.urninax.flagdelivery.flags.ui.requests.ListAllFlagsRequest;
 import me.urninax.flagdelivery.flags.ui.requests.PatchFeatureFlag;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.BaseInstruction;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.ClauseInstruction;
+import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.RuleInstruction;
 import me.urninax.flagdelivery.flags.utils.FlagConfigEnvironmentProjection;
 import me.urninax.flagdelivery.flags.utils.exceptions.FlagAlreadyExistsException;
 import me.urninax.flagdelivery.flags.utils.exceptions.FlagNotFoundException;
@@ -62,7 +63,6 @@ public class FlagsService{
         UUID orgId = currentUser.getOrganisationId();
         UUID projectId = projectsService.findIdByKeyAndOrg(projectKey, orgId);
 
-
         ResolvedVariations resolvedVariations = flagVariationsService.resolveAndValidateVariations(request);
         UserEntity maintainer = resolveMaintainer(request.maintainerId(), orgId);
         Project project = em.getReference(Project.class, projectId);
@@ -71,6 +71,7 @@ public class FlagsService{
         attachTags(flag, request.tags());
 
         FeatureFlag created = safelySaveFlag(flag);
+        setDefaultVariations(created, resolvedVariations);
         initializeEnvironmentConfigs(created, projectId);
 
         return entityMapper.toDTO(created);
@@ -106,20 +107,32 @@ public class FlagsService{
             }
         }
 
+        FeatureFlag flag = flagsRepository.findByProjectIdAndKeyWithConfig(projectId, flagKey, request.environmentKey())
+                .orElseThrow(FlagNotFoundException::new);
+
+        EnvironmentFlagConfig config = flag.getFlagConfigs().stream()
+                .filter(c -> c.getEnvironment().getKey().equals(request.environmentKey()))
+                .findFirst()
+                .orElseThrow(() -> new BadRequestException("Environment not found for this flag"));
+
+
         for(BaseInstruction instruction : request.instructions()){
             switch(instruction){
                 case ClauseInstruction c -> {
-                    Rule rule = rulesRepository.findRuleWithSecurityCheck(c.getRuleId(), request.environmentKey(), projectId)
+                    Rule rule = config.getRules().stream()
+                                    .filter(r -> r.getId().equals(c.getRuleId()))
+                                    .findFirst()
                                     .orElseThrow(RuleNotFoundException::new);
+
                     clausesService.handle(rule, c);
                 }
-//                case RuleInstruction r -> rulesService.handle();
+                case RuleInstruction r -> rulesService.handle(config, flag, r);
 //                case LifecycleInstruction l -> lifecycleService.handle();
 //                case TargetInstruction t -> targetsService.handle();
 //                case PrerequisiteInstruction p -> prerequisitesService.handle();
 //                case SettingInstruction s -> settingsService.handle();
 //                case VariationInstruction v -> variationsService.handle();
-                default -> throw new IllegalStateException("Unexpected value: " + instruction); // todo: change
+                default -> throw new BadRequestException("Unsupported instruction type"); // todo: change
             }
         }
 
@@ -137,7 +150,7 @@ public class FlagsService{
     // Helper Methods
 
     private UserEntity resolveMaintainer(UUID candidateId, UUID orgId){
-        // find out maintainer. maintainer from request if exists in the organisation, take requester id otherwise
+        // find out the maintainer. maintainer from request if exists in the organisation, take requester id otherwise
         boolean isValidMaintainer = candidateId != null
                 && membershipsRepository.existsByUserIdAndOrganisation_Id(candidateId, orgId);
 
@@ -161,8 +174,6 @@ public class FlagsService{
                 .key(request.key())
                 .description(request.description())
                 .kind(kind)
-                .defaultOnVariationIdx(resolvedVariations.onIdx())
-                .defaultOffVariationIdx(resolvedVariations.offIdx())
                 .maintainer(maintainer)
                 .flagOn(Objects.requireNonNullElse(request.isFlagOn(), false))
                 .temporary(Objects.requireNonNullElse(request.temporary(), true))
@@ -199,5 +210,10 @@ public class FlagsService{
         Set<FlagConfigEnvironmentProjection> envs = environmentsRepository.findAllByProject_Id(projectId);
         List<EnvironmentFlagConfig> configs = flagConfigService.createFlagConfigForEnvs(flag, envs);
         flag.setFlagConfigs(configs);
+    }
+
+    private void setDefaultVariations(FeatureFlag flag, ResolvedVariations resolvedVariations){
+        flag.setDefaultOnVariation(resolvedVariations.onVariation());
+        flag.setDefaultOffVariation(resolvedVariations.offVariation());
     }
 }

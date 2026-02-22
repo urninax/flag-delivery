@@ -3,6 +3,7 @@ package me.urninax.flagdelivery.flags.models.rule;
 import jakarta.persistence.*;
 import lombok.*;
 import me.urninax.flagdelivery.flags.models.EnvironmentFlagConfig;
+import me.urninax.flagdelivery.flags.models.FlagVariation;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.util.ArrayList;
@@ -37,8 +38,9 @@ public class Rule{
     @Column(name = "description")
     private String description;
 
-    @Column(name = "variation_idx")
-    private Integer variationIdx;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variation_id")
+    private FlagVariation variation;
 
     public void addClause(RuleClause clause) {
         this.clauses.add(clause);

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record EnvironmentFlagConfigDTO(
@@ -12,11 +13,11 @@ public record EnvironmentFlagConfigDTO(
         String salt,
         String sel,
 
-        @JsonProperty("off_variation_idx")
-        int offVariationIdx,
+        @JsonProperty("off_variation_id")
+        UUID offVariationId,
 
-        @JsonProperty("fallthrough_variation_idx")
-        int fallthroughVariationIdx,
+        @JsonProperty("fallthrough_variation_id")
+        UUID fallthroughVariationId,
 
         @JsonProperty("updated_at")
         Instant updatedAt

@@ -7,6 +7,7 @@ import me.urninax.flagdelivery.flags.repositories.RuleClausesRepository;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.ClauseInstruction;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.clauses.*;
 import me.urninax.flagdelivery.flags.utils.exceptions.rule.ClauseNotFoundException;
+import me.urninax.flagdelivery.shared.exceptions.BadRequestException;
 import me.urninax.flagdelivery.shared.utils.EntityMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +32,7 @@ public class ClausesService{
             case RemoveClausesInstruction instruction -> removeClauses(rule, instruction);
             case RemoveValuesFromClauseInstruction instruction -> removeValuesFromClause(rule, instruction);
             case UpdateClauseInstruction instruction -> updateClause(rule, instruction);
-            default -> throw new IllegalStateException("Unexpected value: " + clauseInstruction); //todo: change
+            default -> throw new BadRequestException("Unexpected clauses instruction");
         }
     }
 
@@ -44,7 +45,9 @@ public class ClausesService{
     }
 
     private void addValuesToClause(Rule rule, AddValuesToClauseInstruction instruction){
-        RuleClause clause = ruleClausesRepository.findByIdAndRuleId(instruction.getClauseId(), rule.getId())
+        RuleClause clause = rule.getClauses().stream()
+                .filter(c -> c.getId().equals(instruction.getClauseId()))
+                .findFirst()
                 .orElseThrow(ClauseNotFoundException::new);
 
         List<String> combined = Stream.concat(clause.getValues().stream(), instruction.getValues().stream())
@@ -60,7 +63,9 @@ public class ClausesService{
     }
 
     private void removeValuesFromClause(Rule rule, RemoveValuesFromClauseInstruction instruction){
-        RuleClause clause = ruleClausesRepository.findByIdAndRuleId(instruction.getClauseId(), rule.getId())
+        RuleClause clause = rule.getClauses().stream()
+                .filter(c -> c.getId().equals(instruction.getClauseId()))
+                .findFirst()
                 .orElseThrow(ClauseNotFoundException::new);
 
         Set<String> updatedValues = new LinkedHashSet<>(clause.getValues());
