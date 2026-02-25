@@ -72,6 +72,9 @@ public class FeatureFlag{
     @Column(name = "archived")
     private boolean archived;
 
+    @Column(name = "deprecated")
+    private boolean deprecated;
+
     @CreationTimestamp
     @Column(name = "created_at")
     private Instant createdAt;

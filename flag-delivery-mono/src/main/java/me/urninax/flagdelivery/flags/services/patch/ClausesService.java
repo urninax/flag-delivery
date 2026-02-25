@@ -3,7 +3,6 @@ package me.urninax.flagdelivery.flags.services.patch;
 import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.flags.models.rule.Rule;
 import me.urninax.flagdelivery.flags.models.rule.RuleClause;
-import me.urninax.flagdelivery.flags.repositories.RuleClausesRepository;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.ClauseInstruction;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.clauses.*;
 import me.urninax.flagdelivery.flags.utils.exceptions.rule.ClauseNotFoundException;
@@ -22,7 +21,6 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class ClausesService{
     private final EntityMapper entityMapper;
-    private final RuleClausesRepository ruleClausesRepository;
 
     @Transactional
     public void handle(Rule rule, ClauseInstruction clauseInstruction){
@@ -75,7 +73,9 @@ public class ClausesService{
     }
 
     private void updateClause(Rule rule, UpdateClauseInstruction instruction){
-        RuleClause clause = ruleClausesRepository.findByIdAndRuleId(instruction.getClauseId(), rule.getId())
+        RuleClause clause = rule.getClauses().stream()
+                .filter(c -> c.getId().equals(instruction.getClauseId()))
+                .findFirst()
                 .orElseThrow(ClauseNotFoundException::new);
         
         entityMapper.updateEntityFromRequest(instruction.getClause(), clause);

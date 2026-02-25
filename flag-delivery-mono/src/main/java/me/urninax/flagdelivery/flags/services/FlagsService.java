@@ -15,6 +15,7 @@ import me.urninax.flagdelivery.flags.ui.requests.ListAllFlagsRequest;
 import me.urninax.flagdelivery.flags.ui.requests.PatchFeatureFlag;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.BaseInstruction;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.ClauseInstruction;
+import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.LifecycleInstruction;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.RuleInstruction;
 import me.urninax.flagdelivery.flags.utils.FlagConfigEnvironmentProjection;
 import me.urninax.flagdelivery.flags.utils.exceptions.FlagAlreadyExistsException;
@@ -117,6 +118,11 @@ public class FlagsService{
 
 
         for(BaseInstruction instruction : request.instructions()){
+            if(!em.contains(flag) || !em.contains(config)){
+                throw new BadRequestException("Instruction " + instruction.getClass().getSimpleName() +
+                        " failed: The flag or environment was deleted by a previous instruction in the chain.");
+            }
+
             switch(instruction){
                 case ClauseInstruction c -> {
                     Rule rule = config.getRules().stream()
@@ -127,13 +133,15 @@ public class FlagsService{
                     clausesService.handle(rule, c);
                 }
                 case RuleInstruction r -> rulesService.handle(config, flag, r);
-//                case LifecycleInstruction l -> lifecycleService.handle();
+                case LifecycleInstruction l -> lifecycleService.handle(flag, l);
 //                case TargetInstruction t -> targetsService.handle();
 //                case PrerequisiteInstruction p -> prerequisitesService.handle();
 //                case SettingInstruction s -> settingsService.handle();
 //                case VariationInstruction v -> variationsService.handle();
                 default -> throw new BadRequestException("Unsupported instruction type"); // todo: change
             }
+
+            em.flush();
         }
 
     }

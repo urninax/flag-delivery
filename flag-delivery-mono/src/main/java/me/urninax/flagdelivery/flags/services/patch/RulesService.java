@@ -1,13 +1,10 @@
 package me.urninax.flagdelivery.flags.services.patch;
 
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.flags.models.EnvironmentFlagConfig;
 import me.urninax.flagdelivery.flags.models.FeatureFlag;
 import me.urninax.flagdelivery.flags.models.FlagVariation;
 import me.urninax.flagdelivery.flags.models.rule.Rule;
-import me.urninax.flagdelivery.flags.models.rule.RuleClause;
-import me.urninax.flagdelivery.flags.repositories.RulesRepository;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.RuleInstruction;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.rules.*;
 import me.urninax.flagdelivery.flags.ui.requests.rule.RuleRequest;
@@ -26,8 +23,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RulesService{
     private final EntityMapper entityMapper;
-    private final RulesRepository rulesRepository;
-    private final EntityManager entityManager;
 
     @Transactional
     public void handle(EnvironmentFlagConfig config, FeatureFlag flag, RuleInstruction ruleInstruction){
@@ -44,17 +39,18 @@ public class RulesService{
 
     private void addRule(EnvironmentFlagConfig config, FeatureFlag flag, AddRuleInstruction instruction){
         int targetPriority;
-        UUID beforeRuleId = instruction.getBeforeRuleId();
 
-        if(beforeRuleId != null){
+        if(instruction.getBeforeRuleId() != null){
             Rule referenceRule = config.getRules().stream()
-                    .filter(r -> r.getId().equals(beforeRuleId))
+                    .filter(r -> r.getId().equals(instruction.getBeforeRuleId()))
                     .findFirst()
                     .orElseThrow(RuleNotFoundException::new);
 
             targetPriority = referenceRule.getPriority();
 
-            rulesRepository.incrementPriorities(config.getId(), targetPriority);
+            config.getRules().stream()
+                    .filter(r -> r.getPriority() >= targetPriority)
+                    .forEach(r -> r.setPriority(r.getPriority() + 1));
         }else {
             targetPriority = config.getRules().stream()
                     .mapToInt(Rule::getPriority)
@@ -73,16 +69,11 @@ public class RulesService{
                 .environmentFlagConfig(config)
                 .build();
 
-        List<RuleClause> clauses = instruction.getClauses().stream()
-                .map(entityMapper::toEntity)
-                .toList();
-
-        clauses.forEach(newRule::addClause);
+        instruction.getClauses().stream()
+                    .map(entityMapper::toEntity)
+                    .forEach(newRule::addClause);
 
         config.addRule(newRule);
-
-        entityManager.flush();
-        entityManager.refresh(config);
     }
 
     private void removeRule(EnvironmentFlagConfig config, RemoveRuleInstruction instruction){
@@ -95,10 +86,9 @@ public class RulesService{
 
         config.getRules().remove(targetRule);
 
-        rulesRepository.decrementPriorities(config.getId(), removedPriority);
-
-        entityManager.flush();
-        entityManager.refresh(config);
+        config.getRules().stream()
+                .filter(r -> r.getPriority() > removedPriority)
+                .forEach(r -> r.setPriority(r.getPriority() - 1));
     }
 
     private void reorderRules(EnvironmentFlagConfig config, ReorderRulesInstruction instruction){
@@ -122,9 +112,6 @@ public class RulesService{
         }
 
         config.getRules().sort(Comparator.comparingInt(Rule::getPriority));
-
-        entityManager.flush();
-        entityManager.refresh(config);
     }
 
     private void replaceRules(EnvironmentFlagConfig config, FeatureFlag flag, ReplaceRulesInstruction instruction){
@@ -156,9 +143,6 @@ public class RulesService{
 
         config.getRules().clear();
         config.getRules().addAll(finalRules);
-
-        entityManager.flush();
-        entityManager.refresh(config);
     }
 
     private void updateRuleDescription(EnvironmentFlagConfig config, UpdateRuleDescriptionInstruction instruction){
@@ -181,7 +165,5 @@ public class RulesService{
                 .findFirst().orElseThrow(VariationNotFoundException::new);
 
         rule.setVariation(variation);
-
-        entityManager.flush();
     }
 }

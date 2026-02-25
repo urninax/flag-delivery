@@ -33,7 +33,7 @@ public class EnvironmentFlagConfig{
     @JoinColumn(name = "flag_id")
     private FeatureFlag flag;
 
-    @OneToMany(mappedBy = "environmentFlagConfig", fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(mappedBy = "environmentFlagConfig", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @Builder.Default
     private List<Rule> rules = new ArrayList<>();
 
