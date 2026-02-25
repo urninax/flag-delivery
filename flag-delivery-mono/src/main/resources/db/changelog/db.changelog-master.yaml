@@ -20,3 +20,6 @@ databaseChangeLog:
 - include:
     file: fixes/flag-variations-references-constraint-relaxation.yaml
     relativeToChangelogFile: true
+- include:
+    file: fixes/flag-patch-concurrency-fix.yaml
+    relativeToChangelogFile: true

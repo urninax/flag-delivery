@@ -45,4 +45,8 @@ public class RuleClause{
     @Column(name = "values", columnDefinition = "jsonb")
     @Builder.Default
     private List<String> values = new ArrayList<>();
+
+    @Version
+    @Column(name = "version")
+    private Long version;
 }

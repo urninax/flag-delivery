@@ -37,6 +37,10 @@ public class FlagVariation{
     @Column(name = "description")
     private String description;
 
+    @Version
+    @Column(name = "version")
+    private Long version;
+
     @Override
     public boolean equals(Object o){
         if(o == null || getClass() != o.getClass()) return false;

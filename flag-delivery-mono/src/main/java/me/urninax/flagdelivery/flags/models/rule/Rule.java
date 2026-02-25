@@ -42,6 +42,10 @@ public class Rule{
     @JoinColumn(name = "variation_id")
     private FlagVariation variation;
 
+    @Version
+    @Column(name = "version")
+    private Long version;
+
     public void addClause(RuleClause clause) {
         this.clauses.add(clause);
         clause.setRule(this);

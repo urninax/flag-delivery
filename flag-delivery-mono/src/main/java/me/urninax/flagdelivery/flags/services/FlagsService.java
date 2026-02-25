@@ -5,6 +5,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.flags.models.*;
 import me.urninax.flagdelivery.flags.models.rule.Rule;
+import me.urninax.flagdelivery.flags.repositories.FlagConfigsRepository;
 import me.urninax.flagdelivery.flags.repositories.FlagsRepository;
 import me.urninax.flagdelivery.flags.repositories.RulesRepository;
 import me.urninax.flagdelivery.flags.services.patch.*;
@@ -58,6 +59,7 @@ public class FlagsService{
     private final VariationsService variationsService;
     private final ClausesService clausesService;
     private final RulesRepository rulesRepository;
+    private final FlagConfigsRepository flagConfigsRepository;
 
     @Transactional
     public FeatureFlagDTO createFlag(String projectKey, CreateFeatureFlagRequest request){
@@ -108,23 +110,31 @@ public class FlagsService{
             }
         }
 
-        FeatureFlag flag = flagsRepository.findByProjectIdAndKeyWithConfig(projectId, flagKey, request.environmentKey())
+        UUID flagId = flagsRepository.findIdForUpdate(projectId, flagKey)
                 .orElseThrow(FlagNotFoundException::new);
 
-        EnvironmentFlagConfig config = flag.getFlagConfigs().stream()
-                .filter(c -> c.getEnvironment().getKey().equals(request.environmentKey()))
-                .findFirst()
-                .orElseThrow(() -> new BadRequestException("Environment not found for this flag"));
+        FeatureFlag flag = flagsRepository.findDeepById(flagId)
+                .orElseThrow(FlagNotFoundException::new);
 
+        EnvironmentFlagConfig config = null;
+
+        if(request.environmentKey() != null){
+            config = flag.getFlagConfigs().stream()
+                    .filter(c -> c.getEnvironment().getKey().equals(request.environmentKey()))
+                    .findFirst()
+                    .orElseThrow(() -> new BadRequestException("Environment key not found"));
+        }
 
         for(BaseInstruction instruction : request.instructions()){
-            if(!em.contains(flag) || !em.contains(config)){
+            if(!em.contains(flag) || (config != null && !em.contains(config))){
                 throw new BadRequestException("Instruction " + instruction.getClass().getSimpleName() +
                         " failed: The flag or environment was deleted by a previous instruction in the chain.");
             }
 
             switch(instruction){
                 case ClauseInstruction c -> {
+                    if(config == null) throw new BadRequestException("Environment config is missing");
+
                     Rule rule = config.getRules().stream()
                                     .filter(r -> r.getId().equals(c.getRuleId()))
                                     .findFirst()
@@ -132,7 +142,11 @@ public class FlagsService{
 
                     clausesService.handle(rule, c);
                 }
-                case RuleInstruction r -> rulesService.handle(config, flag, r);
+                case RuleInstruction r -> {
+                    if(config == null) throw new BadRequestException("Environment config is missing");
+
+                    rulesService.handle(config, flag, r);
+                }
                 case LifecycleInstruction l -> lifecycleService.handle(flag, l);
 //                case TargetInstruction t -> targetsService.handle();
 //                case PrerequisiteInstruction p -> prerequisitesService.handle();
