@@ -1,0 +1,186 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-02-25-rework-environment-tags
+      author: urninax
+      dbms: postgresql
+      changes:
+        - addColumn:
+            tableName: environment
+            columns:
+              - column:
+                  name: tags
+                  type: jsonb
+                  defaultValue: '[]'
+
+        - sql:
+            sql: "
+              update environment e 
+              set tags = subquery.tags_array 
+              from (
+                select environment_id, jsonb_agg(id_tag) as tags_array
+                from (
+                  select environment_id, tag as id_tag
+                  from environment_tags
+                ) inner_tags
+                group by environment_id
+              ) as subquery 
+              where e.id = subquery.environment_id;"
+
+        - sql:
+            sql: "create index idx_environment_tags on environment using gin (tags);"
+
+        - dropForeignKeyConstraint:
+            baseTableName: environment_tags
+            constraintName: fk_env_tags_environment
+
+        - dropTable:
+            tableName: environment_tags
+
+      rollback:
+        - createTable:
+            tableName: environment_tags
+            columns:
+              - column: { name: environment_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: tag, type: VARCHAR(64), constraints: { nullable: false } }
+        - addPrimaryKey:
+            tableName: environment_tags
+            columnNames: environment_id, tag
+            constraintName: pk_environment_tags
+        - addForeignKeyConstraint:
+            baseTableName: environment_tags
+            baseColumnNames: environment_id
+            referencedTableName: environment
+            referencedColumnNames: id
+            constraintName: fk_env_tags_environment
+        - sql:
+            sql: "INSERT INTO environment_tags (environment_id, tag) SELECT id, jsonb_array_elements_text(tags) FROM environment WHERE tags IS NOT NULL AND tags != '[]'::jsonb;"
+        - dropIndex:
+            indexName: idx_environment_tags
+            tableName: environment
+        - dropColumn:
+            tableName: environment
+            columnName: tags
+
+  - changeSet:
+      id: 2026-02-25-rework-feature-flag-tags
+      author: urninax
+      dbms: postgresql
+      changes:
+        - addColumn:
+            tableName: feature_flag
+            columns:
+              - column:
+                  name: tags
+                  type: jsonb
+                  defaultValue: '[]'
+
+        - sql:
+            sql: "
+              update feature_flag f 
+              set tags = subquery.tags_array 
+              from (
+                select flag_id, jsonb_agg(id_tag) as tags_array
+                from (
+                  select flag_id, tag as id_tag
+                  from feature_flag_tags
+                ) inner_tags
+                group by flag_id
+              ) as subquery 
+              where f.id = subquery.flag_id;"
+
+        - sql:
+            sql: "create index idx_feature_flag_tags on feature_flag using gin (tags);"
+
+        - dropForeignKeyConstraint:
+            baseTableName: feature_flag_tags
+            constraintName: fk_flag
+
+        - dropTable:
+            tableName: feature_flag_tags
+
+      rollback:
+        - createTable:
+            tableName: feature_flag_tags
+            columns:
+              - column: { name: flag_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: tag, type: VARCHAR(64), constraints: { nullable: false } }
+        - addPrimaryKey:
+            tableName: feature_flag_tags
+            columnNames: flag_id, tag
+            constraintName: pk_feature_flag_tags
+        - addForeignKeyConstraint:
+            baseTableName: feature_flag_tags
+            baseColumnNames: flag_id
+            referencedTableName: feature_flag
+            referencedColumnNames: id
+            constraintName: fk_flag
+        - sql:
+            sql: "INSERT INTO feature_flag_tags (flag_id, tag) SELECT id, jsonb_array_elements_text(tags) FROM feature_flag WHERE tags IS NOT NULL AND tags != '[]'::jsonb;"
+        - dropIndex:
+            indexName: idx_feature_flag_tags
+            tableName: feature_flag
+        - dropColumn:
+            tableName: feature_flag
+            columnName: tags
+
+  - changeSet:
+      id: 2026-02-25-rework-project-tags
+      author: urninax
+      dbms: postgresql
+      changes:
+        - addColumn:
+            tableName: project
+            columns:
+              - column:
+                  name: tags
+                  type: jsonb
+                  defaultValue: '[]'
+
+        - sql:
+            sql: "
+              update project p 
+              set tags = subquery.tags_array 
+              from (
+                select project_id, jsonb_agg(id_tag) as tags_array
+                from (
+                  select project_id, tag as id_tag
+                  from project_tags
+                ) inner_tags
+                group by project_id
+              ) as subquery 
+              where p.id = subquery.project_id;"
+
+        - sql:
+            sql: "create index idx_project_tags on project using gin (tags);"
+
+        - dropForeignKeyConstraint:
+            baseTableName: project_tags
+            constraintName: fk_project_tags_project
+
+        - dropTable:
+            tableName: project_tags
+
+      rollback:
+        - createTable:
+            tableName: project_tags
+            columns:
+              - column: { name: project_id, type: UUID, constraints: { nullable: false } }
+              - column: { name: tag, type: VARCHAR(64), constraints: { nullable: false } }
+        - addPrimaryKey:
+            tableName: project_tags
+            columnNames: project_id, tag
+            constraintName: pk_project_tags
+        - addForeignKeyConstraint:
+            baseTableName: project_tags
+            baseColumnNames: project_id
+            referencedTableName: project
+            referencedColumnNames: id
+            constraintName: fk_project_tags_project
+        - sql:
+            sql: "INSERT INTO project_tags (project_id, tag) SELECT id, jsonb_array_elements_text(tags) FROM project WHERE tags IS NOT NULL AND tags != '[]'::jsonb;"
+        - dropIndex:
+            indexName: idx_project_tags
+            tableName: project
+        - dropColumn:
+            tableName: project
+            columnName: tags

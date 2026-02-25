@@ -1,10 +1,13 @@
 package me.urninax.flagdelivery.projectsenvs.models.environment;
 
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.*;
 import me.urninax.flagdelivery.flags.models.EnvironmentFlagConfig;
 import me.urninax.flagdelivery.projectsenvs.models.project.Project;
+import me.urninax.flagdelivery.shared.utils.Taggable;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 
@@ -21,7 +24,9 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Environment{
+public class Environment implements Taggable{
+    public static final int MAX_TAGS = 20;
+
     @Id
     @UuidGenerator
     private UUID id;
@@ -45,9 +50,10 @@ public class Environment{
     @Column(name = "critical")
     private boolean critical;
 
-    @OneToMany(mappedBy = "environment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Type(JsonType.class)
+    @Column(name = "tags", columnDefinition = "jsonb")
     @Builder.Default
-    private Set<EnvironmentTag> tags = new HashSet<>();
+    private Set<String> tags = new HashSet<>();
 
     @OneToMany(mappedBy = "environment", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

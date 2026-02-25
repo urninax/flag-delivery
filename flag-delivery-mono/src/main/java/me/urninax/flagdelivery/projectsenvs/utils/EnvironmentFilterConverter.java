@@ -14,7 +14,8 @@ public class EnvironmentFilterConverter implements Converter<String, ListAllEnvi
 
         return new ListAllEnvironmentsRequest(
                 map.getOrDefault("query", ""),
-                FilterParser.splitList(map, "tags")
+                FilterParser.splitList(map, "tags"),
+                FilterParser.splitList(map, "keys")
         );
     }
 }

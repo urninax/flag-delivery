@@ -1,10 +1,13 @@
 package me.urninax.flagdelivery.flags.models;
 
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.*;
 import me.urninax.flagdelivery.projectsenvs.models.project.Project;
+import me.urninax.flagdelivery.shared.utils.Taggable;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 
@@ -18,7 +21,7 @@ import java.util.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class FeatureFlag{
+public class FeatureFlag implements Taggable{
     @Id
     @UuidGenerator
     @Column(name = "id")
@@ -62,9 +65,10 @@ public class FeatureFlag{
     @OneToMany(mappedBy = "flag", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EnvironmentFlagConfig> flagConfigs;
 
-    @OneToMany(mappedBy = "featureFlag", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Type(JsonType.class)
+    @Column(name = "tags", columnDefinition = "jsonb")
     @Builder.Default
-    private Set<FeatureFlagTag> tags = new HashSet<>();
+    private Set<String> tags = new HashSet<>();
 
     @Column(name = "temporary")
     private boolean temporary;

@@ -33,6 +33,7 @@ public record CreateProjectRequest(
         @Valid
         List<CreateEnvironmentRequest> environments,
 
+        @Valid
         @JsonProperty("naming_convention")
         NamingConventionRequest namingConvention
 ){}

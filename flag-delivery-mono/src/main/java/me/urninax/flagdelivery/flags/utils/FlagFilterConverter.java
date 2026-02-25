@@ -2,11 +2,13 @@ package me.urninax.flagdelivery.flags.utils;
 
 import me.urninax.flagdelivery.flags.ui.requests.ListAllFlagsRequest;
 import me.urninax.flagdelivery.projectsenvs.utils.FilterParser;
+import me.urninax.flagdelivery.shared.exceptions.BadRequestException;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.UUID;
 
 @Component
 public class FlagFilterConverter implements Converter<String, ListAllFlagsRequest>{
@@ -15,10 +17,19 @@ public class FlagFilterConverter implements Converter<String, ListAllFlagsReques
     public ListAllFlagsRequest convert(String source){
         Map<String, String> params = FilterParser.parse(source);
 
+        UUID maintainerId = null;
+        if(params.containsKey("maintainer") && !params.get("maintainer").isBlank()){
+            try{
+                maintainerId = UUID.fromString(params.get("maintainer").trim());
+            }catch(Exception e){
+                throw new BadRequestException("Invalid maintainer id");
+            }
+        }
+
         return new ListAllFlagsRequest(
                 params.getOrDefault("query", ""),
                 FilterParser.splitList(params, "tags"),
-                params.getOrDefault("maintainer", ""),
+                maintainerId,
                 params.getOrDefault("type", "")
         );
     }

@@ -3,7 +3,10 @@ package me.urninax.flagdelivery.flags.services;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import me.urninax.flagdelivery.flags.models.*;
+import me.urninax.flagdelivery.flags.models.EnvironmentFlagConfig;
+import me.urninax.flagdelivery.flags.models.FeatureFlag;
+import me.urninax.flagdelivery.flags.models.FlagKind;
+import me.urninax.flagdelivery.flags.models.FlagVariation;
 import me.urninax.flagdelivery.flags.models.rule.Rule;
 import me.urninax.flagdelivery.flags.repositories.FlagConfigsRepository;
 import me.urninax.flagdelivery.flags.repositories.FlagsRepository;
@@ -24,7 +27,7 @@ import me.urninax.flagdelivery.flags.utils.exceptions.FlagNotFoundException;
 import me.urninax.flagdelivery.flags.utils.exceptions.rule.RuleNotFoundException;
 import me.urninax.flagdelivery.organisation.repositories.MembershipsRepository;
 import me.urninax.flagdelivery.projectsenvs.models.project.Project;
-import me.urninax.flagdelivery.projectsenvs.repositories.EnvironmentsRepository;
+import me.urninax.flagdelivery.projectsenvs.repositories.environment.EnvironmentsRepository;
 import me.urninax.flagdelivery.projectsenvs.services.ProjectsService;
 import me.urninax.flagdelivery.shared.exceptions.BadRequestException;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
@@ -37,7 +40,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -71,7 +73,6 @@ public class FlagsService{
         Project project = em.getReference(Project.class, projectId);
 
         FeatureFlag flag = buildFeatureFlag(request, resolvedVariations, maintainer, project);
-        attachTags(flag, request.tags());
 
         FeatureFlag created = safelySaveFlag(flag);
         setDefaultVariations(created, resolvedVariations);
@@ -94,7 +95,7 @@ public class FlagsService{
         UUID orgId = currentUser.getOrganisationId();
         UUID projectId = projectsService.findIdByKeyAndOrg(projectKey, orgId);
 
-        Page<FeatureFlag> flagPage = flagsRepository.findAllWithFilter(projectId, request, pageable);
+        Page<FeatureFlag> flagPage = flagsRepository.findPageWithFilter(projectId, request, pageable);
 
         return flagPage.map(entityMapper::toDTO);
     }
@@ -205,16 +206,9 @@ public class FlagsService{
         flag.setVariations(new LinkedList<>());
         variations.forEach(flag::addVariation);
 
-        return flag;
-    }
+        flag.addTags(new HashSet<>(request.tags()));
 
-    private void attachTags(FeatureFlag flag, Set<String> tagNames) {
-        if (tagNames != null && !tagNames.isEmpty()) {
-            Set<FeatureFlagTag> tags = tagNames.stream()
-                    .map(tag -> FeatureFlagTag.of(flag, tag))
-                    .collect(Collectors.toSet());
-            flag.setTags(tags);
-        }
+        return flag;
     }
 
     private FeatureFlag safelySaveFlag(FeatureFlag flag) {

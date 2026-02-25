@@ -1,12 +1,7 @@
-package me.urninax.flagdelivery.projectsenvs.repositories;
+package me.urninax.flagdelivery.projectsenvs.repositories.project;
 
 import me.urninax.flagdelivery.projectsenvs.models.project.Project;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -15,16 +10,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface ProjectsRepository extends JpaRepository<Project, UUID>, JpaSpecificationExecutor<Project>{
+public interface ProjectsRepository extends JpaRepository<Project, UUID>, ProjectsRepositoryCustom{
     Optional<Project> findByOrganisationIdAndKey(UUID organisationId, String key);
 
     @Query("SELECT p.id FROM Project p WHERE p.key = :key AND p.organisationId = :orgId")
     Optional<UUID> findIdByKeyAndOrgId(@Param("key") String key,
                                        @Param("orgId") UUID orgId);
-
-    @Override
-    @EntityGraph(attributePaths = "tags")
-    Page<Project> findAll(Specification<Project> specification, Pageable pageable);
 
     void deleteByOrganisationIdAndKey(UUID organisationId, String key);
 }

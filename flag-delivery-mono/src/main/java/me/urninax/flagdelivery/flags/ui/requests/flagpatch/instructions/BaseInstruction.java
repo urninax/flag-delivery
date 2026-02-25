@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Getter;
 import lombok.Setter;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.clauses.*;
+import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.general.TurnFlagOffInstruction;
+import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.general.TurnFlagOnInstruction;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.lifecycle.*;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.prerequisites.AddPrerequisiteInstruction;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.prerequisites.RemovePrerequisiteInstruction;

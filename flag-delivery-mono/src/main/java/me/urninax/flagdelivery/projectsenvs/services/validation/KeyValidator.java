@@ -28,11 +28,6 @@ public class KeyValidator implements ConstraintValidator<ValidKey, String>{
         if(s == null){
             return true;
         }
-        Set<String> reservedKeysSet = new HashSet<>(reserved);
-
-        boolean matchesRegex = s.matches(REGEX);
-        boolean isNotReserved = !reservedKeysSet.contains(s);
-
-        return matchesRegex && isNotReserved;
+        return s.matches(REGEX) && !reserved.contains(s);
     }
 }

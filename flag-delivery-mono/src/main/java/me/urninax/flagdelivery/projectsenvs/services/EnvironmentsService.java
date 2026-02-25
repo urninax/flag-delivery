@@ -4,36 +4,30 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.projectsenvs.models.environment.Environment;
-import me.urninax.flagdelivery.projectsenvs.models.environment.EnvironmentTag;
-import me.urninax.flagdelivery.projectsenvs.models.environment.EnvironmentTagId;
 import me.urninax.flagdelivery.projectsenvs.models.project.Project;
-import me.urninax.flagdelivery.projectsenvs.repositories.EnvironmentsRepository;
-import me.urninax.flagdelivery.projectsenvs.repositories.ProjectsRepository;
-import me.urninax.flagdelivery.projectsenvs.shared.CommonSpecifications;
+import me.urninax.flagdelivery.projectsenvs.repositories.environment.EnvironmentsRepository;
+import me.urninax.flagdelivery.projectsenvs.repositories.project.ProjectsRepository;
 import me.urninax.flagdelivery.projectsenvs.shared.environment.EnvironmentDTO;
-import me.urninax.flagdelivery.projectsenvs.shared.environment.EnvironmentSpecifications;
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.environment.CreateEnvironmentRequest;
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.environment.ListAllEnvironmentsRequest;
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.environment.PatchEnvironmentRequest;
 import me.urninax.flagdelivery.projectsenvs.utils.exceptions.environment.EnvironmentAlreadyExistsException;
-import me.urninax.flagdelivery.projectsenvs.utils.exceptions.project.ProjectNotFoundException;
 import me.urninax.flagdelivery.projectsenvs.utils.exceptions.environment.EnvironmentNotFoundException;
 import me.urninax.flagdelivery.projectsenvs.utils.exceptions.environment.MissingEnvironmentException;
+import me.urninax.flagdelivery.projectsenvs.utils.exceptions.project.ProjectNotFoundException;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.shared.utils.EntityMapper;
 import me.urninax.flagdelivery.shared.utils.PersistenceExceptionUtils;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -80,22 +74,19 @@ public class EnvironmentsService{
         return entityMapper.toDTO(environment);
     }
 
+    public Page<EnvironmentDTO> getPaginatedEnvironments(String projectKey, Pageable pageable, ListAllEnvironmentsRequest request){
+        UUID orgId = currentUser.getOrganisationId();
+        Page<Environment> environmentPage = environmentsRepository.findPageWithFilter(orgId, projectKey, request, pageable);
+
+        return environmentPage.map(entityMapper::toDTO);
+    }
+
     public List<EnvironmentDTO> listEnvironments(String projectKey, ListAllEnvironmentsRequest request, Sort sort){
         UUID orgId = currentUser.getOrganisationId();
-        Specification<Environment> envSpec = EnvironmentSpecifications.byOrgAndProjectKey(orgId, projectKey);
 
-        if(request != null){
-            if(!request.query().isBlank()){
-                envSpec = envSpec.and(CommonSpecifications.hasQuery(request.query()));
-            }
+        List<Environment> environments = environmentsRepository.findAllWithFilter(orgId, projectKey, request, sort);
 
-            if(!request.tags().isEmpty()){
-                envSpec = envSpec.and(EnvironmentSpecifications.hasAllTags(request.tags()));
-            }
-        }
-
-        return environmentsRepository.findAll(envSpec, sanitize(sort))
-                .stream()
+        return environments.stream()
                 .map(entityMapper::toDTO)
                 .toList();
     }
@@ -157,7 +148,7 @@ public class EnvironmentsService{
                 .build();
 
         if(request.tags() != null){
-            environment.setTags(toTags(request.tags(), environment));
+            environment.addTags(new HashSet<>(request.tags()));
         }
 
         return environment;
@@ -177,34 +168,9 @@ public class EnvironmentsService{
             env.setCritical(request.critical());
         }
         if (request.tags() != null) {
-            env.getTags().clear();
-            env.getTags().addAll(toTags(request.tags(), env));
+            env.addTags(new HashSet<>(request.tags()));
         }
         env.setUpdatedAt(Instant.now());
-    }
-
-    private Set<EnvironmentTag> toTags(List<String> tags, Environment env) {
-        return tags.stream()
-                .map(tag -> new EnvironmentTag(new EnvironmentTagId(null, tag), env))
-                .collect(Collectors.toSet());
-    }
-
-    private Sort sanitize(Sort sort) {
-        if(sort.isUnsorted()){
-            return sort;
-        }
-
-        List<String> allowed = List.of("createdAt", "critical", "name");
-        List<Sort.Order> safeOrders = sort
-                .stream()
-                .filter(order -> allowed.contains(order.getProperty()))
-                .toList();
-
-        if(safeOrders.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot be sorted");
-        }
-
-        return Sort.by(safeOrders);
     }
 
     private boolean defaultIfNull(Boolean value, boolean defaultVal){

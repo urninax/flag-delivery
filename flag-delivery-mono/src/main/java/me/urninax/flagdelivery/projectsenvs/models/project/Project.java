@@ -1,8 +1,11 @@
 package me.urninax.flagdelivery.projectsenvs.models.project;
 
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.*;
 import me.urninax.flagdelivery.projectsenvs.models.environment.Environment;
+import me.urninax.flagdelivery.shared.utils.Taggable;
+import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant;
@@ -17,7 +20,9 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Project{
+public class Project implements Taggable{
+    public static final int MAX_TAGS = 20;
+
     @UuidGenerator
     @Id
     @Column(name = "id")
@@ -36,9 +41,10 @@ public class Project{
     @Column(name = "organisation_id")
     private UUID organisationId;
 
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Type(JsonType.class)
+    @Column(name = "tags", columnDefinition = "jsonb")
     @Builder.Default
-    private Set<ProjectTag> tags = new HashSet<>();
+    private Set<String> tags = new HashSet<>();
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Environment> environments;
