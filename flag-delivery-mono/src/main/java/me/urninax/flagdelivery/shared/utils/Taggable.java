@@ -44,4 +44,9 @@ public interface Taggable{
         getTags().clear();
         getTags().addAll(normalized);
     }
+
+    default void removeTag(String tag) {
+        if (tag == null || tag.isBlank()) return;
+        getTags().remove(tag.trim().toLowerCase());
+    }
 }

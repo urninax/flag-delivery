@@ -17,10 +17,7 @@ import me.urninax.flagdelivery.flags.shared.ResolvedVariations;
 import me.urninax.flagdelivery.flags.ui.requests.CreateFeatureFlagRequest;
 import me.urninax.flagdelivery.flags.ui.requests.ListAllFlagsRequest;
 import me.urninax.flagdelivery.flags.ui.requests.PatchFeatureFlag;
-import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.BaseInstruction;
-import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.ClauseInstruction;
-import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.LifecycleInstruction;
-import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.RuleInstruction;
+import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.*;
 import me.urninax.flagdelivery.flags.utils.FlagConfigEnvironmentProjection;
 import me.urninax.flagdelivery.flags.utils.exceptions.FlagAlreadyExistsException;
 import me.urninax.flagdelivery.flags.utils.exceptions.FlagNotFoundException;
@@ -151,7 +148,7 @@ public class FlagsService{
                 case LifecycleInstruction l -> lifecycleService.handle(flag, l);
 //                case TargetInstruction t -> targetsService.handle();
 //                case PrerequisiteInstruction p -> prerequisitesService.handle();
-//                case SettingInstruction s -> settingsService.handle();
+                case SettingInstruction s -> settingsService.handle(flag, s);
 //                case VariationInstruction v -> variationsService.handle();
                 default -> throw new BadRequestException("Unsupported instruction type"); // todo: change
             }
