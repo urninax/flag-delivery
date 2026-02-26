@@ -3,6 +3,7 @@ package me.urninax.flagdelivery.projectsenvs.models.project;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.*;
+import me.urninax.flagdelivery.flags.models.FeatureFlag;
 import me.urninax.flagdelivery.projectsenvs.models.environment.Environment;
 import me.urninax.flagdelivery.shared.utils.Taggable;
 import org.hibernate.annotations.Type;
@@ -10,6 +11,7 @@ import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -21,8 +23,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Project implements Taggable{
-    public static final int MAX_TAGS = 20;
-
     @UuidGenerator
     @Id
     @Column(name = "id")
@@ -48,6 +48,9 @@ public class Project implements Taggable{
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Environment> environments;
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<FeatureFlag> featureFlags;
 
     @Column(name = "casing_convention")
     @Enumerated(EnumType.STRING)

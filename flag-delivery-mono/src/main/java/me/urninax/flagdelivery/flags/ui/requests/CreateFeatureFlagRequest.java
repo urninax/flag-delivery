@@ -47,6 +47,9 @@ public record CreateFeatureFlagRequest(
         @JsonProperty("maintainer_id")
         UUID maintainerId,
 
+        @JsonProperty("initial_prerequisites")
+        List<@Valid PrerequisiteRequest> initialPrerequisites,
+
         @JsonProperty("is_flag_on")
         Boolean isFlagOn
 ){}

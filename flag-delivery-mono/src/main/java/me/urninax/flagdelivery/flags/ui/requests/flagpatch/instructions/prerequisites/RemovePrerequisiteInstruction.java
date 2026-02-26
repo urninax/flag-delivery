@@ -2,8 +2,10 @@ package me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.prerequ
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotEmpty;
+import lombok.Getter;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.PrerequisiteInstruction;
 
+@Getter
 public class RemovePrerequisiteInstruction extends PrerequisiteInstruction{
     @NotEmpty(message = "key cannot be empty.")
     @JsonProperty("key")

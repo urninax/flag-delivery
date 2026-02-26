@@ -8,7 +8,7 @@ import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.clauses.
 import me.urninax.flagdelivery.flags.utils.exceptions.rule.ClauseNotFoundException;
 import me.urninax.flagdelivery.shared.exceptions.BadRequestException;
 import me.urninax.flagdelivery.shared.utils.EntityMapper;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -17,9 +17,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-@Service
+@Component
 @RequiredArgsConstructor
-public class ClausesService{
+public class ClausesInstructionHandler{
     private final EntityMapper entityMapper;
 
     @Transactional

@@ -10,13 +10,13 @@ import me.urninax.flagdelivery.shared.exceptions.BadRequestException;
 import me.urninax.flagdelivery.shared.security.CurrentUser;
 import me.urninax.flagdelivery.user.models.UserEntity;
 import me.urninax.flagdelivery.user.utils.exceptions.UserNotFoundException;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
-@Service
+@Component
 @RequiredArgsConstructor
-public class SettingsService{
+public class SettingsInstructionHandler{
     private final EntityManager em;
     private final CurrentUser currentUser;
     private final MembershipsRepository membershipsRepository;

@@ -6,11 +6,11 @@ import me.urninax.flagdelivery.flags.repositories.FlagsRepository;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.LifecycleInstruction;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.lifecycle.*;
 import me.urninax.flagdelivery.shared.exceptions.BadRequestException;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
+@Component
 @RequiredArgsConstructor
-public class LifecycleService{
+public class LifecycleInstructionHandler{
     private final FlagsRepository flagsRepository;
 
     public void handle(FeatureFlag flag, LifecycleInstruction lifecycleInstruction){

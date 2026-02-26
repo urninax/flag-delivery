@@ -2,8 +2,12 @@ package me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.prerequ
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotEmpty;
+import lombok.Getter;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.PrerequisiteInstruction;
 
+import java.util.UUID;
+
+@Getter
 public class UpdatePrerequisiteInstruction extends PrerequisiteInstruction{
     @NotEmpty(message = "key cannot be empty.")
     @JsonProperty("key")
@@ -11,5 +15,5 @@ public class UpdatePrerequisiteInstruction extends PrerequisiteInstruction{
 
     @NotEmpty(message = "variation_id cannot be empty.")
     @JsonProperty("variation_id")
-    private String variationId;
+    private UUID variationId;
 }

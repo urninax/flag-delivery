@@ -5,6 +5,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.flags.models.EnvironmentFlagConfig;
 import me.urninax.flagdelivery.flags.models.FeatureFlag;
+import me.urninax.flagdelivery.flags.models.Prerequisite;
 import me.urninax.flagdelivery.flags.repositories.FlagConfigsRepository;
 import me.urninax.flagdelivery.flags.utils.FlagConfigEnvironmentProjection;
 import me.urninax.flagdelivery.flags.utils.exceptions.FlagConfigAlreadyExistsException;
@@ -24,7 +25,7 @@ public class FlagConfigService{
     private final EntityManager em;
 
     @Transactional
-    public List<EnvironmentFlagConfig> createFlagConfigForEnvs(FeatureFlag flag, Set<FlagConfigEnvironmentProjection> environmentProjections){
+    public List<EnvironmentFlagConfig> createFlagConfigForEnvs(FeatureFlag flag, Set<FlagConfigEnvironmentProjection> environmentProjections, Set<Prerequisite> prerequisites){
         List<EnvironmentFlagConfig> configs = environmentProjections.stream()
                 .map(proj ->
                         EnvironmentFlagConfig.builder()
@@ -35,6 +36,7 @@ public class FlagConfigService{
                             .offVariation(flag.getDefaultOffVariation())
                             .archived(false)
                             .flag(flag)
+                            .prerequisites(prerequisites)
                             .environment(em.getReference(Environment.class, proj.getId()))
                             .build()
                 ).toList();

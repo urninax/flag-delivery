@@ -3,11 +3,13 @@ package me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.prerequ
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
+import lombok.Getter;
 import me.urninax.flagdelivery.flags.ui.requests.PrerequisiteRequest;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.PrerequisiteInstruction;
 
 import java.util.List;
 
+@Getter
 public class ReplacePrerequisitesInstruction extends PrerequisiteInstruction{
     @NotEmpty(message = "prerequisites cannot be empty.")
     @JsonProperty("prerequisites")

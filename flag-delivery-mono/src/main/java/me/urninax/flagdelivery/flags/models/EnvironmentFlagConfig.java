@@ -1,16 +1,16 @@
 package me.urninax.flagdelivery.flags.models;
 
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.*;
 import me.urninax.flagdelivery.flags.models.rule.Rule;
 import me.urninax.flagdelivery.projectsenvs.models.environment.Environment;
+import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "environment_flag_config")
@@ -36,6 +36,11 @@ public class EnvironmentFlagConfig{
     @OneToMany(mappedBy = "environmentFlagConfig", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @Builder.Default
     private List<Rule> rules = new ArrayList<>();
+
+    @Type(JsonType.class)
+    @Column(name = "prerequisites", columnDefinition = "jsonb")
+    @Builder.Default
+    private Set<Prerequisite> prerequisites = new HashSet<>();
 
     @Column(name = "is_on")
     private boolean on;

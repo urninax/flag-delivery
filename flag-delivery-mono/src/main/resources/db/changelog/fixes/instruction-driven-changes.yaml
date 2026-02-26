@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-02-26-instruction-driven-changes
+      author: urninax
+      changes:
+        - dropNotNullConstraint:
+            tableName: feature_flag
+            columnName: maintainer_id

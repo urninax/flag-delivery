@@ -96,4 +96,14 @@ public class FeatureFlag implements Taggable{
         variation.setFlag(this);
     }
 
+    @Override
+    public boolean equals(Object o){
+        if(!(o instanceof FeatureFlag that)) return false;
+        return Objects.equals(getId(), that.getId());
+    }
+
+    @Override
+    public int hashCode(){
+        return Objects.hashCode(getId());
+    }
 }

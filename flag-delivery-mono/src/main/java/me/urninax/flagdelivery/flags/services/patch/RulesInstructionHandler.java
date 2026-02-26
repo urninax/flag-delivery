@@ -12,16 +12,16 @@ import me.urninax.flagdelivery.flags.utils.exceptions.VariationNotFoundException
 import me.urninax.flagdelivery.flags.utils.exceptions.rule.RuleNotFoundException;
 import me.urninax.flagdelivery.shared.exceptions.BadRequestException;
 import me.urninax.flagdelivery.shared.utils.EntityMapper;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@Service
+@Component
 @RequiredArgsConstructor
-public class RulesService{
+public class RulesInstructionHandler{
     private final EntityMapper entityMapper;
 
     @Transactional

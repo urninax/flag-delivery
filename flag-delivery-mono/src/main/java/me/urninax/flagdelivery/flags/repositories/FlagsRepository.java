@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -29,4 +30,11 @@ public interface FlagsRepository extends JpaRepository<FeatureFlag, UUID>, Flags
     Optional<FeatureFlag> findDeepById(UUID flagId);
 
     boolean deleteByProjectIdAndKey(UUID projectId, String flagKey);
+
+    @Query("""
+        select f from FeatureFlag f
+        join fetch f.variations
+        where f.key in :flagKeys AND f.project.id = :projectId
+    """)
+    Set<FeatureFlag> findAllByKeysAndProjectIdWithVariations(Set<String> flagKeys, UUID projectId);
 }

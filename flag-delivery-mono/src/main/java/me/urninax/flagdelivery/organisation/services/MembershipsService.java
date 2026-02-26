@@ -100,4 +100,16 @@ public class MembershipsService{
                 pageable
         );
     }
+
+    public UserEntity resolveMaintainer(UUID candidateId, UUID orgId){
+        // find out the maintainer. maintainer from request if exists in the organization, take requester id otherwise
+        boolean isValidMaintainer = candidateId != null
+                && membershipsRepository.existsByUserIdAndOrganisation_Id(candidateId, orgId);
+
+        UUID maintainerId = isValidMaintainer
+                ? candidateId
+                : currentUser.getUserId();
+
+        return em.getReference(UserEntity.class, maintainerId);
+    }
 }
