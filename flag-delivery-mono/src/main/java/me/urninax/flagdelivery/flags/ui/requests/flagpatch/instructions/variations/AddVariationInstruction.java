@@ -3,8 +3,10 @@ package me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.variati
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
 import me.urninax.flagdelivery.flags.ui.requests.flagpatch.instructions.VariationInstruction;
 
+@Getter
 public class AddVariationInstruction extends VariationInstruction{
     @JsonProperty("name")
     private String name;

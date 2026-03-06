@@ -3,7 +3,9 @@ package me.urninax.flagdelivery.flags.ui.requests;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 
+@Builder
 public record VariationRequest(
         @Size(max = 256, message = "Variation name should be at most 256 characters.")
         String name,

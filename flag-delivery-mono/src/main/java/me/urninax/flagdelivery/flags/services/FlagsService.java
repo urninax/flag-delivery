@@ -3,12 +3,12 @@ package me.urninax.flagdelivery.flags.services;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import me.urninax.flagdelivery.flags.models.*;
+import me.urninax.flagdelivery.flags.models.EnvironmentFlagConfig;
+import me.urninax.flagdelivery.flags.models.FeatureFlag;
+import me.urninax.flagdelivery.flags.models.Prerequisite;
 import me.urninax.flagdelivery.flags.models.rule.Rule;
 import me.urninax.flagdelivery.flags.repositories.FeatureFlagPersistenceManager;
-import me.urninax.flagdelivery.flags.repositories.FlagConfigsRepository;
 import me.urninax.flagdelivery.flags.repositories.FlagsRepository;
-import me.urninax.flagdelivery.flags.repositories.RulesRepository;
 import me.urninax.flagdelivery.flags.services.patch.*;
 import me.urninax.flagdelivery.flags.shared.FeatureFlagDTO;
 import me.urninax.flagdelivery.flags.shared.ResolvedVariations;
@@ -31,7 +31,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -55,8 +57,6 @@ public class FlagsService{
     private final VariationsInstructionHandler variationsInstructionHandler;
     private final ClausesInstructionHandler clausesInstructionHandler;
     private final PrerequisitesInstructionHandler prerequisitesInstructionHandler;
-    private final RulesRepository rulesRepository;
-    private final FlagConfigsRepository flagConfigsRepository;
 
     @Transactional
     public FeatureFlagDTO createFlag(String projectKey, CreateFeatureFlagRequest request){
@@ -149,7 +149,8 @@ public class FlagsService{
 //                case TargetInstruction t -> targetsService.handle();
                 case PrerequisiteInstruction p -> prerequisitesInstructionHandler.handle(flag, config, p);
                 case SettingInstruction s -> settingsInstructionHandler.handle(flag, s);
-//                case VariationInstruction v -> variationsService.handle();
+                case VariationInstruction v -> variationsInstructionHandler.handle(flag, v);
+
                 default -> throw new BadRequestException("Unsupported instruction type");
             }
 

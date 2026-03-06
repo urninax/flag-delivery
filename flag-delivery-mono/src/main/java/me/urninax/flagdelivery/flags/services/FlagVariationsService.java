@@ -3,6 +3,7 @@ package me.urninax.flagdelivery.flags.services;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import lombok.RequiredArgsConstructor;
+import me.urninax.flagdelivery.flags.models.FeatureFlag;
 import me.urninax.flagdelivery.flags.models.FlagKind;
 import me.urninax.flagdelivery.flags.models.FlagVariation;
 import me.urninax.flagdelivery.flags.shared.ResolvedVariations;
@@ -23,6 +24,11 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class FlagVariationsService{
+
+    public void createVariation(VariationRequest variationRequest, FeatureFlag flag){
+
+    }
+
     public ResolvedVariations resolveAndValidateVariations(CreateFeatureFlagRequest request){
         // map request to FlagVariation objects or get default true/false variations of empty
         List<FlagVariation> variations = request.variations() != null && !request.variations().isEmpty()
@@ -81,12 +87,18 @@ public class FlagVariationsService{
     }
 
     private void validateVariationTypes(List<FlagVariation> variations){
-        // map each variation to FlagKind and collect to set to find out if all variations have the same kind
-        Set<FlagKind> variationsKinds = variations.stream()
-                .map(v -> detectType(v.getValue()))
-                .collect(Collectors.toSet());
+        if(variations == null || variations.isEmpty()){
+            return;
+        }
 
-        if(variationsKinds.size() > 1){
+        FlagKind firstType = detectType(variations.getFirst().getValue());
+
+        boolean allSame = variations.stream()
+                .skip(1)
+                .map(v -> detectType(v.getValue()))
+                .allMatch(kind -> kind == firstType);
+
+        if(!allSame){
             throw new VariationTypesMismatchException();
         }
     }
