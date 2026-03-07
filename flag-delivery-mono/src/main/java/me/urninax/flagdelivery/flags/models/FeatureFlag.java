@@ -97,13 +97,14 @@ public class FeatureFlag implements Taggable{
     }
 
     @Override
-    public boolean equals(Object o){
+    public final boolean equals(Object o){
+        if(this == o) return true;
         if(!(o instanceof FeatureFlag that)) return false;
-        return Objects.equals(getId(), that.getId());
+        return getId() != null && Objects.equals(getId(), that.getId());
     }
 
     @Override
-    public int hashCode(){
-        return Objects.hashCode(getId());
+    public final int hashCode(){
+        return getClass().hashCode();
     }
 }

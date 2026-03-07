@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-03-07-add-gin-index-to-prerequisites
+      author: gemini-cli
+      changes:
+        - createIndex:
+            tableName: environment_flag_config
+            indexName: idx_env_flag_config_prerequisites
+            columns:
+              - column:
+                  name: prerequisites
+            # Liquibase 4.x supports GIN for PostgreSQL
+            # If native GIN property is not supported, we can use <sql> but let's try standard first.
+            # Using custom properties for GIN as createIndex might not have indexType in some versions.
+        - sql:
+            dbms: postgresql
+            sql: CREATE INDEX IF NOT EXISTS idx_env_flag_config_prerequisites ON environment_flag_config USING GIN (prerequisites);
+      rollback:
+        - dropIndex:
+            tableName: environment_flag_config
+            indexName: idx_env_flag_config_prerequisites

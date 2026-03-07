@@ -40,3 +40,4 @@ build/
 
 **/application*.yml
 .env*
+GEMINI.md

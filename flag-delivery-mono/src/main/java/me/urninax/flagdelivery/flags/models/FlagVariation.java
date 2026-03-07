@@ -42,17 +42,14 @@ public class FlagVariation{
     private Long version;
 
     @Override
-    public boolean equals(Object o){
-        if(o == null || getClass() != o.getClass()) return false;
-
-        FlagVariation that = (FlagVariation) o;
-        return Objects.equals(id, that.id) && value.equals(that.value);
+    public final boolean equals(Object o){
+        if(this == o) return true;
+        if(!(o instanceof FlagVariation that)) return false;
+        return getId() != null && Objects.equals(getId(), that.getId());
     }
 
     @Override
-    public int hashCode(){
-        int result = Objects.hashCode(id);
-        result = 31*result + value.hashCode();
-        return result;
+    public final int hashCode(){
+        return getClass().hashCode();
     }
 }

@@ -147,7 +147,11 @@ public class FlagsService{
                 }
                 case LifecycleInstruction l -> lifecycleInstructionHandler.handle(flag, l);
 //                case TargetInstruction t -> targetsService.handle();
-                case PrerequisiteInstruction p -> prerequisitesInstructionHandler.handle(flag, config, p);
+                case PrerequisiteInstruction p -> {
+                    if(config == null) throw new BadRequestException("Environment config is missing");
+
+                    prerequisitesInstructionHandler.handle(flag, config, p);
+                }
                 case SettingInstruction s -> settingsInstructionHandler.handle(flag, s);
                 case VariationInstruction v -> variationsInstructionHandler.handle(flag, v);
 
