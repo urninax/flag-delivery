@@ -16,14 +16,12 @@ import java.util.Objects;
 @Component
 @RequiredArgsConstructor
 public class FeatureFlagFactory{
-    private final FlagVariationsService flagVariationsService;
-
     public FeatureFlag create(CreateFeatureFlagRequest request,
                               ResolvedVariations resolved,
                               UserEntity maintainer,
                               Project project) {
 
-        FlagKind kind = flagVariationsService.detectType(resolved.variations().getFirst().getValue());
+        FlagKind kind = FlagKind.from(resolved.variations().getFirst().getValue());
 
         FeatureFlag flag = FeatureFlag.builder()
                 .name(cleanName(request.name()))

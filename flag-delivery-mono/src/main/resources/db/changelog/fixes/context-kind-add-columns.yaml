@@ -1,0 +1,46 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-03-08-context-kind-add-columns
+      author: urninax
+      changes:
+        - addColumn:
+            tableName: context_kind
+            columns:
+              - column:
+                  name: archived
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+              - column:
+                  name: version
+                  type: bigint
+                  defaultValueNumeric: "0"
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: last_seen
+                  type: timestamp
+
+      rollback:
+        - dropColumn:
+            tableName: context_kind
+            columnName: archived
+        - dropColumn:
+            tableName: context_kind
+            columnName: updated_at
+        - dropColumn:
+            tableName: context_kind
+            columnName: version
+        - dropColumn:
+            tableName: context_kind
+            columnName: last_seen
+
+

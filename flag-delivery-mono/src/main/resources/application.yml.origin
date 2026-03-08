@@ -49,12 +49,17 @@ app:
     default-from:
 
 reserved:
-  keys:
-    - admin
-    - new
-    - root
-    - default
-    - system
+  types:
+    PROJECT:
+      - admin
+      - root
+      - system
+    ENVIRONMENT:
+      - new
+      - default
+    CONTEXTKIND:
+      - system
+      - internal
 
 login:
   url: "/api/v1/auth/signin"

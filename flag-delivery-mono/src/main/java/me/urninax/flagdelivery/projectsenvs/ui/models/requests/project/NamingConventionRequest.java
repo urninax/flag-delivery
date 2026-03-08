@@ -3,6 +3,7 @@ package me.urninax.flagdelivery.projectsenvs.ui.models.requests.project;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Size;
 import me.urninax.flagdelivery.projectsenvs.models.project.CasingConvention;
+import me.urninax.flagdelivery.projectsenvs.services.validation.KeyType;
 import me.urninax.flagdelivery.projectsenvs.services.validation.ValidKey;
 
 public record NamingConventionRequest(
@@ -10,7 +11,7 @@ public record NamingConventionRequest(
         CasingConvention casingConvention,
 
         @Size(max = 128, message = "Prefix cannot be longer than 128 chars.")
-        @ValidKey
+        @ValidKey(type = KeyType.PROJECT)
         @JsonProperty("prefix")
         String prefix
 ){}

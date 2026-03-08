@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
+import me.urninax.flagdelivery.projectsenvs.services.validation.KeyType;
 import me.urninax.flagdelivery.projectsenvs.services.validation.ValidKey;
 
 import java.util.List;
@@ -20,7 +21,7 @@ public record CreateEnvironmentRequest(
         @JsonProperty("key")
         @NotBlank(message = "Environment key is required.")
         @Size(max = 128, message = "Environment key should be at most 128 chars long.")
-        @ValidKey
+        @ValidKey(type = KeyType.ENVIRONMENT)
         String key,
 
         @JsonProperty("confirm_changes")

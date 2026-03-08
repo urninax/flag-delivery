@@ -12,6 +12,8 @@ import java.lang.annotation.*;
 public @interface ValidKey{
     String message() default "Invalid key: must start with a letter or a digit, contain only letters, digits, '.', '-', '_'";
 
+    KeyType type() default KeyType.ANY;
+
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }

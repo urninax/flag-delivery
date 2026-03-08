@@ -153,7 +153,7 @@ public class FlagsService{
                     prerequisitesInstructionHandler.handle(flag, config, p);
                 }
                 case SettingInstruction s -> settingsInstructionHandler.handle(flag, s);
-                case VariationInstruction v -> variationsInstructionHandler.handle(flag, v);
+                case VariationInstruction v -> variationsInstructionHandler.handle(flag, config, v);
 
                 default -> throw new BadRequestException("Unsupported instruction type");
             }

@@ -3,6 +3,8 @@ package me.urninax.flagdelivery.shared.exceptionhandling;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import jakarta.persistence.OptimisticLockException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import me.urninax.flagdelivery.shared.exceptions.ApiException;
 import me.urninax.flagdelivery.shared.exceptions.ConflictException;
@@ -92,15 +94,27 @@ public class GlobalControllerAdvice{
         return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler({MethodArgumentNotValidException.class})
-    public ResponseEntity<ErrorMessage> handleValidationExceptions(MethodArgumentNotValidException exc,
+    @ExceptionHandler({MethodArgumentNotValidException.class, ConstraintViolationException.class})
+    public ResponseEntity<ErrorMessage> handleValidationExceptions(Exception exc,
                                                                    WebRequest request){
-        String message = exc.getFieldErrors()
-                .stream()
-                .map(DefaultMessageSourceResolvable::getDefaultMessage) //todo: fix message for failed String to LocalDate binding (possible solution: take message from messages.properties)
-                .filter(Objects::nonNull)
-                .distinct()
-                .collect(Collectors.joining("; "));
+        String message = "Unknown validation error";
+        String errorCode = "VALIDATION_ERROR";
+
+        if (exc instanceof ConstraintViolationException constraintViolationExc) {
+            message = constraintViolationExc.getConstraintViolations()
+                    .stream()
+                    .map(ConstraintViolation::getMessage)
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .collect(Collectors.joining("; "));
+        } else if (exc instanceof MethodArgumentNotValidException methodArgumentNotValidExc) {
+            message = methodArgumentNotValidExc.getBindingResult().getFieldErrors()
+                    .stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .collect(Collectors.joining("; "));
+        }
 
         HttpStatus status = message.isBlank() ? HttpStatus.INTERNAL_SERVER_ERROR
                 : HttpStatus.BAD_REQUEST;
@@ -110,6 +124,7 @@ public class GlobalControllerAdvice{
                 .status(status.value())
                 .message(message.isBlank() ? "Unknown validation error" : message)
                 .path(request.getDescription(false).replace("uri=", ""))
+                .errorCode(errorCode)
                 .build();
 
         return new ResponseEntity<>(errorMessage, status);

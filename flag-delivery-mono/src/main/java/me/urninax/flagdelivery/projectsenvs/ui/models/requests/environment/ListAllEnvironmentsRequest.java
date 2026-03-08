@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import me.urninax.flagdelivery.projectsenvs.services.validation.KeyType;
 import me.urninax.flagdelivery.projectsenvs.services.validation.ValidKey;
 
 import java.util.List;
@@ -21,5 +22,5 @@ public record ListAllEnvironmentsRequest(
                 @Pattern(regexp = "^[A-Za-z0-9._-]{1,64}$", message = "Tags should contain only letters, digits, '.', '-', '_'")
                         String> tags,
 
-        List<@Size(max = 128, message = "Environment key should be at most 128 chars long.") @ValidKey String> keys
+        List<@Size(max = 128, message = "Environment key should be at most 128 chars long.") @ValidKey(type = KeyType.ENVIRONMENT) String> keys
 ){}

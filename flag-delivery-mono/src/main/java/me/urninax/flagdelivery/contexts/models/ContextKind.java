@@ -1,12 +1,13 @@
 package me.urninax.flagdelivery.contexts.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
+import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -33,4 +34,24 @@ public class ContextKind{
 
     @Column(name = "description")
     private String description;
+
+    @Type(JsonType.class)
+    @Column(name = "attributes", columnDefinition = "jsonb")
+    private JsonNode attributes;
+
+    @Column(name = "archived")
+    private boolean archived;
+
+    @Version
+    @Column(name = "version")
+    private Long version;
+
+    @Column(name = "created_at")
+    private Instant createdAt;
+
+    @Column(name = "updated_at")
+    private Instant updatedAt;
+
+    @Column(name = "last_seen")
+    private Instant lastSeen;
 }

@@ -32,3 +32,6 @@ databaseChangeLog:
 - include:
     file: fixes/prerequisites-gin-index.yaml
     relativeToChangelogFile: true
+- include:
+      file: fixes/context-kind-add-columns.yaml
+      relativeToChangelogFile: true

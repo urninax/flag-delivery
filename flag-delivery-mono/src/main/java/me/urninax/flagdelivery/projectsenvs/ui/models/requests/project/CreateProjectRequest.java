@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import me.urninax.flagdelivery.projectsenvs.services.validation.KeyType;
 import me.urninax.flagdelivery.projectsenvs.services.validation.ValidKey;
 import me.urninax.flagdelivery.projectsenvs.ui.models.requests.environment.CreateEnvironmentRequest;
 
@@ -19,7 +20,7 @@ public record CreateProjectRequest(
         @JsonProperty("key")
         @NotBlank(message = "Project key is required.")
         @Size(max = 128, message = "Project key should be at most 128 chars long.")
-        @ValidKey
+        @ValidKey(type = KeyType.PROJECT)
         String key,
 
         @JsonProperty("tags")
