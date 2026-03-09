@@ -5,7 +5,6 @@ import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UuidGenerator;
 
@@ -35,10 +34,9 @@ public class ContextInstance{
     @Column(name = "body", nullable = false, columnDefinition = "jsonb")
     private JsonNode body;
 
-    @NotNull
-    @ColumnDefault("0")
+    @Version
     @Column(name = "version", nullable = false)
-    private Integer version;
+    private Integer version = 0;
 
     @Column(name = "updated_at")
     private Instant updatedAt;

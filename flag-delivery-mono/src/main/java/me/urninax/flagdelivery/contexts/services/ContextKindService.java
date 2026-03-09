@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.Clock;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -63,5 +64,13 @@ public class ContextKindService{
                 );
 
         return entityMapper.toDTO(contextKindRepository.saveAndFlush(contextKind));
+    }
+
+    public Optional<ContextKind> getContextKind(String projectKey, String contextKindKey){
+        UUID orgId = currentUser.getOrganisationId();
+        Project project = projectsRepository.findByOrganisationIdAndKey(orgId, projectKey)
+                .orElseThrow(ProjectNotFoundException::new);
+
+        return contextKindRepository.findByProjectIdAndKey(project.getId(), contextKindKey);
     }
 }

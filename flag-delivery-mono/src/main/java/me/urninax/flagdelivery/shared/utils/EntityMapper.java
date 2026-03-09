@@ -2,6 +2,8 @@ package me.urninax.flagdelivery.shared.utils;
 
 import me.urninax.flagdelivery.contexts.models.ContextKind;
 import me.urninax.flagdelivery.contexts.shared.ContextKindDTO;
+import me.urninax.flagdelivery.contexts.shared.SingleContextInstanceDTO;
+import me.urninax.flagdelivery.contexts.ui.requests.EvaluationContextRequest;
 import me.urninax.flagdelivery.flags.models.EnvironmentFlagConfig;
 import me.urninax.flagdelivery.flags.models.FeatureFlag;
 import me.urninax.flagdelivery.flags.models.rule.RuleClause;
@@ -84,6 +86,8 @@ public interface EntityMapper{
     EnvironmentFlagConfigDTO toDTO(EnvironmentFlagConfig flagConfig);
 
     ContextKindDTO toDTO(ContextKind kind);
+
+    SingleContextInstanceDTO toSingleContextInstanceDTO(EvaluationContextRequest request);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "rule", ignore = true)
