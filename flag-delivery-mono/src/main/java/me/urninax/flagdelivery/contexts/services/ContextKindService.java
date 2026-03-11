@@ -1,5 +1,8 @@
 package me.urninax.flagdelivery.contexts.services;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.Clock;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -31,6 +33,7 @@ public class ContextKindService{
     private final CurrentUser currentUser;
     private final Clock clock;
     private final EntityMapper entityMapper;
+    private final ObjectMapper objectMapper;
 
     @Transactional
     public ContextKindDTO createOrUpdateContextKind(String projectKey,
@@ -66,11 +69,40 @@ public class ContextKindService{
         return entityMapper.toDTO(contextKindRepository.saveAndFlush(contextKind));
     }
 
-    public Optional<ContextKind> getContextKind(String projectKey, String contextKindKey){
-        UUID orgId = currentUser.getOrganisationId();
-        Project project = projectsRepository.findByOrganisationIdAndKey(orgId, projectKey)
-                .orElseThrow(ProjectNotFoundException::new);
-
-        return contextKindRepository.findByProjectIdAndKey(project.getId(), contextKindKey);
+    public ContextKind createOrGetContextKind(String contextKindKey, UUID projectId){
+        return contextKindRepository.findByProjectIdAndKey(projectId, contextKindKey)
+                .orElseGet(() -> ContextKind.builder()
+                        .projectId(projectId)
+                        .name(contextKindKey)
+                        .key(contextKindKey)
+                        .createdAt(clock.instant())
+                        .updatedAt(clock.instant())
+                        .build()
+                );
     }
+
+    // helper methods
+
+    public void updateContextKindAttributes(ContextKind contextKind, JsonNode evaluationBody){
+        ObjectNode existingPaths = (ObjectNode) contextKind.getAttributes();
+        if(existingPaths == null){
+            existingPaths = objectMapper.createObjectNode();
+        }
+
+        extractPaths("", evaluationBody, existingPaths);
+
+        contextKind.setAttributes(existingPaths);
+    }
+
+    private void extractPaths(String currentPath, JsonNode evaluationBody, ObjectNode collector){
+        if(evaluationBody.isObject()){
+            evaluationBody.forEachEntry((attribute, value) -> {
+                String nextPath = currentPath + "/" + attribute;
+                extractPaths(nextPath, value, collector);
+            });
+        }else{
+            collector.put(currentPath, evaluationBody.asText());
+        }
+    }
+
 }

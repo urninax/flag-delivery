@@ -9,6 +9,8 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -19,14 +21,17 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class ContextInstance{
     @Id
     @UuidGenerator
     @Column(name = "id", nullable = false)
+    @EqualsAndHashCode.Include
     private UUID id;
 
     @NotNull
     @Column(name = "hash", nullable = false)
+    @EqualsAndHashCode.Include
     private String hash;
 
     @NotNull
@@ -40,4 +45,8 @@ public class ContextInstance{
 
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @ManyToMany(mappedBy = "instances", fetch = FetchType.LAZY)
+    @Builder.Default
+    private Set<Context> contexts = new LinkedHashSet<>();
 }

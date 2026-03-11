@@ -7,10 +7,13 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import me.urninax.flagdelivery.projectsenvs.services.validation.KeyType;
+import me.urninax.flagdelivery.projectsenvs.services.validation.ValidKey;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +28,8 @@ public class EvaluationContextRequest{
     private String key;
 
     @NotBlank(message = "Context kind cannot be empty.")
+    @Size(min = 2, max = 20, message = "Context kind must be between 2 and 20 characters.")
+    @ValidKey(type = KeyType.CONTEXTKIND)
     private String kind;
 
     @JsonIgnore
@@ -50,11 +55,6 @@ public class EvaluationContextRequest{
         if("multi".equalsIgnoreCase(kind)){
             if(attributes.isEmpty()) return false;
 
-//            return attributes.values().stream().allMatch(node ->
-//                    node.isObject() &&
-//                    node.has("key") &&
-//                    !node.get("key").asText().isBlank()
-//            );
             boolean subContextsHaveKeys = attributes.values().stream().allMatch(node ->
                     node.isObject() &&
                             node.has("key") &&
