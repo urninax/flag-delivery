@@ -18,16 +18,6 @@ public class ContextService{
     private final Clock clock;
     private final ContextRepository contextRepository;
     private final ContextKindService contextKindService;
-    private final ContextService contextService;
-
-    public Context createContext(ContextKind contextKind, Environment environment, String contextKey){
-        return Context.builder()
-                .contextKind(contextKind)
-                .environment(environment)
-                .key(contextKey)
-                .createdAt(clock.instant())
-                .build();
-    }
 
     public void syncContexts(Environment environment, List<ContextInstance> contextInstances){
         List<Context> contextsToSave = contextInstances.stream().map(instance -> {
@@ -39,7 +29,7 @@ public class ContextService{
             contextKindService.updateContextKindAttributes(kind, attributes);
 
             Context context = contextRepository.findByEnvironmentIdAndKey(environment.getId(), contextKey)
-                    .orElseGet(() -> contextService.createContext(kind, environment, contextKey));
+                    .orElseGet(() -> createContext(kind, environment, contextKey));
 
             context.addInstance(instance);
             context.setLastSeen(clock.instant());
@@ -47,5 +37,14 @@ public class ContextService{
         }).toList();
 
         contextRepository.saveAll(contextsToSave);
+    }
+
+    private Context createContext(ContextKind contextKind, Environment environment, String contextKey){
+        return Context.builder()
+                .contextKind(contextKind)
+                .environment(environment)
+                .key(contextKey)
+                .createdAt(clock.instant())
+                .build();
     }
 }
