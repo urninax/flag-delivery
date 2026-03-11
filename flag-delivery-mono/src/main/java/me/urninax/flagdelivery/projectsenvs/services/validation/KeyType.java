@@ -7,6 +7,7 @@ public enum KeyType{
     PROJECT("Project"),
     ENVIRONMENT("Environment"),
     CONTEXTKIND( "Context kind"),
+    EVALUATION_CONTEXTKIND("Evaluation context kind"),
     ANY("Any");
 
     private final String name;

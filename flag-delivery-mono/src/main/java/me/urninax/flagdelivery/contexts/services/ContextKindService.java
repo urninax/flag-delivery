@@ -2,7 +2,7 @@ package me.urninax.flagdelivery.contexts.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
@@ -84,24 +84,24 @@ public class ContextKindService{
     // helper methods
 
     public void updateContextKindAttributes(ContextKind contextKind, JsonNode evaluationBody){
-        ObjectNode existingPaths = (ObjectNode) contextKind.getAttributes();
+        ArrayNode existingPaths = (ArrayNode) contextKind.getAttributes();
         if(existingPaths == null){
-            existingPaths = objectMapper.createObjectNode();
+            existingPaths = objectMapper.createArrayNode();
         }
 
-        extractPaths("", evaluationBody, existingPaths);
+        extractPaths("", evaluationBody, existingPaths, 0);
 
         contextKind.setAttributes(existingPaths);
     }
 
-    private void extractPaths(String currentPath, JsonNode evaluationBody, ObjectNode collector){
+    private void extractPaths(String currentPath, JsonNode evaluationBody, ArrayNode collector, int level){
         if(evaluationBody.isObject()){
             evaluationBody.forEachEntry((attribute, value) -> {
-                String nextPath = currentPath + "/" + attribute;
-                extractPaths(nextPath, value, collector);
+                String nextPath = level == 0 ? attribute : currentPath + "/" + attribute;
+                extractPaths(nextPath, value, collector, level + 1);
             });
         }else{
-            collector.put(currentPath, evaluationBody.asText());
+            collector.add(level > 1 ? "/" + currentPath : currentPath);
         }
     }
 

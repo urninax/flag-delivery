@@ -108,7 +108,7 @@ public class GlobalControllerAdvice{
                     .distinct()
                     .collect(Collectors.joining("; "));
         } else if (exc instanceof MethodArgumentNotValidException methodArgumentNotValidExc) {
-            message = methodArgumentNotValidExc.getBindingResult().getFieldErrors()
+            message = methodArgumentNotValidExc.getBindingResult().getAllErrors()
                     .stream()
                     .map(DefaultMessageSourceResolvable::getDefaultMessage)
                     .filter(Objects::nonNull)

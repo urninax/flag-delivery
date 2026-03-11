@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import me.urninax.flagdelivery.contexts.services.ContextKindService;
 import me.urninax.flagdelivery.contexts.shared.ContextKindDTO;
 import me.urninax.flagdelivery.contexts.ui.requests.CreateContextKindRequest;
+import me.urninax.flagdelivery.projectsenvs.services.validation.KeyType;
+import me.urninax.flagdelivery.projectsenvs.services.validation.ValidKey;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +23,7 @@ public class ContextKindsController{
     @PutMapping("/{contextKindKey}")
     public ResponseEntity<?> createOrUpdateContextKind(@PathVariable String projectKey,
                                                        @PathVariable @Size(min = 2, max = 64, message = "Context kind key should be 2-64 characters.")
-                                                       @NotEmpty(message = "Context kind key cannot be empty") String contextKindKey,
+                                                       @NotEmpty(message = "Context kind key cannot be empty") @ValidKey(type = KeyType.CONTEXTKIND) String contextKindKey,
                                                        @Valid @RequestBody CreateContextKindRequest request){
         ContextKindDTO contextKind = contextKindService.createOrUpdateContextKind(projectKey, contextKindKey, request);
 
