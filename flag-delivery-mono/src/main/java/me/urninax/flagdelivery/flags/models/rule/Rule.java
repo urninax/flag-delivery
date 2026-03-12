@@ -6,8 +6,8 @@ import me.urninax.flagdelivery.flags.models.EnvironmentFlagConfig;
 import me.urninax.flagdelivery.flags.models.FlagVariation;
 import org.hibernate.annotations.UuidGenerator;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -29,7 +29,7 @@ public class Rule{
 
     @OneToMany(mappedBy = "rule", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<RuleClause> clauses = new ArrayList<>();
+    private Set<RuleClause> clauses = new LinkedHashSet<>();
 
     @Column(name = "priority")
     @Builder.Default

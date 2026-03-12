@@ -35,12 +35,17 @@ public class EnvironmentFlagConfig{
 
     @OneToMany(mappedBy = "environmentFlagConfig", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @Builder.Default
-    private List<Rule> rules = new ArrayList<>();
+    private Set<Rule> rules = new LinkedHashSet<>();
 
     @Type(JsonType.class)
     @Column(name = "prerequisites", columnDefinition = "jsonb")
     @Builder.Default
     private Set<Prerequisite> prerequisites = new HashSet<>();
+
+    @Type(JsonType.class)
+    @Column(name = "context_targets", columnDefinition = "jsonb")
+    @Builder.Default
+    private Set<ContextTarget> contextTargets = new HashSet<>();
 
     @Column(name = "is_on")
     private boolean on;

@@ -110,8 +110,6 @@ public class RulesInstructionHandler{
             UUID ruleId = newOrder.get(i);
             ruleMap.get(ruleId).setPriority(i);
         }
-
-        config.getRules().sort(Comparator.comparingInt(Rule::getPriority));
     }
 
     private void replaceRules(EnvironmentFlagConfig config, FeatureFlag flag, ReplaceRulesInstruction instruction){

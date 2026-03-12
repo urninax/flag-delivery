@@ -15,4 +15,14 @@ public interface FlagConfigsRepository extends JpaRepository<EnvironmentFlagConf
                    "JOIN feature_flag f ON efc.flag_id = f.id " +
                    "WHERE efc.prerequisites @> CAST(:jsonQuery AS jsonb)", nativeQuery = true)
     List<String> findFlagsWithPrerequisiteOnVariation(@Param("jsonQuery") String jsonQuery);
+
+
+    @Query("""
+        select distinct efc from EnvironmentFlagConfig efc
+        join fetch efc.flag ff
+        left join fetch efc.rules r
+        left join fetch r.clauses
+        where efc.environment.id = :environmentId
+    """)
+    List<EnvironmentFlagConfig> findAllByEnvironmentIdDeep(UUID environmentId);
 }
