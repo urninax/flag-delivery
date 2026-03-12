@@ -35,7 +35,7 @@ public class VariationsInstructionHandler{
             case UpdateFallthroughVariationInstruction inst -> updateFallthroughVariation(flag, config, inst);
             case UpdateOffVariationInstruction inst -> updateOffVariation(flag, config, inst);
             case UpdateVariationInstruction inst -> updateVariationInstruction(flag, inst);
-            default -> throw new IllegalArgumentException("Unsupported variation instruction: " + variationInstruction.getClass().getSimpleName());
+            default -> throw new BadRequestException("Unsupported variation instruction");
         }
     }
 
