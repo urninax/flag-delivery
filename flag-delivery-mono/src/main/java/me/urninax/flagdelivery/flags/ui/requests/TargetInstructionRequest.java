@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotEmpty;
 
 import java.util.List;
+import java.util.UUID;
 
 public record TargetInstructionRequest(
         @NotEmpty(message = "context_kind is required.")
@@ -12,7 +13,7 @@ public record TargetInstructionRequest(
 
         @NotEmpty(message = "variation_id is required.")
         @JsonProperty("variation_id")
-        String variationId,
+        UUID variationId,
 
         @NotEmpty(message = "values cannot be empty.")
         @JsonProperty("values")
